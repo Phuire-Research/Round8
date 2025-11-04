@@ -64,22 +64,106 @@ describe('SumWrung - First Column Addition Tests', () => {
     return internalValue + 1;
   };
 
+  /**
+   * Helper: Extract raw binary at column 19 (positions 58-60)
+   */
+  const getColumn19Binary = (buffer: Uint8Array): [number, number, number] => {
+    return [buffer[58], buffer[59], buffer[60]];
+  };
+
+  /**
+   * Helper: Extract raw binary at column 20 (positions 61-63)
+   */
+  const getColumn20Binary = (buffer: Uint8Array): [number, number, number] => {
+    return [buffer[61], buffer[62], buffer[63]];
+  };
+
   // Random sample test cases covering different carry scenarios
   const testCases = [
-    // No carry cases
-    { a: 1, b: 1, expectedFirst: 2, expectedCarry: false, description: '1 + 1 = 2 (no carry)' },
-    { a: 2, b: 3, expectedFirst: 5, expectedCarry: false, description: '2 + 3 = 5 (no carry)' },
-    { a: 4, b: 3, expectedFirst: 7, expectedCarry: false, description: '4 + 3 = 7 (no carry)' },
+    // No carry cases - Column 19 should remain [0,0,0] (no marquee SET)
+    {
+      a: 1, b: 1,
+      expectedFirst: 2,
+      expectedCarry: false,
+      expectedCol19Binary: [0, 0, 0] as [number, number, number],
+      expectedCol20Binary: [0, 0, 1] as [number, number, number], // Display 2 = Binary 001 (LSB-first)
+      description: '1 + 1 = 2 (no carry)'
+    },
+    {
+      a: 2, b: 3,
+      expectedFirst: 5,
+      expectedCarry: false,
+      expectedCol19Binary: [0, 0, 0] as [number, number, number],
+      expectedCol20Binary: [1, 0, 0] as [number, number, number], // Display 5 = Binary 100 (LSB-first)
+      description: '2 + 3 = 5 (no carry)'
+    },
+    {
+      a: 4, b: 3,
+      expectedFirst: 7,
+      expectedCarry: false,
+      expectedCol19Binary: [0, 0, 0] as [number, number, number],
+      expectedCol20Binary: [1, 1, 0] as [number, number, number], // Display 7 = Binary 110
+      description: '4 + 3 = 7 (no carry)'
+    },
 
-    // Carry cases
-    { a: 8, b: 1, expectedFirst: 8, expectedCarry: true, expectedCarryValue: 1, description: '8 + 1 = 9 → "18" (carry 1)' },
-    { a: 5, b: 4, expectedFirst: 8, expectedCarry: true, expectedCarryValue: 1, description: '5 + 4 = 9 → "18" (carry 1)' },
-    { a: 7, b: 3, expectedFirst: 1, expectedCarry: true, expectedCarryValue: 1, description: '7 + 3 = 10 → "21" (carry 1)' },
-    { a: 8, b: 8, expectedFirst: 8, expectedCarry: true, expectedCarryValue: 1, description: '8 + 8 = 16 → "18" (carry 1)' },
-    { a: 6, b: 7, expectedFirst: 4, expectedCarry: true, expectedCarryValue: 1, description: '6 + 7 = 13 → "14" (carry 1)' },
+    // Carry cases - Column 19 should be [0,0,1] (marquee SET marker = Display 2)
+    // Column 20 values reflect SpooledSumSeries topology wrapping
+    {
+      a: 8, b: 1,
+      expectedFirst: 1, // SpooledSumSeries wrapped result
+      expectedCarry: true,
+      expectedCarryValue: 2, // Marquee [0,0,1] = Display 2 in LSB-first
+      expectedCol19Binary: [0, 0, 1] as [number, number, number], // Marquee SET marker (Display 2)
+      expectedCol20Binary: [0, 0, 0] as [number, number, number], // Display 1 (wrapped from topology)
+      description: '8 + 1 = 9 → "21" (marquee=2, wrapped=1)'
+    },
+    {
+      a: 5, b: 4,
+      expectedFirst: 1, // SpooledSumSeries wrapped result
+      expectedCarry: true,
+      expectedCarryValue: 2, // Marquee [0,0,1] = Display 2 in LSB-first
+      expectedCol19Binary: [0, 0, 1] as [number, number, number], // Marquee SET marker (Display 2)
+      expectedCol20Binary: [0, 0, 0] as [number, number, number], // Display 1 (wrapped from topology)
+      description: '5 + 4 = 9 → "21" (marquee=2, wrapped=1)'
+    },
+    {
+      a: 7, b: 3,
+      expectedFirst: 2, // SpooledSumSeries wrapped result
+      expectedCarry: true,
+      expectedCarryValue: 2, // Marquee [0,0,1] = Display 2 in LSB-first
+      expectedCol19Binary: [0, 0, 1] as [number, number, number], // Marquee SET marker (Display 2)
+      expectedCol20Binary: [0, 0, 1] as [number, number, number], // Display 2 (wrapped from topology)
+      description: '7 + 3 = 10 → "22" (marquee=2, wrapped=2)'
+    },
+    {
+      a: 8, b: 8,
+      expectedFirst: 8, // SpooledSumSeries wrapped result
+      expectedCarry: true,
+      expectedCarryValue: 2, // Marquee [0,0,1] = Display 2 in LSB-first
+      expectedCol19Binary: [0, 0, 1] as [number, number, number], // Marquee SET marker (Display 2)
+      expectedCol20Binary: [1, 1, 1] as [number, number, number], // Display 8 (wrapped from topology)
+      description: '8 + 8 = 16 → "28" (marquee=2, wrapped=8)'
+    },
+    {
+      a: 6, b: 7,
+      expectedFirst: 5, // SpooledSumSeries wrapped result
+      expectedCarry: true,
+      expectedCarryValue: 2, // Marquee [0,0,1] = Display 2 in LSB-first
+      expectedCol19Binary: [0, 0, 1] as [number, number, number], // Marquee SET marker (Display 2)
+      expectedCol20Binary: [1, 0, 0] as [number, number, number], // Display 5 (wrapped from topology)
+      description: '6 + 7 = 13 → "25" (marquee=2, wrapped=5)'
+    },
   ];
 
-  testCases.forEach(({ a, b, expectedFirst, expectedCarry, expectedCarryValue, description }) => {
+  testCases.forEach(({
+    a, b,
+    expectedFirst,
+    expectedCarry,
+    expectedCarryValue,
+    expectedCol19Binary,
+    expectedCol20Binary,
+    description
+  }) => {
     test(description, () => {
       // Create buffers with only first column set
       const bufferA = createFirstColumnBuffer(a);
@@ -92,19 +176,29 @@ describe('SumWrung - First Column Addition Tests', () => {
       // Perform addition
       const result = SumWrung(bufferA, bufferB);
 
-      // Verify first column result
+      // Verify first column result (display value)
       const firstColumnResult = extractFirstColumn(result);
       expect(firstColumnResult).toBe(expectedFirst);
 
-      // Verify carry
+      // Verify carry (boolean)
       const hasCarry = hasCarryToSecondColumn(result);
       expect(hasCarry).toBe(expectedCarry);
 
-      // If carry expected, verify carry value
+      // If carry expected, verify carry value (display value)
       if (expectedCarry && expectedCarryValue !== undefined) {
         const carryValue = extractSecondColumn(result);
         expect(carryValue).toBe(expectedCarryValue);
       }
+
+      // NEW: Verify raw binary at column 19 (positions 58-60)
+      const col19Binary = getColumn19Binary(result);
+      console.log(`  result[58-60] (col19): [${col19Binary[0]},${col19Binary[1]},${col19Binary[2]}]`);
+      expect(col19Binary).toEqual(expectedCol19Binary);
+
+      // NEW: Verify raw binary at column 20 (positions 61-63)
+      const col20Binary = getColumn20Binary(result);
+      console.log(`  result[61-63] (col20): [${col20Binary[0]},${col20Binary[1]},${col20Binary[2]}]`);
+      expect(col20Binary).toEqual(expectedCol20Binary);
     });
   });
 

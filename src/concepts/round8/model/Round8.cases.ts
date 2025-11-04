@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 
 import { SumSeries } from './Round8.sum.cases';
 import { DifferenceSeries } from './Round8.difference.cases';
@@ -172,26 +173,34 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
   const noMarqueePresent = !hasMarqueeA && !hasMarqueeB && conferredState.sharedValidColumn === 20;
 
   if (noMarqueePresent) {
-    console.log(`SPECIAL CASE: No marquee, Sign=1, only column 20 valid`);
+    console.log(`SPECIAL CASE: No marquee, Sign=1, processing column 20`);
 
-    // Process ONLY column 20 (index 20, positions 61-63)
-    const pos = 1 + (20 * 3);
+    // Process column 20 (index 20, positions 61-63)
+    const pos20 = 1 + (20 * 3);
 
-    // Add wrungA[20] + wrungB[20] (no carries possible, first operation)
+    // Add wrungA[20] + wrungB[20]
     const finalTuple = SpooledSumSeries
-      [wrungA[pos]][wrungA[pos + 1]][wrungA[pos + 2]]
-      [wrungB[pos]][wrungB[pos + 1]]
-      [wrungB[pos + 2]] as (Uint8Array<ArrayBuffer> | number)[];
+      [wrungA[pos20]][wrungA[pos20 + 1]][wrungA[pos20 + 2]]
+      [wrungB[pos20]][wrungB[pos20 + 1]]
+      [wrungB[pos20 + 2]] as (Uint8Array<ArrayBuffer> | number)[];
 
     const finalResult = finalTuple[0] as Uint8Array;
 
-    result[pos] = finalResult[0];
-    result[pos + 1] = finalResult[1];
-    result[pos + 2] = finalResult[2];
+    result[pos20] = finalResult[0];
+    result[pos20 + 1] = finalResult[1];
+    result[pos20 + 2] = finalResult[2];
 
-    // If carry generated, this is overflow (no column 19 to receive it)
+    // If carry generated, SET marquee at appropriate column (no addition)
     if (finalTuple.length === 2) {
-      throw new Error('SumWrung overflow: carry from column 20 with no marquee delimiter');
+      console.log(`SPECIAL CASE: Carry generated, SETTING marquee`);
+
+      // SET column 19 to 001 (marquee marker) - this is a SET, not an ADD
+      const pos19 = 1 + (19 * 3);
+      result[pos19] = 0;
+      result[pos19 + 1] = 0;
+      result[pos19 + 2] = 1;
+
+      console.log(`SPECIAL CASE: Marquee SET at column 19, result at column 20`);
     }
 
     return result;
