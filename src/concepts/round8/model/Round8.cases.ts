@@ -153,6 +153,20 @@ export const STRING_TO_ROUND8_ROTATION: Record<string, Uint8Array> = {
   '8': Uint8Array.from([1, 1, 1]),  // Binary 111 → Display "8"
 };
 
+export const createShiftedColumnValue = (shiftedDisplay: number): Uint8Array => {
+  switch (shiftedDisplay) {
+  case 0: return Uint8Array.from([0, 0, 1]);  // Marquee (position 0)
+  case 1: return Uint8Array.from([0, 1, 0]);  // Shifted Display 1 (position 1)
+  case 2: return Uint8Array.from([0, 1, 1]);  // Shifted Display 2 (position 2)
+  case 3: return Uint8Array.from([1, 0, 0]);  // Shifted Display 3 (position 3)
+  case 4: return Uint8Array.from([1, 0, 1]);  // Shifted Display 4 (position 4)
+  case 5: return Uint8Array.from([1, 1, 0]);  // Shifted Display 5 (position 5)
+  case 6: return Uint8Array.from([1, 1, 1]);  // Shifted Display 6 (position 6, maximum)
+  case 7: return Uint8Array.from([0, 0, 0]);  // External carry placeholder (position 7)
+  default: throw new Error('Invalid shifted display: ' + shiftedDisplay + '. Must be 0-7.');
+  }
+};
+
 /**
  * SumWrung - Columnar Long Addition using SpooledSumSeries lookup tables
  *
@@ -237,7 +251,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
       while (carries.length > 0) {
         const carry = carries.pop()!;
 
-        const carryTuple = SpooledSumSeries
+        const activeSpool = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
+        const carryTuple = activeSpool
           [intermediate[0]][intermediate[1]][intermediate[2]]
           [carry[0]][carry[1]]
           [carry[2]] as (Uint8Array | number)[];
@@ -254,7 +269,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
       // SECOND WRUNG: Add wrungB to intermediate
       console.log(`Column ${column}: intermediate=[${intermediate[0]},${intermediate[1]},${intermediate[2]}] wrungB=[${wrungB[pos]},${wrungB[pos+1]},${wrungB[pos+2]}]`);
 
-      const finalTuple = SpooledSumSeries
+      const activeSpool2 = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
+      const finalTuple = activeSpool2
         [intermediate[0]][intermediate[1]][intermediate[2]]
         [wrungB[pos]][wrungB[pos + 1]]
         [wrungB[pos + 2]] as (Uint8Array<ArrayBuffer> | number)[];
@@ -291,7 +307,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
       while (carries.length > 0) {
         const carry = carries.pop()!;
 
-        const carryTuple = SpooledSumSeries
+        const activeSpool = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
+        const carryTuple = activeSpool
           [intermediate[0]][intermediate[1]][intermediate[2]]
           [carry[0]][carry[1]]
           [carry[2]] as (Uint8Array | number)[];
@@ -306,7 +323,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
       }
 
       // Add wrungB
-      const finalTuple = SpooledSumSeries
+      const activeSpool2 = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
+      const finalTuple = activeSpool2
         [intermediate[0]][intermediate[1]][intermediate[2]]
         [wrungB[pos]][wrungB[pos + 1]]
         [wrungB[pos + 2]] as (Uint8Array<ArrayBuffer> | number)[];
@@ -337,7 +355,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
         while (carries.length > 0) {
           const carry = carries.pop()!;
 
-          const carryTuple = SpooledSumSeries
+          const activeSpool = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
+          const carryTuple = activeSpool
             [intermediate[0]][intermediate[1]][intermediate[2]]
             [carry[0]][carry[1]]
             [carry[2]] as (Uint8Array | number)[];
