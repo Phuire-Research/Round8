@@ -18,7 +18,7 @@ export const SumSeries: SomeSeries = {
   SumOfOneAndOne: [
     0, 0, 0,  // 1 = 000
     0, 0,     // 1 high bits
-    [0, new Uint8Array([0, 0, 0])]  // 1+1=2 (001)
+    [0, new Uint8Array([0, 0, 1])]  // 1+1=2 (001)
   ],
   SumOfOneAndTwo: [
     0, 0, 0,  // 1 = 000

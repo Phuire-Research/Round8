@@ -12,16 +12,30 @@
  * For X < Y cases, we borrow and wrap around
  */
 
-import { SPECIAL_CASE_STORE } from './Round8.cases';
-
 type SomeSeries = Record<string, ((Uint8Array<ArrayBuffer> | number)[] | number)[]>;
+
+// Zero case inlined to avoid circular dependency
+const ZERO_CASE = Uint8Array.from([
+  0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0,
+]);
 
 export const DifferenceSeries: SomeSeries = {
   // 1 - N (N = 1-8)
   DifferenceOfOneAndOne: [
     0, 0, 0,  // 1 = 000
     0, 0,     // 1 high bits
-    [0, SPECIAL_CASE_STORE.ZERO_CASE]  // 1-1=0 (special case)
+    [0, ZERO_CASE]  // 1-1=0 (special case)
   ],
   DifferenceOfOneAndTwo: [
     0, 0, 0,  // 1 = 000
@@ -68,7 +82,7 @@ export const DifferenceSeries: SomeSeries = {
   DifferenceOfTwoAndTwo: [
     0, 0, 1,  // 2 = 001
     0, 0,     // 2 high bits
-    [1, SPECIAL_CASE_STORE.ZERO_CASE]  // 2-2=0
+    [1, ZERO_CASE]  // 2-2=0
   ],
   DifferenceOfTwoAndThree: [
     0, 0, 1,  // 2 = 001
@@ -115,7 +129,7 @@ export const DifferenceSeries: SomeSeries = {
   DifferenceOfThreeAndThree: [
     0, 1, 0,  // 3 = 010
     0, 1,     // 3 high bits
-    [0, SPECIAL_CASE_STORE.ZERO_CASE]  // 3-3=0
+    [0, ZERO_CASE]  // 3-3=0
   ],
   DifferenceOfThreeAndFour: [
     0, 1, 0,  // 3 = 010
@@ -162,7 +176,7 @@ export const DifferenceSeries: SomeSeries = {
   DifferenceOfFourAndFour: [
     0, 1, 1,  // 4 = 011
     0, 1,     // 4 high bits
-    [1, SPECIAL_CASE_STORE.ZERO_CASE]  // 4-4=0
+    [1, ZERO_CASE]  // 4-4=0
   ],
   DifferenceOfFourAndFive: [
     0, 1, 1,  // 4 = 011
@@ -209,7 +223,7 @@ export const DifferenceSeries: SomeSeries = {
   DifferenceOfFiveAndFive: [
     1, 0, 0,  // 5 = 100
     1, 0,     // 5 high bits
-    [0, SPECIAL_CASE_STORE.ZERO_CASE]  // 5-5=0
+    [0, ZERO_CASE]  // 5-5=0
   ],
   DifferenceOfFiveAndSix: [
     1, 0, 0,  // 5 = 100
@@ -256,7 +270,7 @@ export const DifferenceSeries: SomeSeries = {
   DifferenceOfSixAndSix: [
     1, 0, 1,  // 6 = 101
     1, 0,     // 6 high bits
-    [1, SPECIAL_CASE_STORE.ZERO_CASE]  // 6-6=0
+    [1, ZERO_CASE]  // 6-6=0
   ],
   DifferenceOfSixAndSeven: [
     1, 0, 1,  // 6 = 101
@@ -303,7 +317,7 @@ export const DifferenceSeries: SomeSeries = {
   DifferenceOfSevenAndSeven: [
     1, 1, 0,  // 7 = 110
     1, 1,     // 7 high bits
-    [0, SPECIAL_CASE_STORE.ZERO_CASE]  // 7-7=0
+    [0, ZERO_CASE]  // 7-7=0
   ],
   DifferenceOfSevenAndEight: [
     1, 1, 0,  // 7 = 110
@@ -350,6 +364,6 @@ export const DifferenceSeries: SomeSeries = {
   DifferenceOfEightAndEight: [
     1, 1, 1,  // 8 = 111
     1, 1,     // 8 high bits
-    [1, SPECIAL_CASE_STORE.ZERO_CASE]  // 8-8=0
+    [1, ZERO_CASE]  // 8-8=0
   ],
 };
