@@ -1,5 +1,5 @@
 /**
- * Complete Difference Series - All 64 Subtraction Cases (8x8)
+ * GENERATED - Complete Difference Series - All 64 Subtraction Cases (8x8)
  *
  * Pattern: DifferenceOfXAndY represents X - Y
  * Array structure: [bit2_X, bit1_X, bit0_X, bit2_Y, bit1_Y, [bit0_Y, result, borrow?]]
