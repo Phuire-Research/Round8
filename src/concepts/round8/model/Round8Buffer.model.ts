@@ -35,6 +35,22 @@ const TOTAL_CYCLES = 10;
 const SINGLE_ROTATION_INDEX = 20;
 
 /**
+ * Critical Range Binary Lookup Table
+ * Pre-stored 3-bit binary patterns for display digits 1-8
+ * Singleton arrays - direct binary copy, no calculation needed
+ */
+const CRITICAL_RANGE_BINARY: Record<string, Uint8Array> = {
+  '1': Uint8Array.from([0, 0, 0]),  // Binary 000 → Display "1"
+  '2': Uint8Array.from([0, 0, 1]),  // Binary 001 → Display "2"
+  '3': Uint8Array.from([0, 1, 0]),  // Binary 010 → Display "3"
+  '4': Uint8Array.from([0, 1, 1]),  // Binary 011 → Display "4"
+  '5': Uint8Array.from([1, 0, 0]),  // Binary 100 → Display "5"
+  '6': Uint8Array.from([1, 0, 1]),  // Binary 101 → Display "6"
+  '7': Uint8Array.from([1, 1, 0]),  // Binary 110 → Display "7"
+  '8': Uint8Array.from([1, 1, 1]),  // Binary 111 → Display "8"
+};
+
+/**
  * Base-72 Cycle Values (using BigInt for precision)
  */
 
