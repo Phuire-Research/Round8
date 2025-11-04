@@ -181,3 +181,6 @@ export const STRING_TO_ROUND8_ROTATION: Record<string, Uint8Array> = {
   '8': Uint8Array.from([1, 1, 1]),  // Binary 111 → Display "8"
 };
 
+export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<ArrayBuffer>) => {
+
+};
