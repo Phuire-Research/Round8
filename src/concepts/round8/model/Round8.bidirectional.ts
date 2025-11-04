@@ -41,17 +41,17 @@ export type MarqueeState = {
  * @param buffer - 64-position Uint8Array (sign + 21 columns × 3 bits)
  * @returns MarqueeState describing validity and counting boundaries
  */
-// [ ] When we Scan from the Front and Sign = 1. The only Possible Valid 000 in First Position is if the Remained are All
+// [x] When we Scan from the Front and Sign = 1. The only Possible Valid 000 in First Position is if the Remained are All
 //  1 for our Final Twist Case (Noting we have an early return while iterating through the array and if a 0 is found at
 //  any time we break and it's not the Twist Case). From there if Such is 001 it is the Marquee Position for the Rest
 // of the Count. Otherwise if it is not the Final Twist Case while being 000, it is Invalid. If there is Any Count in
 // 1st Position we Mark it as Valid and Each Remaining Position.
 
-// [ ] While still Scanning for Sign at 1, After 1st Position the Rules are Simplier. 000 it is Invalid, if 001 it is a 
+// [x] While still Scanning for Sign at 1, After 1st Position the Rules are Simplier. 000 it is Invalid, if 001 it is a 
 // Marquee Case and is the Bounding Position for the Rest of the Count. With the rest of the Rows Valid. Noting that
 // our Marquees at this Point are a Two Step Validation. Once we find our Marquee we have our Delimiter.
 
-// [ ] Our Final Case when Iterating through the Array and do not Find a Marquee, is our Last Position that would be 
+// [x] Our Final Case when Iterating through the Array and do not Find a Marquee, is our Last Position that would be 
 // Counted Valid Regardless. As our Sign = 1 Marks a 000 as Valid in Last Position. So be Default we will Always be
 // Inferring the Last Positions Spool, so long as the Sign = 1.
 
@@ -124,11 +124,22 @@ const firstColumnSignedProspection = (buffer: Uint8Array<ArrayBuffer>): MarqueeS
     buffer[1] === 0 &&
     buffer[2] === 0 &&
     buffer[3] === 0
-    && buffer[4] === 1) {
+    && buffer.length >= 4 ) {
+    if (buffer[4] === 1) {
+      for (let i = 5; i < buffer.length; i++) {
+        if (buffer[i] !== 1) {
+          return {
+            firstValidColumn: 0
+          };
+        }
+      }
+      return {
+        isFinalTwist: true
+      };
+    } else {
+      return {};
+    }
     // Noting why this should be valid is that 000 should only ever exist as valid if there is a 1 next to such not a 001
-    return {
-      isFinalTwist: true
-    };
   } else if (
     buffer[1] === 0 &&
     buffer[2] === 0 &&

@@ -1,6 +1,7 @@
 /* eslint-disable complexity */
 
 import { SumSeries } from './Round8.sum.cases';
+import { ShiftedSumSeries } from './Round8.shifted.sum.cases';
 import { DifferenceSeries } from './Round8.difference.cases';
 import { BidirectionalConference, ConferBidirectionally, MarqueeState, ConferredMarqueeState } from './Round8.bidirectional';
 
@@ -32,6 +33,20 @@ export const SPECIAL_CASE_STORE = {
     0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0,
     0, 0, 0,
+  ]),
+  POSITIVE_TWIST_CASE: Uint8Array.from([
+    1,
+    0, 0, 0, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1,
   ]),
   // First Position 0
   NEGATIVE_1_CASE: Uint8Array.from([
@@ -76,6 +91,7 @@ const initializeSpooledWrung = (): SpooledWrung => {
 };
 
 const SpooledSumSeries: SpooledWrung = initializeSpooledWrung();
+const ShiftedSpooledSumSeries: SpooledWrung = initializeSpooledWrung();
 const SpooledDifferenceSeries: SpooledWrung = initializeSpooledWrung();
 
 const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
@@ -108,9 +124,10 @@ const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
 };
 
 spool(SumSeries, SpooledSumSeries);
+spool(ShiftedSumSeries, ShiftedSpooledSumSeries);
 spool(DifferenceSeries, SpooledDifferenceSeries);
 
-export { SpooledSumSeries };
+export { SpooledSumSeries, ShiftedSpooledSumSeries };
 
 export const DIFFERENCE_MAP = {
   ZERO_CASE: Uint8Array.from([
