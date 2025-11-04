@@ -7,16 +7,16 @@
 
 export type MarqueeState = {
   /** First valid column for counting (0-20), or -1 for absolute zero */
-  firstValidColumn: number;
+  firstValidColumn?: number;
 
   /** Whether column 0 is in shifted holding state (001) */
-  isShiftedHolding: boolean;
+  marqueeColumn?: number;
 
   /** Whether column 0 is the final twist case (000 with all others 111) */
-  isFinalTwist: boolean;
+  isFinalTwist?: boolean;
 
   /** Whether this buffer represents absolute zero (all positions 000) */
-  isAbsoluteZero: boolean;
+  isAbsoluteZero?: boolean;
 };
 
 /**
@@ -41,165 +41,228 @@ export type MarqueeState = {
  * @param buffer - 64-position Uint8Array (sign + 21 columns × 3 bits)
  * @returns MarqueeState describing validity and counting boundaries
  */
+// [ ] When we Scan from the Front and Sign = 1. The only Possible Valid 000 in First Position is if the Remained are All
+//  1 for our Final Twist Case (Noting we have an early return while iterating through the array and if a 0 is found at
+//  any time we break and it's not the Twist Case). From there if Such is 001 it is the Marquee Position for the Rest
+// of the Count. Otherwise if it is not the Final Twist Case while being 000, it is Invalid. If there is Any Count in
+// 1st Position we Mark it as Valid and Each Remaining Position.
+
+// [ ] While still Scanning for Sign at 1, After 1st Position the Rules are Simplier. 000 it is Invalid, if 001 it is a 
+// Marquee Case and is the Bounding Position for the Rest of the Count. With the rest of the Rows Valid. Noting that
+// our Marquees at this Point are a Two Step Validation. Once we find our Marquee we have our Delimiter.
+
+// [ ] Our Final Case when Iterating through the Array and do not Find a Marquee, is our Last Position that would be 
+// Counted Valid Regardless. As our Sign = 1 Marks a 000 as Valid in Last Position. So be Default we will Always be
+// Inferring the Last Positions Spool, so long as the Sign = 1.
+
+const GetColumns = {
+  sign: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(0, 1),
+  first: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(1, 4),
+  second: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(4, 7),
+  third: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(7, 10),
+  fourth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(10, 13),
+  fifth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(13, 16),
+  sixth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(16, 19),
+  seventh: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(19, 22),
+  eighth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(22, 25),
+  ninth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(25, 28),
+  tenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(28, 31),
+  eleventh: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(31, 34),
+  twelfth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(34, 37),
+  thirteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(37, 40),
+  fourteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(40, 43),
+  fifteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(43, 46),
+  sixteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(46, 49),
+  seventeenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(49, 52),
+  eighteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(52, 55),
+  nineteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(55, 58),
+  twentieth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(58, 61),
+  twentyFirst: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(61, 64),
+};
+
+const IterativeGetColumns = [
+  GetColumns.second,
+  GetColumns.third,
+  GetColumns.fourth,
+  GetColumns.fifth,
+  GetColumns.sixth,
+  GetColumns.seventh,
+  GetColumns.eighth,
+  GetColumns.ninth,
+  GetColumns.tenth,
+  GetColumns.eleventh,
+  GetColumns.twelfth,
+  GetColumns.thirteenth,
+  GetColumns.fourteenth,
+  GetColumns.fifteenth,
+  GetColumns.sixteenth,
+  GetColumns.seventeenth,
+  GetColumns.eighteenth,
+  GetColumns.nineteenth,
+  GetColumns.twentieth,
+  GetColumns.twentyFirst,
+];
+
+const countZeroFirstColumn = (buffer: Uint8Array<ArrayBuffer>) => {
+  // Count zeros in column 0 (positions 1, 2, 3)
+  let zeros = 0;
+  if (buffer[1] === 0) {
+    zeros += 1;
+  }
+  if (buffer[2] === 0) {
+    zeros += 1;
+  }
+  if (buffer[3] === 0) {
+    zeros += 1;
+  }
+  return zeros;
+};
+
+const firstColumnSignedProspection = (buffer: Uint8Array<ArrayBuffer>): MarqueeState => {
+  if (
+    // 000 Case 1st Position, Check Next Index for 1
+    buffer[1] === 0 &&
+    buffer[2] === 0 &&
+    buffer[3] === 0
+    && buffer[4] === 1) {
+    // Noting why this should be valid is that 000 should only ever exist as valid if there is a 1 next to such not a 001
+    return {
+      isFinalTwist: true
+    };
+  } else if (
+    buffer[1] === 0 &&
+    buffer[2] === 0 &&
+    buffer[3] === 1
+  ) {
+    return {
+      firstValidColumn: 1,
+      marqueeColumn: 0
+    };
+  } else if (
+    countZeroFirstColumn(buffer) !== 3
+  ) {
+    return {
+      firstValidColumn: 0
+    };
+  } else {
+    return {};
+  }
+};
+// eslint-disable-next-line complexity
+// Note this is only Handling our Positive Sign
 export const BidirectionalConference = (buffer: Uint8Array<ArrayBuffer>): MarqueeState => {
   // Check for absolute zero (all positions 1-63 are 000)
+  const signedPositive = buffer[0] === 1;
   let isAbsoluteZero = true;
-  for (let i = 1; i < 64; i++) {
-    if (buffer[i] !== 0) {
-      isAbsoluteZero = false;
-      break;
+  if (!signedPositive) {
+    for (let i = 1; i < 64; i++) {
+      if (buffer[i] !== 0) {
+        isAbsoluteZero = false;
+        break;
+      }
     }
+  } else {
+    isAbsoluteZero = false;
   }
-
   if (isAbsoluteZero) {
     return {
-      firstValidColumn: -1,
-      isShiftedHolding: false,
-      isFinalTwist: false,
       isAbsoluteZero: true,
     };
   }
 
-  // Extract column 0 (positions 1, 2, 3)
-  const col0_bit2 = buffer[1];
-  const col0_bit1 = buffer[2];
-  const col0_bit0 = buffer[3];
-
-  // Check if column 0 is 001 (shifted holding position)
-  const isCol0_001 = (col0_bit2 === 0 && col0_bit1 === 0 && col0_bit0 === 1);
-
-  // Check if column 0 is 000
-  const isCol0_000 = (col0_bit2 === 0 && col0_bit1 === 0 && col0_bit0 === 0);
+  // Handle First Column
+  const firstCasing = firstColumnSignedProspection(buffer);
 
   // If column 0 is 001: Valid shifted holding position
-  if (isCol0_001) {
-    return {
-      firstValidColumn: 0,
-      isShiftedHolding: true,
-      isFinalTwist: false,
-      isAbsoluteZero: false,
-    };
+  if (Object.keys(firstCasing).length > 0) {
+    return firstCasing;
   }
-
-  // If column 0 is 000: Check for final twist case (all columns 1-20 must be 111)
-  if (isCol0_000) {
-    let allOthers111 = true;
-
-    for (let col = 1; col <= 20; col++) {
-      const pos = 1 + (col * 3);
-      const bit2 = buffer[pos];
-      const bit1 = buffer[pos + 1];
-      const bit0 = buffer[pos + 2];
-
-      if (!(bit2 === 1 && bit1 === 1 && bit0 === 1)) {
-        allOthers111 = false;
-        break;
+  for (const [i, getCol] of IterativeGetColumns.entries()) {
+    const col = getCol(buffer);
+    if (i !== 19) {
+      if (
+        col[0] === 0 &&
+        col[1] === 0 &&
+        col[2] === 1
+      ) {
+        return {
+          firstValidColumn: i + 2,
+          marqueeColumn: i + 1
+        };
       }
-    }
-
-    if (allOthers111) {
-      // Final twist case: 000 111 111 ... 111
-      // This is the final 7 we can add to the stack (maximum boundary with 000 wrap)
-      return {
-        firstValidColumn: 0,
-        isShiftedHolding: false,
-        isFinalTwist: true,
-        isAbsoluteZero: false,
-      };
     } else {
-      // Column 0 is 000 but not all others are 111
-      // This means column 0 is an INVALID placeholder
-      // Continue scanning to find first valid column
-    }
-  }
-
-  // If column 0 is 010-111: Valid counting position
-  if (!isCol0_000 && !isCol0_001) {
-    return {
-      firstValidColumn: 0,
-      isShiftedHolding: false,
-      isFinalTwist: false,
-      isAbsoluteZero: false,
-    };
-  }
-
-  // Column 0 was invalid placeholder (000 without all 111s)
-  // Scan columns 1-20 for first non-000 column
-  for (let col = 1; col <= 20; col++) {
-    const pos = 1 + (col * 3);
-    const bit2 = buffer[pos];
-    const bit1 = buffer[pos + 1];
-    const bit0 = buffer[pos + 2];
-
-    if (!(bit2 === 0 && bit1 === 0 && bit0 === 0)) {
-      // Found first non-000 column
       return {
-        firstValidColumn: col,
-        isShiftedHolding: false,
-        isFinalTwist: false,
-        isAbsoluteZero: false,
+        firstValidColumn: 20
       };
     }
   }
+  // Error State
+  return {};
+};
 
-  // Should never reach here (would have been caught by absolute zero check)
-  // But if we do, treat as absolute zero
-  return {
-    firstValidColumn: -1,
-    isShiftedHolding: false,
-    isFinalTwist: false,
-    isAbsoluteZero: true,
-  };
+export type ConferredMarqueeState = {
+  wrungAMarquee: MarqueeState;
+  wrungBMarquee: MarqueeState;
+  sharedValidColumn: number;
+  exactEven: boolean;
 };
 
 /**
- * ConferBidirectionally - Conferences TWO buffers to find combined Marquee state
+ * ConferBidirectionally - Conferences TWO buffers to find combined Marquee states
  *
- * For addition/subtraction, we need to know the leftmost valid position
- * across BOTH operands to determine the processing range.
+ * Returns both marquee positions separately to enable intelligent backward propagation:
+ * - exactEven: true → Both marquees aligned, clean summation to delimiter
+ * - exactEven: false → Marquees shifted, exclusive zones require carry-only propagation
  *
  * @param wrungA - First operand buffer
  * @param wrungB - Second operand buffer
- * @returns Combined MarqueeState for both operands
+ * @returns ConferredMarqueeState with both marquees and shared valid zone
  */
 export const ConferBidirectionally = (
   wrungA: Uint8Array<ArrayBuffer>,
   wrungB: Uint8Array<ArrayBuffer>
-): MarqueeState => {
-  const stateA = BidirectionalConference(wrungA);
-  const stateB = BidirectionalConference(wrungB);
+): ConferredMarqueeState => {
+  const wrungAMarquee = BidirectionalConference(wrungA);
+  const wrungBMarquee = BidirectionalConference(wrungB);
 
-  // If either is absolute zero, return the other's state
-  if (stateA.isAbsoluteZero && stateB.isAbsoluteZero) {
-    return stateA; // Both zero
+  // Handle absolute zero cases
+  if (wrungAMarquee.isAbsoluteZero && wrungBMarquee.isAbsoluteZero) {
+    return {
+      wrungAMarquee,
+      wrungBMarquee,
+      sharedValidColumn: -1,
+      exactEven: true,
+    };
   }
-  if (stateA.isAbsoluteZero) {
-    return stateB;
+  if (wrungAMarquee.isAbsoluteZero) {
+    return {
+      wrungAMarquee,
+      wrungBMarquee,
+      sharedValidColumn: wrungBMarquee.firstValidColumn ?? 20,
+      exactEven: false,
+    };
   }
-  if (stateB.isAbsoluteZero) {
-    return stateA;
+  if (wrungBMarquee.isAbsoluteZero) {
+    return {
+      wrungAMarquee,
+      wrungBMarquee,
+      sharedValidColumn: wrungAMarquee.firstValidColumn ?? 20,
+      exactEven: false,
+    };
   }
 
-  // Take the LEFTMOST valid column (minimum of the two)
-  const firstValidColumn = Math.min(stateA.firstValidColumn, stateB.firstValidColumn);
+  // Both non-zero: shared valid zone is the RIGHTMOST (maximum) firstValidColumn
+  const firstValidA = wrungAMarquee.firstValidColumn ?? 20;
+  const firstValidB = wrungBMarquee.firstValidColumn ?? 20;
+  const sharedValidColumn = Math.max(firstValidA, firstValidB);
 
-  // Shifted holding and final twist only apply if BOTH have same state at column 0
-  const isShiftedHolding = (
-    firstValidColumn === 0 &&
-    stateA.isShiftedHolding &&
-    stateB.isShiftedHolding
-  );
-
-  const isFinalTwist = (
-    firstValidColumn === 0 &&
-    stateA.isFinalTwist &&
-    stateB.isFinalTwist
-  );
+  // Marquees are exactEven if firstValidColumns match
+  const exactEven = wrungAMarquee.firstValidColumn === wrungBMarquee.firstValidColumn;
 
   return {
-    firstValidColumn,
-    isShiftedHolding,
-    isFinalTwist,
-    isAbsoluteZero: false,
+    wrungAMarquee,
+    wrungBMarquee,
+    sharedValidColumn,
+    exactEven,
   };
 };

@@ -1,6 +1,7 @@
 
 import { SumSeries } from './Round8.sum.cases';
 import { DifferenceSeries } from './Round8.difference.cases';
+import { BidirectionalConference, ConferBidirectionally, MarqueeState, ConferredMarqueeState } from './Round8.bidirectional';
 
 export const SPECIAL_CASE_STORE = {
   ZERO_CASE: Uint8Array.from([
@@ -147,8 +148,13 @@ export const STRING_TO_ROUND8_ROTATION: Record<string, Uint8Array> = {
 export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => {
   console.log(`SUMWRUNG START: wrungA[61-63]=[${wrungA[61]},${wrungA[62]},${wrungA[63]}] wrungB[61-63]=[${wrungB[61]},${wrungB[62]},${wrungB[63]}]`);
 
-  // TODO: Special case logic for zero origin (all positions 000 = absolute zero, not display "1")
-  // For now, we're only implementing the Ideal Case where 000 = display "1"
+  // Phase 2: Conference both operands to determine Marquee states
+  const conferredState = ConferBidirectionally(wrungA, wrungB);
+
+  // Special case: Both absolute zero
+  if (conferredState.wrungAMarquee.isAbsoluteZero && conferredState.wrungBMarquee.isAbsoluteZero) {
+    return SPECIAL_CASE_STORE.ZERO_CASE;
+  }
 
   // Create output buffer
   const result = new Uint8Array(64);
@@ -159,61 +165,219 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
   // Carry accumulator - array of Uint8Array[3] carries
   const carries: Uint8Array<ArrayBuffer>[] = [];
 
-  // Process 21 columns from right to left (column 20 down to column 0)
-  for (let column = 20; column >= 0; column--) {
-    // Calculate starting position for this column
-    const pos = 1 + (column * 3);
+  // SPECIAL CASE: Sign = 1, No Marquee Present (all 000)
+  // Only column 20 valid, no backward propagation allowed
+  const hasMarqueeA = conferredState.wrungAMarquee.marqueeColumn !== undefined;
+  const hasMarqueeB = conferredState.wrungBMarquee.marqueeColumn !== undefined;
+  const noMarqueePresent = !hasMarqueeA && !hasMarqueeB && conferredState.sharedValidColumn === 20;
 
-    // FIRST WRUNG: Deplete accumulated carries
-    let intermediate = new Uint8Array([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
+  if (noMarqueePresent) {
+    console.log(`SPECIAL CASE: No marquee, Sign=1, only column 20 valid`);
 
-    while (carries.length > 0) {
-      const carry = carries.pop()!;
+    // Process ONLY column 20 (index 20, positions 61-63)
+    const pos = 1 + (20 * 3);
 
-      // Lookup: intermediate + carry
-      const carryTuple = SpooledSumSeries
-        [intermediate[0]][intermediate[1]][intermediate[2]]
-        [carry[0]][carry[1]]
-        [carry[2]] as (Uint8Array | number)[];
-
-      if (carryTuple.length === 1) {
-        // No new carry - tuple is [result]
-        intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
-      } else {
-        // Has new carry - tuple is [result, carry]
-        intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
-        const newCarry = carryTuple[1] as Uint8Array<ArrayBuffer>;
-        carries.push(newCarry);
-      }
-    }
-
-    // SECOND WRUNG: Add wrungB column to intermediate
-    console.log(`Column ${column}: intermediate=[${intermediate[0]},${intermediate[1]},${intermediate[2]}] wrungB=[${wrungB[pos]},${wrungB[pos+1]},${wrungB[pos+2]}]`);
-
+    // Add wrungA[20] + wrungB[20] (no carries possible, first operation)
     const finalTuple = SpooledSumSeries
-      [intermediate[0]][intermediate[1]][intermediate[2]]
+      [wrungA[pos]][wrungA[pos + 1]][wrungA[pos + 2]]
       [wrungB[pos]][wrungB[pos + 1]]
       [wrungB[pos + 2]] as (Uint8Array<ArrayBuffer> | number)[];
 
-    console.log(`Column ${column}: finalTuple=`, finalTuple);
-
-    // Extract result - now at index 0
     const finalResult = finalTuple[0] as Uint8Array;
-    console.log(`Column ${column}: finalResult=[${finalResult[0]},${finalResult[1]},${finalResult[2]}]`);
 
-    // Write result to output buffer at this column's positions
     result[pos] = finalResult[0];
     result[pos + 1] = finalResult[1];
     result[pos + 2] = finalResult[2];
 
-    // If has carry, push to carries array for next column (leftward)
+    // If carry generated, this is overflow (no column 19 to receive it)
     if (finalTuple.length === 2) {
-      const finalCarry = finalTuple[1] as Uint8Array<ArrayBuffer>;
-      carries.push(finalCarry);
+      throw new Error('SumWrung overflow: carry from column 20 with no marquee delimiter');
+    }
+
+    return result;
+  }
+
+  // Phase 3: Branch based on exactEven
+  if (conferredState.exactEven) {
+    // EXACT EVEN PATH: Both marquees aligned, clean summation
+    console.log(`EXACT EVEN: Both marquees at ${conferredState.sharedValidColumn}`);
+
+    for (let column = 20; column >= conferredState.sharedValidColumn; column--) {
+      const pos = 1 + (column * 3);
+
+      // FIRST WRUNG: Deplete accumulated carries into wrungA
+      let intermediate = new Uint8Array([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
+
+      while (carries.length > 0) {
+        const carry = carries.pop()!;
+
+        const carryTuple = SpooledSumSeries
+          [intermediate[0]][intermediate[1]][intermediate[2]]
+          [carry[0]][carry[1]]
+          [carry[2]] as (Uint8Array | number)[];
+
+        if (carryTuple.length === 1) {
+          intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+        } else {
+          intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+          const newCarry = carryTuple[1] as Uint8Array<ArrayBuffer>;
+          carries.push(newCarry);
+        }
+      }
+
+      // SECOND WRUNG: Add wrungB to intermediate
+      console.log(`Column ${column}: intermediate=[${intermediate[0]},${intermediate[1]},${intermediate[2]}] wrungB=[${wrungB[pos]},${wrungB[pos+1]},${wrungB[pos+2]}]`);
+
+      const finalTuple = SpooledSumSeries
+        [intermediate[0]][intermediate[1]][intermediate[2]]
+        [wrungB[pos]][wrungB[pos + 1]]
+        [wrungB[pos + 2]] as (Uint8Array<ArrayBuffer> | number)[];
+
+      const finalResult = finalTuple[0] as Uint8Array;
+      console.log(`Column ${column}: finalResult=[${finalResult[0]},${finalResult[1]},${finalResult[2]}]`);
+
+      // Write result
+      result[pos] = finalResult[0];
+      result[pos + 1] = finalResult[1];
+      result[pos + 2] = finalResult[2];
+
+      // Push carry if exists
+      if (finalTuple.length === 2) {
+        const finalCarry = finalTuple[1] as Uint8Array<ArrayBuffer>;
+        carries.push(finalCarry);
+      }
+    }
+  } else {
+    // SHIFTED PATH: Marquees at different positions, handle exclusive zones
+    const wrungAFirst = conferredState.wrungAMarquee.firstValidColumn ?? 20;
+    const wrungBFirst = conferredState.wrungBMarquee.firstValidColumn ?? 20;
+    const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
+
+    console.log(`SHIFTED: wrungA first=${wrungAFirst}, wrungB first=${wrungBFirst}, shared=${conferredState.sharedValidColumn}`);
+
+    // SHARED ZONE: Both operands participate (sharedValidColumn → 20)
+    for (let column = 20; column >= conferredState.sharedValidColumn; column--) {
+      const pos = 1 + (column * 3);
+
+      // Deplete carries into wrungA
+      let intermediate = new Uint8Array([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
+
+      while (carries.length > 0) {
+        const carry = carries.pop()!;
+
+        const carryTuple = SpooledSumSeries
+          [intermediate[0]][intermediate[1]][intermediate[2]]
+          [carry[0]][carry[1]]
+          [carry[2]] as (Uint8Array | number)[];
+
+        if (carryTuple.length === 1) {
+          intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+        } else {
+          intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+          const newCarry = carryTuple[1] as Uint8Array<ArrayBuffer>;
+          carries.push(newCarry);
+        }
+      }
+
+      // Add wrungB
+      const finalTuple = SpooledSumSeries
+        [intermediate[0]][intermediate[1]][intermediate[2]]
+        [wrungB[pos]][wrungB[pos + 1]]
+        [wrungB[pos + 2]] as (Uint8Array<ArrayBuffer> | number)[];
+
+      const finalResult = finalTuple[0] as Uint8Array;
+
+      result[pos] = finalResult[0];
+      result[pos + 1] = finalResult[1];
+      result[pos + 2] = finalResult[2];
+
+      if (finalTuple.length === 2) {
+        const finalCarry = finalTuple[1] as Uint8Array<ArrayBuffer>;
+        carries.push(finalCarry);
+      }
+    }
+
+    // EXCLUSIVE ZONE: Only earlier marquee's operand participates
+    if (conferredState.sharedValidColumn > earlierMarquee) {
+      const exclusiveOperand = wrungAFirst < wrungBFirst ? wrungA : wrungB;
+      console.log(`EXCLUSIVE ZONE: columns ${conferredState.sharedValidColumn - 1} to ${earlierMarquee}`);
+
+      for (let column = conferredState.sharedValidColumn - 1; column >= earlierMarquee; column--) {
+        const pos = 1 + (column * 3);
+
+        // Deplete carries into the exclusive operand
+        let intermediate = new Uint8Array([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
+
+        while (carries.length > 0) {
+          const carry = carries.pop()!;
+
+          const carryTuple = SpooledSumSeries
+            [intermediate[0]][intermediate[1]][intermediate[2]]
+            [carry[0]][carry[1]]
+            [carry[2]] as (Uint8Array | number)[];
+
+          if (carryTuple.length === 1) {
+            intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+          } else {
+            intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+            const newCarry = carryTuple[1] as Uint8Array<ArrayBuffer>;
+            carries.push(newCarry);
+          }
+        }
+
+        // Write result (no second operand addition in exclusive zone)
+        result[pos] = intermediate[0];
+        result[pos + 1] = intermediate[1];
+        result[pos + 2] = intermediate[2];
+      }
     }
   }
 
-  // If carries remain after all columns, overflow occurred
+  // PLACEHOLDER ZONE: Deplete remaining carries into placeholder columns
+  if (carries.length > 0) {
+    const earliestColumn = Math.min(
+      conferredState.wrungAMarquee.firstValidColumn ?? 20,
+      conferredState.wrungBMarquee.firstValidColumn ?? 20
+    );
+
+    console.log(`PLACEHOLDER ZONE: columns ${earliestColumn - 1} to 0, ${carries.length} carries remaining`);
+
+    for (let column = earliestColumn - 1; column >= 0; column--) {
+      const pos = 1 + (column * 3);
+
+      // Start with placeholder 000
+      let intermediate = new Uint8Array([0, 0, 0]);
+
+      while (carries.length > 0) {
+        const carry = carries.pop()!;
+
+        const carryTuple = SpooledSumSeries
+          [intermediate[0]][intermediate[1]][intermediate[2]]
+          [carry[0]][carry[1]]
+          [carry[2]] as (Uint8Array | number)[];
+
+        if (carryTuple.length === 1) {
+          intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+        } else {
+          intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+          const newCarry = carryTuple[1] as Uint8Array<ArrayBuffer>;
+          carries.push(newCarry);
+        }
+      }
+
+      // Write result
+      result[pos] = intermediate[0];
+      result[pos + 1] = intermediate[1];
+      result[pos + 2] = intermediate[2];
+
+      // If no more carries, we're done
+      if (carries.length === 0) {
+        break;
+      }
+    }
+  }
+
+  // If carries STILL remain after column 0, overflow occurred
   if (carries.length > 0) {
     throw new Error('SumWrung overflow: carry beyond column 0');
   }
