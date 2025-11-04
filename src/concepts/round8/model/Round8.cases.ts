@@ -190,7 +190,7 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
     result[pos20 + 1] = finalResult[1];
     result[pos20 + 2] = finalResult[2];
 
-    // If carry generated, SET marquee at appropriate column (no addition)
+    // If carry generated, SET marquee at column 19 (no addition)
     if (finalTuple.length === 2) {
       console.log(`SPECIAL CASE: Carry generated, SETTING marquee`);
 
