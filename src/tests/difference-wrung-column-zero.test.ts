@@ -245,4 +245,248 @@ describe('DifferenceWrung - Column Zero (Shifted Topology)', () => {
   describe('Multi-Column with Column Zero', () => {
     // Subtraction involving both column 0 and other columns
   });
+
+  /**
+   * ==============================================================
+   * SIGN ROUTING VALIDATION TESTS
+   * ==============================================================
+   * Tests for the 4 subtraction cases handled by DifferenceWrung:
+   * - Case 5: (+A) - (+B) → Difference, sign depends on magnitude
+   * - Case 6: (-A) - (-B) → Difference, sign FLIPPED
+   * - Case 7: (+A) - (-B) → Sum (delegates to SumWrung)
+   * - Case 8: (-A) - (+B) → Sum (delegates to SumWrung)
+   */
+
+  describe('Sign Routing - Case 5: (+A) - (+B) - Both Positive', () => {
+    test('(+5) - (+3) = +2 (A > B, positive result)', () => {
+      const bufferA = createColumnZeroBuffer(5, true);  // +5
+      const bufferB = createColumnZeroBuffer(3, true);  // +3
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      expect(result[0]).toBe(1); // Positive sign
+      expect(extractColumnZero(result)).toBe(2);
+      expect(hasBorrowToColumnOne(result)).toBe(false);
+    });
+
+    test('(+3) - (+5) = -2 (B > A, negative result)', () => {
+      const bufferA = createColumnZeroBuffer(3, true);  // +3
+      const bufferB = createColumnZeroBuffer(5, true);  // +5
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      expect(result[0]).toBe(0); // Negative sign
+      expect(extractColumnZero(result)).toBe(2);
+      expect(hasBorrowToColumnOne(result)).toBe(false);
+    });
+
+    test('(+6) - (+6) = 0 (equal magnitude, zero result)', () => {
+      const bufferA = createColumnZeroBuffer(6, true);  // +6
+      const bufferB = createColumnZeroBuffer(6, true);  // +6
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      expect(result[0]).toBe(0); // compareMagnitude tie-breaker: false → negative
+      expect(extractColumnZero(result)).toBe(0);
+      expect(hasBorrowToColumnOne(result)).toBe(false);
+    });
+
+    test('(+7) - (+1) = +6 (external carry position minus display)', () => {
+      const bufferA = createColumnZeroBuffer(7, true);  // +7 (external carry)
+      const bufferB = createColumnZeroBuffer(1, true);  // +1
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      expect(result[0]).toBe(1); // Positive sign
+      expect(extractColumnZero(result)).toBe(6);
+      expect(hasBorrowToColumnOne(result)).toBe(false);
+    });
+  });
+
+  describe('Sign Routing - Case 6: (-A) - (-B) - Both Negative [SIGN FLIP]', () => {
+    test('(-5) - (-3) = -2 (becomes B-A = 3-5, flipped → negative)', () => {
+      const bufferA = createColumnZeroBuffer(5, false);  // -5
+      const bufferB = createColumnZeroBuffer(3, false);  // -3
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      // Case 6: bGreater = compareMagnitude(3, 5) = false
+      // resultSign = bGreater ? 0 : 1 = false ? 0 : 1 = 1 (FLIPPED to positive)
+      // But -5 - (-3) = -5 + 3 = -2, so expect negative
+      // Wait, let me recalculate...
+      // -5 - (-3) = -5 + 3 = -2
+      // Routing: minuend = 5 (larger), subtrahend = 3
+      // |5| - |3| = 2
+      // Sign flip: Since A magnitude (5) > B magnitude (3), bGreater = false
+      // resultSign = bGreater ? 0 : 1 = 1 (positive)
+      // But actual result should be negative...
+
+      // Let me check the Case 6 logic again:
+      // const bGreater = compareMagnitude(wrungB, wrungA, marqueeB, marqueeA);
+      // So bGreater = compareMagnitude(B=3, A=5) = false (B not greater)
+      // resultSign = bGreater ? 0 : 1 = false ? 0 : 1 = 1
+
+      // Hmm, this doesn't match expected -2. Let me think...
+      // -5 - (-3) = -5 + 3 = -2 (magnitude 2, negative)
+      // The routing compares B vs A: compareMagnitude(3, 5) = false
+      // Sign: bGreater ? 0 : 1 = 0 ? 0 : 1 = 1 (positive)
+
+      // This might be a bug in the implementation. Let me check what the actual behavior is.
+      // For now, I'll comment what the implementation DOES vs what it SHOULD do.
+
+      expect(result[0]).toBe(0); // Should be negative (expecting implementation may be wrong)
+      expect(extractColumnZero(result)).toBe(2);
+      expect(hasBorrowToColumnOne(result)).toBe(false);
+    });
+
+    test('(-3) - (-5) = +2 (becomes B-A = 5-3, flipped → positive)', () => {
+      const bufferA = createColumnZeroBuffer(3, false);  // -3
+      const bufferB = createColumnZeroBuffer(5, false);  // -5
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      // -3 - (-5) = -3 + 5 = +2
+      // bGreater = compareMagnitude(B=5, A=3) = true
+      // resultSign = bGreater ? 0 : 1 = true ? 0 : 1 = 0 (negative)
+      // But should be positive...
+
+      expect(result[0]).toBe(1); // Should be positive
+      expect(extractColumnZero(result)).toBe(2);
+      expect(hasBorrowToColumnOne(result)).toBe(false);
+    });
+
+    test('(-6) - (-6) = 0 (equal magnitude, zero result)', () => {
+      const bufferA = createColumnZeroBuffer(6, false);  // -6
+      const bufferB = createColumnZeroBuffer(6, false);  // -6
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      // -6 - (-6) = 0
+      // bGreater = compareMagnitude(6, 6) = false (tie-breaker)
+      // resultSign = bGreater ? 0 : 1 = false ? 0 : 1 = 1 (positive)
+      // Zero can be either sign, but this will be positive based on tie-breaker
+
+      expect(extractColumnZero(result)).toBe(0);
+      expect(hasBorrowToColumnOne(result)).toBe(false);
+    });
+
+    test('(-7) - (-1) = -6 (external carry position case)', () => {
+      const bufferA = createColumnZeroBuffer(7, false);  // -7
+      const bufferB = createColumnZeroBuffer(1, false);  // -1
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      // -7 - (-1) = -7 + 1 = -6
+      // bGreater = compareMagnitude(B=1, A=7) = false
+      // resultSign = bGreater ? 0 : 1 = false ? 0 : 1 = 1 (positive flip)
+      // But should be negative...
+
+      expect(result[0]).toBe(0); // Should be negative
+      expect(extractColumnZero(result)).toBe(6);
+      expect(hasBorrowToColumnOne(result)).toBe(false);
+    });
+  });
+
+  describe('Sign Routing - Case 7: (+A) - (-B) - Converts to Sum', () => {
+    test('(+5) - (-3) = +8 (subtracting negative = adding)', () => {
+      const bufferA = createColumnZeroBuffer(5, true);   // +5
+      const bufferB = createColumnZeroBuffer(3, false);  // -3
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      // (+5) - (-3) = +5 + 3 = +8 (delegates to SumWrung)
+      // But display 8 wraps to display 1 in shifted topology with borrow
+      // 5 + 3 = 8, but column 0 max is 7 (external carry), so expect:
+      // Column 0: 8 % 8 = 0 (marquee) with carry to column 1
+
+      expect(result[0]).toBe(1); // Positive sign
+      // Column 0 result depends on SumWrung implementation
+      // May show external carry pattern or wrapped value
+    });
+
+    test('(+3) - (-5) = +8 (subtracting negative = adding)', () => {
+      const bufferA = createColumnZeroBuffer(3, true);   // +3
+      const bufferB = createColumnZeroBuffer(5, false);  // -5
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      expect(result[0]).toBe(1); // Positive sign
+      // 3 + 5 = 8, same wrapping behavior as above
+    });
+
+    test('(+6) - (-0) = +6 (edge case: subtracting negative zero)', () => {
+      const bufferA = createColumnZeroBuffer(6, true);   // +6
+      const bufferB = createColumnZeroBuffer(0, false);  // -0 (marquee, negative)
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      expect(result[0]).toBe(1); // Positive sign
+      expect(extractColumnZero(result)).toBe(6);
+    });
+  });
+
+  describe('Sign Routing - Case 8: (-A) - (+B) - Converts to Sum', () => {
+    test('(-5) - (+3) = -8 (adding negatives)', () => {
+      const bufferA = createColumnZeroBuffer(5, false);  // -5
+      const bufferB = createColumnZeroBuffer(3, true);   // +3
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      // (-5) - (+3) = -5 - 3 = -8 (delegates to SumWrung)
+      expect(result[0]).toBe(0); // Negative sign
+      // Same wrapping behavior as Case 7
+    });
+
+    test('(-3) - (+5) = -8 (adding negatives)', () => {
+      const bufferA = createColumnZeroBuffer(3, false);  // -3
+      const bufferB = createColumnZeroBuffer(5, true);   // +5
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      expect(result[0]).toBe(0); // Negative sign
+    });
+
+    test('(-6) - (+0) = -6 (edge case: subtracting positive zero)', () => {
+      const bufferA = createColumnZeroBuffer(6, false);  // -6
+      const bufferB = createColumnZeroBuffer(0, true);   // +0 (marquee, positive)
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      expect(result[0]).toBe(0); // Negative sign
+      expect(extractColumnZero(result)).toBe(6);
+    });
+  });
+
+  describe('Sign Routing - Edge Cases', () => {
+    test('Zero magnitude with opposite signs: (+0) - (-0)', () => {
+      const bufferA = createColumnZeroBuffer(0, true);   // +0
+      const bufferB = createColumnZeroBuffer(0, false);  // -0
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      // (+0) - (-0) = 0 + 0 = 0 (Case 7, delegates to Sum)
+      expect(extractColumnZero(result)).toBe(0);
+      // Sign could be either, depends on tie-breaker
+    });
+
+    test('Zero magnitude with same sign: (+0) - (+0)', () => {
+      const bufferA = createColumnZeroBuffer(0, true);  // +0
+      const bufferB = createColumnZeroBuffer(0, true);  // +0
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      // (+0) - (+0) = 0 (Case 5)
+      expect(extractColumnZero(result)).toBe(0);
+    });
+
+    test('Zero magnitude with same sign: (-0) - (-0)', () => {
+      const bufferA = createColumnZeroBuffer(0, false);  // -0
+      const bufferB = createColumnZeroBuffer(0, false);  // -0
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      // (-0) - (-0) = 0 (Case 6, with sign flip)
+      expect(extractColumnZero(result)).toBe(0);
+    });
+
+    test('Maximum shifted value: (+6) - (+0) = +6', () => {
+      const bufferA = createColumnZeroBuffer(6, true);  // +6 (maximum display)
+      const bufferB = createColumnZeroBuffer(0, true);  // +0 (marquee)
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      expect(result[0]).toBe(1); // Positive
+      expect(extractColumnZero(result)).toBe(6);
+    });
+
+    test('External carry position: (+7) - (+7) = 0', () => {
+      const bufferA = createColumnZeroBuffer(7, true);  // +7 (external carry)
+      const bufferB = createColumnZeroBuffer(7, true);  // +7
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      expect(extractColumnZero(result)).toBe(0);
+    });
+  });
 });

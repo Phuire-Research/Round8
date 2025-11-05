@@ -394,6 +394,197 @@ export const not = (a: number): number => {
 };
 
 /**
+ * Compare Magnitudes - Column-by-column comparison using validated greaterThan()
+ *
+ * Compares absolute values of two wrungs from most significant to least significant column.
+ * Uses validated greaterThan() operator for each column comparison.
+ *
+ * @param wrungA - First operand buffer (64 positions)
+ * @param wrungB - Second operand buffer (64 positions)
+ * @param marqueeA - First valid column index for wrungA (0-20)
+ * @param marqueeB - First valid column index for wrungB (0-20)
+ * @returns true if |wrungA| > |wrungB|, false if |wrungB| >= |wrungA|
+ */
+export const compareMagnitude = (
+  wrungA: Uint8Array<ArrayBuffer>,
+  wrungB: Uint8Array<ArrayBuffer>,
+  marqueeA: number,
+  marqueeB: number
+): boolean => {
+  // Start from most significant column (smallest marquee value)
+  const startColumn = Math.min(marqueeA, marqueeB);
+
+  // Compare column-by-column from most significant to least significant
+  for (let col = startColumn; col <= 20; col++) {
+    // Extract 3-bit column values
+    const pos = 1 + col * 3;
+    const columnA = new Uint8Array([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
+    const columnB = new Uint8Array([wrungB[pos], wrungB[pos + 1], wrungB[pos + 2]]);
+
+    // Compare using validated greaterThan operator
+    const aGreater = greaterThan(columnA, columnB);
+    if (aGreater === 1) {
+      // A has greater magnitude at this column
+      return true;
+    }
+
+    const bGreater = greaterThan(columnB, columnA);
+    if (bGreater === 1) {
+      // B has greater magnitude at this column
+      return false;
+    }
+
+    // Columns equal, continue to next less significant column
+  }
+
+  // All columns equal - B "wins" tie (return false)
+  // This ensures consistent behavior for equal magnitudes
+  return false;
+};
+
+/**
+ * Operation Routing Result - Structured data for sign routing
+ */
+type OperationRouting = {
+  effectiveOp: 'sum' | 'difference';
+  minuend: Uint8Array<ArrayBuffer>;
+  subtrahend: Uint8Array<ArrayBuffer>;
+  resultSign: 0 | 1;
+};
+
+/**
+ * Determine Effective Operation - Route to Sum or Difference based on operation+sign combination
+ *
+ * Analyzes operation type and operand signs to determine which spool to use (Sum or Difference)
+ * and what the result sign should be. Handles all 8 operation+sign combinations:
+ * - Addition: 4 cases (++, --, +-, -+)
+ * - Subtraction: 4 cases (++, --, +-, -+)
+ *
+ * Uses compareMagnitude() for cases where result sign depends on magnitude comparison.
+ *
+ * @param operation - Operation type ('+' for addition, '-' for subtraction)
+ * @param signA - Sign of wrungA (0 = negative, 1 = positive)
+ * @param signB - Sign of wrungB (0 = negative, 1 = positive)
+ * @param wrungA - First operand buffer (64 positions)
+ * @param wrungB - Second operand buffer (64 positions)
+ * @param marqueeA - First valid column index for wrungA (0-20)
+ * @param marqueeB - First valid column index for wrungB (0-20)
+ * @returns Routing object with effectiveOp, operand order, and result sign
+ */
+export const determineEffectiveOperation = (
+  operation: '+' | '-',
+  signA: 0 | 1,
+  signB: 0 | 1,
+  wrungA: Uint8Array<ArrayBuffer>,
+  wrungB: Uint8Array<ArrayBuffer>,
+  marqueeA: number,
+  marqueeB: number
+): OperationRouting => {
+  // ADDITION OPERATIONS (operation === '+')
+  if (operation === '+') {
+    // Case 1: (+A) + (+B) → Sum, result positive
+    if (signA === 1 && signB === 1) {
+      console.log('ROUTING CASE 1: (+A) + (+B) → Sum, result positive');
+      return {
+        effectiveOp: 'sum',
+        minuend: wrungA,
+        subtrahend: wrungB,
+        resultSign: 1,
+      };
+    }
+
+    // Case 2: (-A) + (-B) → Sum, result negative
+    if (signA === 0 && signB === 0) {
+      console.log('ROUTING CASE 2: (-A) + (-B) → Sum, result negative');
+      return {
+        effectiveOp: 'sum',
+        minuend: wrungA,
+        subtrahend: wrungB,
+        resultSign: 0,
+      };
+    }
+
+    // Case 3: (+A) + (-B) → Difference (A - B), sign depends on magnitude
+    if (signA === 1 && signB === 0) {
+      const aGreater = compareMagnitude(wrungA, wrungB, marqueeA, marqueeB);
+      console.log(`ROUTING CASE 3: (+A) + (-B) → Difference, aGreater=${aGreater}, resultSign=${aGreater ? 1 : 0}`);
+      return {
+        effectiveOp: 'difference',
+        minuend: aGreater ? wrungA : wrungB,
+        subtrahend: aGreater ? wrungB : wrungA,
+        resultSign: aGreater ? 1 : 0, // Positive if A > B, negative if B > A
+      };
+    }
+
+    // Case 4: (-A) + (+B) → Difference (B - A), sign depends on magnitude
+    if (signA === 0 && signB === 1) {
+      const bGreater = compareMagnitude(wrungB, wrungA, marqueeB, marqueeA);
+      console.log(`ROUTING CASE 4: (-A) + (+B) → Difference, bGreater=${bGreater}, resultSign=${bGreater ? 1 : 0}`);
+      return {
+        effectiveOp: 'difference',
+        minuend: bGreater ? wrungB : wrungA,
+        subtrahend: bGreater ? wrungA : wrungB,
+        resultSign: bGreater ? 1 : 0, // Positive if B > A, negative if A > B
+      };
+    }
+  }
+
+  // SUBTRACTION OPERATIONS (operation === '-')
+  if (operation === '-') {
+    // Case 5: (+A) - (+B) → Difference (A - B), sign depends on magnitude
+    if (signA === 1 && signB === 1) {
+      const aGreater = compareMagnitude(wrungA, wrungB, marqueeA, marqueeB);
+      console.log(`ROUTING CASE 5: (+A) - (+B) → Difference, aGreater=${aGreater}, resultSign=${aGreater ? 1 : 0}`);
+      return {
+        effectiveOp: 'difference',
+        minuend: aGreater ? wrungA : wrungB,
+        subtrahend: aGreater ? wrungB : wrungA,
+        resultSign: aGreater ? 1 : 0, // Positive if A > B, negative if B > A
+      };
+    }
+
+    // Case 6: (-A) - (-B) → Difference (B - A), sign FLIPPED
+    if (signA === 0 && signB === 0) {
+      const aGreater = compareMagnitude(wrungA, wrungB, marqueeA, marqueeB);
+      console.log(`ROUTING CASE 6: (-A) - (-B) → Difference, aGreater=${aGreater}, resultSign=${aGreater ? 0 : 1} [SIGN FLIPPED]`);
+      return {
+        effectiveOp: 'difference',
+        minuend: aGreater ? wrungA : wrungB,
+        subtrahend: aGreater ? wrungB : wrungA,
+        resultSign: aGreater ? 0 : 1, // FLIPPED: negative if |A| > |B|, positive if |B| > |A|
+      };
+    }
+
+    // Case 7: (+A) - (-B) → Sum (A + B), result positive
+    if (signA === 1 && signB === 0) {
+      console.log('ROUTING CASE 7: (+A) - (-B) → Sum (subtracting negative = adding), result positive');
+      return {
+        effectiveOp: 'sum',
+        minuend: wrungA,
+        subtrahend: wrungB,
+        resultSign: 1,
+      };
+    }
+
+    // Case 8: (-A) - (+B) → Sum (A + B), result negative
+    if (signA === 0 && signB === 1) {
+      console.log('ROUTING CASE 8: (-A) - (+B) → Sum (adding negatives), result negative');
+      return {
+        effectiveOp: 'sum',
+        minuend: wrungA,
+        subtrahend: wrungB,
+        resultSign: 0,
+      };
+    }
+  }
+
+  // Fallback - should never reach if all cases covered
+  throw new Error(
+    `determineEffectiveOperation: Unhandled combination - operation=${operation}, signA=${signA}, signB=${signB}`
+  );
+};
+
+/**
  * SumWrung - Columnar Long Addition using SpooledSumSeries lookup tables
  *
  * Takes two 64-position Uint8Array buffers and performs columnar addition
@@ -619,19 +810,66 @@ export const DifferenceWrung = (
   );
   // Phase 1: Conference both operands to determine Marquee states
   const conferredState = ConferBidirectionally(wrungA, wrungB);
+  // Phase 1.5: Sign routing - Determine effective operation based on signs
+  const signA = wrungA[0] as 0 | 1;
+  const signB = wrungB[0] as 0 | 1;
+  console.log(`SIGN ROUTING: signA=${signA} (${signA === 1 ? '+' : '-'}), signB=${signB} (${signB === 1 ? '-' : '+'}), operation='-'`);
+
+  const routing = determineEffectiveOperation(
+    '-', // DifferenceWrung always performs subtraction
+    signA,
+    signB,
+    wrungA,
+    wrungB,
+    conferredState.wrungAMarquee.firstValidColumn ?? 20,
+    conferredState.wrungBMarquee.firstValidColumn ?? 20
+  );
+
+  // Log routing decision with operand information
+  const minuendName = routing.minuend === wrungA ? 'wrungA' : 'wrungB';
+  const subtrahendName = routing.subtrahend === wrungA ? 'wrungA' : 'wrungB';
+  console.log(
+    `ROUTING RESULT: effectiveOp=${routing.effectiveOp}, ` +
+    `minuend=${minuendName}, subtrahend=${subtrahendName}, ` +
+    `resultSign=${routing.resultSign} (${routing.resultSign === 1 ? '+' : '-'})`
+  );
+
+  // Phase 1.6: If routing to SUM, delegate to SumWrung with routing operands
+  if (routing.effectiveOp === 'sum') {
+    console.log('SIGN ROUTING: Delegating to SumWrung (subtracting negative = adding)');
+    const sumResult = SumWrung(routing.minuend, routing.subtrahend);
+    // Apply routing result sign
+    sumResult[0] = routing.resultSign;
+    console.log(`SUM DELEGATION COMPLETE: resultSign=${routing.resultSign} applied`);
+    return sumResult;
+  }
+
+  // Phase 1.7: For DIFFERENCE operations, use routing operands for all spool lookups
+  // routing.minuend and routing.subtrahend determine the correct operand order
+  // CRITICAL: Use routing.minuend/subtrahend for ALL spool lookups, not wrungA/wrungB
+  console.log(`SIGN ROUTING: Using DIFFERENCE spool with routing operands, will apply resultSign=${routing.resultSign} at end`);
+
+  // Assign routing operands to working variables for the rest of the function
+  const minuend = routing.minuend;
+  const subtrahend = routing.subtrahend;
+
+  // Track which operand is A vs B for negative one detection
+  const minuendIsA = (minuend === wrungA);
+  const aIsNegativeOne = conferredState.wrungAMarquee.isNegativeOne ?? false;
+  const bIsNegativeOne = conferredState.wrungBMarquee.isNegativeOne ?? false;
+  const minuendIsNegativeOne = minuendIsA ? aIsNegativeOne : bIsNegativeOne;
+  const subtrahendIsNegativeOne = minuendIsA ? bIsNegativeOne : aIsNegativeOne;
+
   // Phase 2: Special case - both absolute zero
   if (conferredState.wrungAMarquee.isAbsoluteZero && conferredState.wrungBMarquee.isAbsoluteZero) {
     return SPECIAL_CASE_STORE.ZERO_CASE;
   }
   // Phase 3: Create result buffer
   const result = new Uint8Array(64);
-  // Copy sign from minuend (wrungA)
-  result[0] = wrungA[0];
+  // Temporarily copy sign from minuend (will be replaced with routing.resultSign at end)
+  result[0] = routing.resultSign;
   // Phase 4: Borrow accumulator - array of Uint8Array[3] borrows
   const borrows: Uint8Array<ArrayBuffer>[] = [];
-  // Phase 5: Extract Negative One flags ONCE
-  const aIsNegativeOne = conferredState.wrungAMarquee.isNegativeOne ?? false;
-  const bIsNegativeOne = conferredState.wrungBMarquee.isNegativeOne ?? false;
 
   // Phase 6: SPECIAL CASE - No Marquee Present (Sign = 1, all 000)
   // Only column 20 valid, no backward propagation allowed
@@ -644,16 +882,16 @@ export const DifferenceWrung = (
     const pos20 = 1 + 20 * 3;
     // SPOOL SELECTION: Negative One detection for column 20
     let activeSpool: SpooledWrung;
-    if (aIsNegativeOne && !bIsNegativeOne) {
+    if (minuendIsNegativeOne && !subtrahendIsNegativeOne) {
       activeSpool = SpooledNegativeOneMinusSomeNumberSeries; // (-1) - X
-    } else if (!aIsNegativeOne && bIsNegativeOne) {
+    } else if (!minuendIsNegativeOne && subtrahendIsNegativeOne) {
       activeSpool = SpooledSomeNumberMinusNegativeOneSeries; // X - (-1)
     } else {
       activeSpool = SpooledDifferenceSeries; // Regular difference
     }
-    // Subtract wrungA[20] - wrungB[20]
-    const finalTuple = activeSpool[wrungA[pos20]][wrungA[pos20 + 1]][wrungA[pos20 + 2]][wrungB[pos20]][wrungB[pos20 + 1]][
-      wrungB[pos20 + 2]
+    // Subtract minuend[20] - subtrahend[20]
+    const finalTuple = activeSpool[minuend[pos20]][minuend[pos20 + 1]][minuend[pos20 + 2]][subtrahend[pos20]][subtrahend[pos20 + 1]][
+      subtrahend[pos20 + 2]
     ] as (Uint8Array<ArrayBuffer> | number)[];
     const finalResult = finalTuple[0] as Uint8Array;
     result[pos20] = finalResult[0];
@@ -679,17 +917,17 @@ export const DifferenceWrung = (
       const pos = 1 + column * 3;
       // SPOOL SELECTION: Column 20 Negative One detection + Column 0 shifted topology
       let activeSpool: SpooledWrung;
-      if (column === 20 && aIsNegativeOne && !bIsNegativeOne) {
+      if (column === 20 && minuendIsNegativeOne && !subtrahendIsNegativeOne) {
         activeSpool = SpooledNegativeOneMinusSomeNumberSeries; // (-1) - X
-      } else if (column === 20 && !aIsNegativeOne && bIsNegativeOne) {
+      } else if (column === 20 && !minuendIsNegativeOne && subtrahendIsNegativeOne) {
         activeSpool = SpooledSomeNumberMinusNegativeOneSeries; // X - (-1)
       } else if (column === 0) {
         activeSpool = SpooledShiftedDifferenceSeries; // Column 0 shifted topology
       } else {
         activeSpool = SpooledDifferenceSeries; // Regular difference
       }
-      // FIRST WRUNG: Deplete accumulated borrows into wrungA
-      let intermediate = new Uint8Array([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
+      // FIRST WRUNG: Deplete accumulated borrows into minuend
+      let intermediate = new Uint8Array([minuend[pos], minuend[pos + 1], minuend[pos + 2]]);
       while (borrows.length > 0) {
         const borrow = borrows.pop()!;
         const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
@@ -704,12 +942,12 @@ export const DifferenceWrung = (
           borrows.push(newBorrow);
         }
       }
-      // SECOND WRUNG: Subtract wrungB from intermediate
+      // SECOND WRUNG: Subtract subtrahend from intermediate
       console.log(
         `Column ${column}: intermediate=[${intermediate[0]},${intermediate[1]},${intermediate[2]}] ` +
-          `wrungB=[${wrungB[pos]},${wrungB[pos + 1]},${wrungB[pos + 2]}]`
+          `subtrahend=[${subtrahend[pos]},${subtrahend[pos + 1]},${subtrahend[pos + 2]}]`
       );
-      const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][wrungB[pos]][wrungB[pos + 1]][wrungB[pos + 2]] as ( // Same spool as First Wrung
+      const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][subtrahend[pos]][subtrahend[pos + 1]][subtrahend[pos + 2]] as ( // Same spool as First Wrung
         | Uint8Array<ArrayBuffer>
         | number
       )[];
@@ -736,17 +974,17 @@ export const DifferenceWrung = (
       const pos = 1 + column * 3;
       // SPOOL SELECTION: Column 20 Negative One detection + Column 0 shifted topology
       let activeSpool: SpooledWrung;
-      if (column === 20 && aIsNegativeOne && !bIsNegativeOne) {
+      if (column === 20 && minuendIsNegativeOne && !subtrahendIsNegativeOne) {
         activeSpool = SpooledNegativeOneMinusSomeNumberSeries; // (-1) - X
-      } else if (column === 20 && !aIsNegativeOne && bIsNegativeOne) {
+      } else if (column === 20 && !minuendIsNegativeOne && subtrahendIsNegativeOne) {
         activeSpool = SpooledSomeNumberMinusNegativeOneSeries; // X - (-1)
       } else if (column === 0) {
         activeSpool = SpooledShiftedDifferenceSeries; // Column 0 shifted topology
       } else {
         activeSpool = SpooledDifferenceSeries; // Regular difference
       }
-      // Deplete borrows into wrungA
-      let intermediate = new Uint8Array([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
+      // Deplete borrows into minuend
+      let intermediate = new Uint8Array([minuend[pos], minuend[pos + 1], minuend[pos + 2]]);
       while (borrows.length > 0) {
         const borrow = borrows.pop()!;
         const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
@@ -761,8 +999,8 @@ export const DifferenceWrung = (
           borrows.push(newBorrow);
         }
       }
-      // Subtract wrungB
-      const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][wrungB[pos]][wrungB[pos + 1]][wrungB[pos + 2]] as ( // Same spool as First Wrung
+      // Subtract subtrahend
+      const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][subtrahend[pos]][subtrahend[pos + 1]][subtrahend[pos + 2]] as ( // Same spool as First Wrung
         | Uint8Array<ArrayBuffer>
         | number
       )[];
@@ -855,5 +1093,53 @@ export const DifferenceWrung = (
   if (borrows.length > 0) {
     throw new Error('DifferenceWrung underflow: borrow beyond column 0');
   }
+  // Phase 9: Apply routing result sign (from sign routing logic)
+  result[0] = routing.resultSign;
+
+  // Phase 9.5: PRE-NORMALIZATION - Check for computed zero at column 0
+  // Round8 Principle: No Zero in natural counting (1→2→3→4→5→6→7→8→1...)
+  // Computed zeros (6-6=0, 7-7=0) must show marquee [0,0,1], not external carry [0,0,0]
+  const col0Binary = [result[1], result[2], result[3]];
+  const col1Binary = [result[4], result[5], result[6]];
+
+  // If column 0 shows [0,0,0] (external carry encoding)
+  const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
+
+  if (isExternalCarry) {
+    // Check if column 1 is empty (no actual carry present)
+    const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
+
+    // If NO actual carry, normalize to marquee [0,0,1] BEFORE conferencing
+    // This prevents BidirectionalConference from detecting as "absolute zero"
+    if (!hasCarryToColumn1) {
+      console.log('PRE-NORMALIZATION: Column 0 [0,0,0] → [0,0,1] (computed zero → marquee display)');
+      result[3] = 1; // Set bit0 to 1
+    }
+  }
+
+  // Phase 9.6: RESULT CONFERENCE - Continuous Bidirectional Method
+  // Re-conference the result buffer to discover actual marquee position after all operations
+  const resultMarquee = BidirectionalConference(result);
+  console.log(
+    `RESULT CONFERENCE: marqueeColumn=${resultMarquee.marqueeColumn}, ` +
+    `isAbsoluteZero=${resultMarquee.isAbsoluteZero}`
+  );
+
+  // Phase 9.7: STATE TRANSITION DETECTION (if normalization occurred)
+  // Re-conference only if we normalized - detects marquee shift
+  if (isExternalCarry && col1Binary[0] === 0 && col1Binary[1] === 0 && col1Binary[2] === 0) {
+    const postNormalizationMarquee = BidirectionalConference(result);
+
+    // Detect state transition with Object.is()
+    if (!Object.is(resultMarquee, postNormalizationMarquee)) {
+      console.log(
+        'MARQUEE STATE TRANSITION: Post-normalization conference detected shift'
+      );
+      // State transition detected - enables recursive shift tracking
+      // Future enhancement: return { result, marqueeState } tuple
+    }
+  }
+
+  console.log(`DIFFERENCEWRUNG COMPLETE: Applied routing.resultSign=${routing.resultSign}`);
   return result;
 };
