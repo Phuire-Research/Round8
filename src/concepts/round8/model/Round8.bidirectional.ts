@@ -17,6 +17,9 @@ export type MarqueeState = {
 
   /** Whether this buffer represents absolute zero (all positions 000) */
   isAbsoluteZero?: boolean;
+
+  /** Whether this buffer represents negative one (maximum negative magnitude - all columns [1,1,1]) */
+  isNegativeOne?: boolean;
 };
 
 /**
@@ -162,8 +165,15 @@ const firstColumnSignedProspection = (buffer: Uint8Array<ArrayBuffer>): MarqueeS
 // eslint-disable-next-line complexity
 // Note this is only Handling our Positive Sign
 export const BidirectionalConference = (buffer: Uint8Array<ArrayBuffer>): MarqueeState => {
-  // Check for absolute zero (all positions 1-63 are 000)
+  // FIRST: Check for negative one (maximum negative magnitude)
   const signedPositive = buffer[0] === 1;
+  if (!signedPositive) {
+    if (detectNegativeOne(buffer)) {
+      return { isNegativeOne: true };
+    }
+  }
+
+  // SECOND: Check for absolute zero (all positions 1-63 are 000)
   let isAbsoluteZero = true;
   if (!signedPositive) {
     for (let i = 1; i < 64; i++) {
@@ -276,4 +286,72 @@ export const ConferBidirectionally = (
     sharedValidColumn,
     exactEven,
   };
+};
+
+/**
+ * detectNegativeOne - Detect maximum negative magnitude (all columns [1,1,1])
+ *
+ * Uses 21-strike column sweep for shortest path detection:
+ * - Strike 1: Sign + Column 20 (rightmost - highest variation probability)
+ * - Strike 2: Column 19 (absurdly large range check)
+ * - Strike 3: Column 10 (middle bisection)
+ * - Strikes 4-21: Outward sweep from middle (11, 9, 12, 8, 13, 7...)
+ *
+ * Returns true ONLY if ALL 21 columns are [1,1,1] with sign = 0 (negative)
+ *
+ * @param buffer - 64-position Uint8Array (sign + 21 columns × 3 bits)
+ * @returns boolean - true if buffer represents Negative One (-1)
+ */
+// eslint-disable-next-line complexity
+export const detectNegativeOne = (buffer: Uint8Array<ArrayBuffer>): boolean => {
+  // Strike 1: Initial validation (sign + Column 20)
+  if (buffer[0] !== 0) return false; // Sign must be negative
+  if (buffer[61] !== 1 || buffer[62] !== 1 || buffer[63] !== 1) return false;
+
+  // Strike 2: Absurdly large range (Column 19)
+  if (buffer[58] !== 1 || buffer[59] !== 1 || buffer[60] !== 1) return false;
+
+  // Strike 3: Middle column (Column 10)
+  if (buffer[31] !== 1 || buffer[32] !== 1 || buffer[33] !== 1) return false;
+
+  // Strikes 4-21: Outward sweep from middle (predetermined order)
+  // Column 11
+  if (buffer[34] !== 1 || buffer[35] !== 1 || buffer[36] !== 1) return false;
+  // Column 9
+  if (buffer[28] !== 1 || buffer[29] !== 1 || buffer[30] !== 1) return false;
+  // Column 12
+  if (buffer[37] !== 1 || buffer[38] !== 1 || buffer[39] !== 1) return false;
+  // Column 8
+  if (buffer[25] !== 1 || buffer[26] !== 1 || buffer[27] !== 1) return false;
+  // Column 13
+  if (buffer[40] !== 1 || buffer[41] !== 1 || buffer[42] !== 1) return false;
+  // Column 7
+  if (buffer[22] !== 1 || buffer[23] !== 1 || buffer[24] !== 1) return false;
+  // Column 14
+  if (buffer[43] !== 1 || buffer[44] !== 1 || buffer[45] !== 1) return false;
+  // Column 6
+  if (buffer[19] !== 1 || buffer[20] !== 1 || buffer[21] !== 1) return false;
+  // Column 15
+  if (buffer[46] !== 1 || buffer[47] !== 1 || buffer[48] !== 1) return false;
+  // Column 5
+  if (buffer[16] !== 1 || buffer[17] !== 1 || buffer[18] !== 1) return false;
+  // Column 16
+  if (buffer[49] !== 1 || buffer[50] !== 1 || buffer[51] !== 1) return false;
+  // Column 4
+  if (buffer[13] !== 1 || buffer[14] !== 1 || buffer[15] !== 1) return false;
+  // Column 17
+  if (buffer[52] !== 1 || buffer[53] !== 1 || buffer[54] !== 1) return false;
+  // Column 3
+  if (buffer[10] !== 1 || buffer[11] !== 1 || buffer[12] !== 1) return false;
+  // Column 18
+  if (buffer[55] !== 1 || buffer[56] !== 1 || buffer[57] !== 1) return false;
+  // Column 2
+  if (buffer[7] !== 1 || buffer[8] !== 1 || buffer[9] !== 1) return false;
+  // Column 1
+  if (buffer[4] !== 1 || buffer[5] !== 1 || buffer[6] !== 1) return false;
+  // Column 0 (shifted topology - final check)
+  if (buffer[1] !== 1 || buffer[2] !== 1 || buffer[3] !== 1) return false;
+
+  // All 21 columns are [1,1,1] → This is negative one
+  return true;
 };
