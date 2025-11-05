@@ -13,6 +13,7 @@ import {
   ShiftedNegativeOneMinusSomeNumberSeries,
 } from './Round8.negative.one.shifted.difference.cases';
 import { GreaterThanSeries } from './Round8.greater.than.cases';
+import { LessThanSeries } from './Round8.less.than.cases';
 import { BidirectionalConference, ConferBidirectionally, MarqueeState, ConferredMarqueeState } from './Round8.bidirectional';
 
 export const SPECIAL_CASE_STORE = {
@@ -115,8 +116,9 @@ const SpooledShiftedNegativeOnePlusSomeNumberSeries: SpooledWrung = initializeSp
 const SpooledShiftedSomeNumberMinusNegativeOneSeries: SpooledWrung = initializeSpooledWrung();
 const SpooledShiftedNegativeOneMinusSomeNumberSeries: SpooledWrung = initializeSpooledWrung();
 
-// Logical Comparison Spool (returns boolean 0 or 1)
+// Logical Comparison Spools (return boolean 0 or 1)
 const SpooledGreaterThanSeries: SpooledWrung = initializeSpooledWrung();
+const SpooledLessThanSeries: SpooledWrung = initializeSpooledWrung();
 
 const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
   let count = 0;
@@ -157,8 +159,9 @@ spool(ShiftedNegativeOnePlusSomeNumberSeries, SpooledShiftedNegativeOnePlusSomeN
 spool(ShiftedSomeNumberMinusNegativeOneSeries, SpooledShiftedSomeNumberMinusNegativeOneSeries);
 spool(ShiftedNegativeOneMinusSomeNumberSeries, SpooledShiftedNegativeOneMinusSomeNumberSeries);
 
-// Spool Logical Comparison
+// Spool Logical Comparisons
 spool(GreaterThanSeries, SpooledGreaterThanSeries);
+spool(LessThanSeries, SpooledLessThanSeries);
 
 export {
   SpooledSumSeries,
@@ -174,8 +177,9 @@ export {
   SpooledShiftedNegativeOnePlusSomeNumberSeries,
   SpooledShiftedSomeNumberMinusNegativeOneSeries,
   SpooledShiftedNegativeOneMinusSomeNumberSeries,
-  // Logical Comparison Spool
+  // Logical Comparison Spools
   SpooledGreaterThanSeries,
+  SpooledLessThanSeries,
 };
 
 export const DIFFERENCE_MAP = {
@@ -298,13 +302,16 @@ export const greaterThan = (columnX: Uint8Array, columnY: Uint8Array): number =>
 };
 
 /**
- * Less Than (X < Y) - Inverted Greater Than
+ * Less Than (X < Y) - Direct Spool Lookup
  * @param columnX - 3-bit column value
  * @param columnY - 3-bit column value
  * @returns 1 if X < Y, 0 otherwise
  */
 export const lessThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
-  return greaterThan(columnX, columnY) === 1 ? 0 : 1;
+  const result =
+    SpooledLessThanSeries[columnX[0]][columnX[1]][columnX[2]][columnY[0]][columnY[1]][columnY[2]]; // bit2_X // bit1_X // bit0_X // bit2_Y // bit1_Y // bit0_Y
+  // Result is [bit0_result, result_copy] - return first element
+  return result[0] as unknown as number;
 };
 
 /**
