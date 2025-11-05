@@ -8,6 +8,7 @@ import { NegativeOnePlusSomeNumberSeries } from './Round8.negative.one.unique.su
 import { SomeNumberMinusNegativeOneSeries, NegativeOneMinusSomeNumberSeries } from './Round8.negative.one.difference.cases';
 import { ShiftedSomeNumberPlusNegativeOneSeries, ShiftedNegativeOnePlusSomeNumberSeries } from './Round8.negative.one.shifted.sum.cases';
 import { ShiftedSomeNumberMinusNegativeOneSeries, ShiftedNegativeOneMinusSomeNumberSeries } from './Round8.negative.one.shifted.difference.cases';
+import { GreaterThanSeries } from './Round8.greater.than.cases';
 import { BidirectionalConference, ConferBidirectionally, MarqueeState, ConferredMarqueeState } from './Round8.bidirectional';
 
 export const SPECIAL_CASE_STORE = {
@@ -109,6 +110,9 @@ const SpooledShiftedNegativeOnePlusSomeNumberSeries: SpooledWrung = initializeSp
 const SpooledShiftedSomeNumberMinusNegativeOneSeries: SpooledWrung = initializeSpooledWrung();
 const SpooledShiftedNegativeOneMinusSomeNumberSeries: SpooledWrung = initializeSpooledWrung();
 
+// Logical Comparison Spool (returns boolean 0 or 1)
+const SpooledGreaterThanSeries: SpooledWrung = initializeSpooledWrung();
+
 const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
   let count = 0;
   Object.keys(someSeries).forEach((sum) => {
@@ -152,6 +156,9 @@ spool(ShiftedNegativeOnePlusSomeNumberSeries, SpooledShiftedNegativeOnePlusSomeN
 spool(ShiftedSomeNumberMinusNegativeOneSeries, SpooledShiftedSomeNumberMinusNegativeOneSeries);
 spool(ShiftedNegativeOneMinusSomeNumberSeries, SpooledShiftedNegativeOneMinusSomeNumberSeries);
 
+// Spool Logical Comparison
+spool(GreaterThanSeries, SpooledGreaterThanSeries);
+
 export {
   SpooledSumSeries,
   ShiftedSpooledSumSeries,
@@ -165,6 +172,8 @@ export {
   SpooledShiftedNegativeOnePlusSomeNumberSeries,
   SpooledShiftedSomeNumberMinusNegativeOneSeries,
   SpooledShiftedNegativeOneMinusSomeNumberSeries,
+  // Logical Comparison Spool
+  SpooledGreaterThanSeries,
 };
 
 export const DIFFERENCE_MAP = {
@@ -203,6 +212,86 @@ export const createShiftedColumnValue = (shiftedDisplay: number): Uint8Array => 
   case 7: return Uint8Array.from([0, 0, 0]);  // External carry placeholder (position 7)
   default: throw new Error('Invalid shifted display: ' + shiftedDisplay + '. Must be 0-7.');
   }
+};
+
+/**
+ * Logical Comparison Helper Functions - Column-Level Boolean Operations
+ *
+ * These functions perform logical comparisons on 3-bit column values using
+ * SpooledGreaterThanSeries for Greater Than, and derive other operations.
+ *
+ * Return Values: 0 (False) or 1 (True)
+ */
+
+/**
+ * Greater Than (X > Y) - Direct spool lookup
+ * @param columnX - 3-bit column value [bit2, bit1, bit0]
+ * @param columnY - 3-bit column value [bit2, bit1, bit0]
+ * @returns 1 if X > Y, 0 otherwise
+ */
+export const greaterThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  const result = SpooledGreaterThanSeries
+    [columnX[0]]  // bit2_X
+    [columnX[1]]  // bit1_X
+    [columnX[2]]  // bit0_X
+    [columnY[0]]  // bit2_Y
+    [columnY[1]]  // bit1_Y
+    [columnY[2]]; // bit0_Y
+
+  // Result is [bit0_result, result_copy] - return first element
+  return (result[0] as unknown) as number;
+};
+
+/**
+ * Less Than (X < Y) - Inverted Greater Than
+ * @param columnX - 3-bit column value
+ * @param columnY - 3-bit column value
+ * @returns 1 if X < Y, 0 otherwise
+ */
+export const lessThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  return greaterThan(columnX, columnY) === 1 ? 0 : 1;
+};
+
+/**
+ * Equals (X == Y) - Direct bit comparison
+ * @param columnX - 3-bit column value
+ * @param columnY - 3-bit column value
+ * @returns 1 if X == Y, 0 otherwise
+ */
+export const equals = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  return (columnX[0] === columnY[0] &&
+          columnX[1] === columnY[1] &&
+          columnX[2] === columnY[2]) ? 1 : 0;
+};
+
+/**
+ * Greater Than or Equal (X >= Y) - Equals OR Greater Than
+ * @param columnX - 3-bit column value
+ * @param columnY - 3-bit column value
+ * @returns 1 if X >= Y, 0 otherwise
+ */
+export const greaterThanOrEqual = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  return (equals(columnX, columnY) === 1 || greaterThan(columnX, columnY) === 1) ? 1 : 0;
+};
+
+/**
+ * Less Than or Equal (X <= Y) - Equals OR Less Than
+ * @param columnX - 3-bit column value
+ * @param columnY - 3-bit column value
+ * @returns 1 if X <= Y, 0 otherwise
+ */
+export const lessThanOrEqual = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  return (equals(columnX, columnY) === 1 || lessThan(columnX, columnY) === 1) ? 1 : 0;
+};
+
+/**
+ * Not Equals (X != Y) - Inverted Equals
+ * @param columnX - 3-bit column value
+ * @param columnY - 3-bit column value
+ * @returns 1 if X != Y, 0 otherwise
+ */
+export const notEquals = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  return equals(columnX, columnY) === 1 ? 0 : 1;
 };
 
 /**
