@@ -3,6 +3,11 @@
 import { SumSeries } from './Round8.sum.cases';
 import { ShiftedSumSeries } from './Round8.shifted.sum.cases';
 import { DifferenceSeries } from './Round8.difference.cases';
+import { SomeNumberPlusNegativeOneSeries } from './Round8.negative.one.sum.cases';
+import { NegativeOnePlusSomeNumberSeries } from './Round8.negative.one.unique.sum.cases';
+import { SomeNumberMinusNegativeOneSeries, NegativeOneMinusSomeNumberSeries } from './Round8.negative.one.difference.cases';
+import { ShiftedSomeNumberPlusNegativeOneSeries, ShiftedNegativeOnePlusSomeNumberSeries } from './Round8.negative.one.shifted.sum.cases';
+import { ShiftedSomeNumberMinusNegativeOneSeries, ShiftedNegativeOneMinusSomeNumberSeries } from './Round8.negative.one.shifted.difference.cases';
 import { BidirectionalConference, ConferBidirectionally, MarqueeState, ConferredMarqueeState } from './Round8.bidirectional';
 
 export const SPECIAL_CASE_STORE = {
@@ -94,6 +99,16 @@ const SpooledSumSeries: SpooledWrung = initializeSpooledWrung();
 const ShiftedSpooledSumSeries: SpooledWrung = initializeSpooledWrung();
 const SpooledDifferenceSeries: SpooledWrung = initializeSpooledWrung();
 
+// Negative One Special Case Spools
+const SpooledSomeNumberPlusNegativeOneSeries: SpooledWrung = initializeSpooledWrung();
+const SpooledNegativeOnePlusSomeNumberSeries: SpooledWrung = initializeSpooledWrung();
+const SpooledSomeNumberMinusNegativeOneSeries: SpooledWrung = initializeSpooledWrung();
+const SpooledNegativeOneMinusSomeNumberSeries: SpooledWrung = initializeSpooledWrung();
+const SpooledShiftedSomeNumberPlusNegativeOneSeries: SpooledWrung = initializeSpooledWrung();
+const SpooledShiftedNegativeOnePlusSomeNumberSeries: SpooledWrung = initializeSpooledWrung();
+const SpooledShiftedSomeNumberMinusNegativeOneSeries: SpooledWrung = initializeSpooledWrung();
+const SpooledShiftedNegativeOneMinusSomeNumberSeries: SpooledWrung = initializeSpooledWrung();
+
 const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
   let count = 0;
   Object.keys(someSeries).forEach((sum) => {
@@ -127,7 +142,30 @@ spool(SumSeries, SpooledSumSeries);
 spool(ShiftedSumSeries, ShiftedSpooledSumSeries);
 spool(DifferenceSeries, SpooledDifferenceSeries);
 
-export { SpooledSumSeries, ShiftedSpooledSumSeries };
+// Spool Negative One Special Cases
+spool(SomeNumberPlusNegativeOneSeries, SpooledSomeNumberPlusNegativeOneSeries);
+spool(NegativeOnePlusSomeNumberSeries, SpooledNegativeOnePlusSomeNumberSeries);
+spool(SomeNumberMinusNegativeOneSeries, SpooledSomeNumberMinusNegativeOneSeries);
+spool(NegativeOneMinusSomeNumberSeries, SpooledNegativeOneMinusSomeNumberSeries);
+spool(ShiftedSomeNumberPlusNegativeOneSeries, SpooledShiftedSomeNumberPlusNegativeOneSeries);
+spool(ShiftedNegativeOnePlusSomeNumberSeries, SpooledShiftedNegativeOnePlusSomeNumberSeries);
+spool(ShiftedSomeNumberMinusNegativeOneSeries, SpooledShiftedSomeNumberMinusNegativeOneSeries);
+spool(ShiftedNegativeOneMinusSomeNumberSeries, SpooledShiftedNegativeOneMinusSomeNumberSeries);
+
+export {
+  SpooledSumSeries,
+  ShiftedSpooledSumSeries,
+  SpooledDifferenceSeries,
+  // Negative One Special Case Spools
+  SpooledSomeNumberPlusNegativeOneSeries,
+  SpooledNegativeOnePlusSomeNumberSeries,
+  SpooledSomeNumberMinusNegativeOneSeries,
+  SpooledNegativeOneMinusSomeNumberSeries,
+  SpooledShiftedSomeNumberPlusNegativeOneSeries,
+  SpooledShiftedNegativeOnePlusSomeNumberSeries,
+  SpooledShiftedSomeNumberMinusNegativeOneSeries,
+  SpooledShiftedNegativeOneMinusSomeNumberSeries,
+};
 
 export const DIFFERENCE_MAP = {
   ZERO_CASE: Uint8Array.from([
