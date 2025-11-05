@@ -355,6 +355,45 @@ export const notEquals = (columnX: Uint8Array, columnY: Uint8Array): number => {
 };
 
 /**
+ * Logical AND - Universal Boolean Operator
+ * @param a - Boolean value (0 or 1)
+ * @param b - Boolean value (0 or 1)
+ * @returns 1 if both a AND b are 1, otherwise 0
+ */
+export const and = (a: number, b: number): number => {
+  return a === 1 && b === 1 ? 1 : 0;
+};
+
+/**
+ * Logical OR - Universal Boolean Operator
+ * @param a - Boolean value (0 or 1)
+ * @param b - Boolean value (0 or 1)
+ * @returns 1 if a OR b (or both) are 1, otherwise 0
+ */
+export const or = (a: number, b: number): number => {
+  return a === 1 || b === 1 ? 1 : 0;
+};
+
+/**
+ * Logical XOR - Universal Boolean Operator
+ * @param a - Boolean value (0 or 1)
+ * @param b - Boolean value (0 or 1)
+ * @returns 1 if exactly one of a or b is 1, otherwise 0
+ */
+export const xor = (a: number, b: number): number => {
+  return (a === 1 || b === 1) && a !== b ? 1 : 0;
+};
+
+/**
+ * Logical NOT - Universal Boolean Operator
+ * @param a - Boolean value (0 or 1)
+ * @returns 1 if a is 0, otherwise 0
+ */
+export const not = (a: number): number => {
+  return a === 1 ? 0 : 1;
+};
+
+/**
  * SumWrung - Columnar Long Addition using SpooledSumSeries lookup tables
  *
  * Takes two 64-position Uint8Array buffers and performs columnar addition
