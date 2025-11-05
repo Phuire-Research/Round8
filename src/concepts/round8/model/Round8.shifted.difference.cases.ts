@@ -86,7 +86,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfCarryAndOne: [
     0, 0, 0,  // External carry = 000 (position 7)
     0, 1,     // Display 1 high bits [010]
-    [0, new Uint8Array([1, 0, 1])]  // Carry - 1 = Display 4 [101]
+    [0, new Uint8Array([1, 1, 1])]  // Carry - 1 = Display 6 [111]
   ],
   ShiftedDifferenceOfCarryAndTwo: [
     0, 0, 0,  // External carry = 000 (position 7)
@@ -348,7 +348,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfFiveAndThree: [
     1, 1, 0,  // Display 5 = 110 (position 5)
     1, 0,     // Display 3 high bits [100]
-    [0, new Uint8Array([0, 0, 1])]  // Display 5 - 3 = Marquee [001]
+    [0, new Uint8Array([0, 1, 1])]  // Display 5 - 3 = Display 2 [011]
   ],
   ShiftedDifferenceOfFiveAndFour: [
     1, 1, 0,  // Display 5 = 110 (position 5)
@@ -395,7 +395,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfSixAndFour: [
     1, 1, 1,  // Display 6 = 111 (position 6, maximum)
     1, 0,     // Display 4 high bits [101]
-    [1, new Uint8Array([0, 0, 1])]  // Display 6 - 4 = Marquee [001]
+    [1, new Uint8Array([0, 1, 1])]  // Display 6 - 4 = Display 2 [011]
   ],
   ShiftedDifferenceOfSixAndFive: [
     1, 1, 1,  // Display 6 = 111 (position 6, maximum)

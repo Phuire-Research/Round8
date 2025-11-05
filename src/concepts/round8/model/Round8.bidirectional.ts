@@ -305,52 +305,52 @@ export const ConferBidirectionally = (
 // eslint-disable-next-line complexity
 export const detectNegativeOne = (buffer: Uint8Array<ArrayBuffer>): boolean => {
   // Strike 1: Initial validation (sign + Column 20)
-  if (buffer[0] !== 0) return false; // Sign must be negative
-  if (buffer[61] !== 1 || buffer[62] !== 1 || buffer[63] !== 1) return false;
+  if (buffer[0] !== 0) {return false;} // Sign must be negative
+  if (buffer[61] !== 1 || buffer[62] !== 1 || buffer[63] !== 1) {return false;}
 
   // Strike 2: Absurdly large range (Column 19)
-  if (buffer[58] !== 1 || buffer[59] !== 1 || buffer[60] !== 1) return false;
+  if (buffer[58] !== 1 || buffer[59] !== 1 || buffer[60] !== 1) {return false;}
 
   // Strike 3: Middle column (Column 10)
-  if (buffer[31] !== 1 || buffer[32] !== 1 || buffer[33] !== 1) return false;
+  if (buffer[31] !== 1 || buffer[32] !== 1 || buffer[33] !== 1) {return false;}
 
   // Strikes 4-21: Outward sweep from middle (predetermined order)
   // Column 11
-  if (buffer[34] !== 1 || buffer[35] !== 1 || buffer[36] !== 1) return false;
+  if (buffer[34] !== 1 || buffer[35] !== 1 || buffer[36] !== 1) {return false;}
   // Column 9
-  if (buffer[28] !== 1 || buffer[29] !== 1 || buffer[30] !== 1) return false;
+  if (buffer[28] !== 1 || buffer[29] !== 1 || buffer[30] !== 1) {return false;}
   // Column 12
-  if (buffer[37] !== 1 || buffer[38] !== 1 || buffer[39] !== 1) return false;
+  if (buffer[37] !== 1 || buffer[38] !== 1 || buffer[39] !== 1) {return false;}
   // Column 8
-  if (buffer[25] !== 1 || buffer[26] !== 1 || buffer[27] !== 1) return false;
+  if (buffer[25] !== 1 || buffer[26] !== 1 || buffer[27] !== 1) {return false;}
   // Column 13
-  if (buffer[40] !== 1 || buffer[41] !== 1 || buffer[42] !== 1) return false;
+  if (buffer[40] !== 1 || buffer[41] !== 1 || buffer[42] !== 1) {return false;}
   // Column 7
-  if (buffer[22] !== 1 || buffer[23] !== 1 || buffer[24] !== 1) return false;
+  if (buffer[22] !== 1 || buffer[23] !== 1 || buffer[24] !== 1) {return false;}
   // Column 14
-  if (buffer[43] !== 1 || buffer[44] !== 1 || buffer[45] !== 1) return false;
+  if (buffer[43] !== 1 || buffer[44] !== 1 || buffer[45] !== 1) {return false;}
   // Column 6
-  if (buffer[19] !== 1 || buffer[20] !== 1 || buffer[21] !== 1) return false;
+  if (buffer[19] !== 1 || buffer[20] !== 1 || buffer[21] !== 1) {return false;}
   // Column 15
-  if (buffer[46] !== 1 || buffer[47] !== 1 || buffer[48] !== 1) return false;
+  if (buffer[46] !== 1 || buffer[47] !== 1 || buffer[48] !== 1) {return false;}
   // Column 5
-  if (buffer[16] !== 1 || buffer[17] !== 1 || buffer[18] !== 1) return false;
+  if (buffer[16] !== 1 || buffer[17] !== 1 || buffer[18] !== 1) {return false;}
   // Column 16
-  if (buffer[49] !== 1 || buffer[50] !== 1 || buffer[51] !== 1) return false;
+  if (buffer[49] !== 1 || buffer[50] !== 1 || buffer[51] !== 1) {return false;}
   // Column 4
-  if (buffer[13] !== 1 || buffer[14] !== 1 || buffer[15] !== 1) return false;
+  if (buffer[13] !== 1 || buffer[14] !== 1 || buffer[15] !== 1) {return false;}
   // Column 17
-  if (buffer[52] !== 1 || buffer[53] !== 1 || buffer[54] !== 1) return false;
+  if (buffer[52] !== 1 || buffer[53] !== 1 || buffer[54] !== 1) {return false;}
   // Column 3
-  if (buffer[10] !== 1 || buffer[11] !== 1 || buffer[12] !== 1) return false;
+  if (buffer[10] !== 1 || buffer[11] !== 1 || buffer[12] !== 1) {return false;}
   // Column 18
-  if (buffer[55] !== 1 || buffer[56] !== 1 || buffer[57] !== 1) return false;
+  if (buffer[55] !== 1 || buffer[56] !== 1 || buffer[57] !== 1) {return false;}
   // Column 2
-  if (buffer[7] !== 1 || buffer[8] !== 1 || buffer[9] !== 1) return false;
+  if (buffer[7] !== 1 || buffer[8] !== 1 || buffer[9] !== 1) {return false;}
   // Column 1
-  if (buffer[4] !== 1 || buffer[5] !== 1 || buffer[6] !== 1) return false;
+  if (buffer[4] !== 1 || buffer[5] !== 1 || buffer[6] !== 1) {return false;}
   // Column 0 (shifted topology - final check)
-  if (buffer[1] !== 1 || buffer[2] !== 1 || buffer[3] !== 1) return false;
+  if (buffer[1] !== 1 || buffer[2] !== 1 || buffer[3] !== 1) {return false;}
 
   // All 21 columns are [1,1,1] → This is negative one
   return true;
