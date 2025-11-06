@@ -198,7 +198,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
   });
 
   describe('Boolean Algebra Laws', () => {
-    test("De Morgan's Law 1: not(and(X,Y)) === or(not(X),not(Y))", () => {
+    test('De Morgan\'s Law 1: not(and(X,Y)) === or(not(X),not(Y))', () => {
       const inputs = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
@@ -209,7 +209,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
       }
     });
 
-    test("De Morgan's Law 2: not(or(X,Y)) === and(not(X),not(Y))", () => {
+    test('De Morgan\'s Law 2: not(or(X,Y)) === and(not(X),not(Y))', () => {
       const inputs = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {

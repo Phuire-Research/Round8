@@ -10,7 +10,6 @@
  */
 
 import { DifferenceWrung } from '../concepts/round8/model/Round8.cases';
-import { BidirectionalConference } from '../concepts/round8/model/Round8.bidirectional';
 import { detectNegativeOne } from '../concepts/round8/model/Round8.bidirectional';
 
 describe('DifferenceWrung - Column Zero (Shifted Topology)', () => {
@@ -199,26 +198,6 @@ describe('DifferenceWrung - Column Zero (Shifted Topology)', () => {
       expect(extractColumnZero(result)).toBe(0);
       expect(hasBorrowToColumnOne(result)).toBe(false);
     });
-  });
-
-  describe('Shifted Topology Negative One Subtraction', () => {
-    // Column 0 with Negative One operands
-  });
-
-  describe('External Borrow Placeholder [0,0,0]', () => {
-    // Column 0 receiving borrow from column 1 (external carry case)
-  });
-
-  describe('Marquee Position [0,0,1]', () => {
-    // Column 0 as marquee (shifted holding position)
-  });
-
-  describe('Shifted Spool Selection Validation', () => {
-    // Verify correct shifted spool usage
-  });
-
-  describe('Multi-Column with Column Zero', () => {
-    // Subtraction involving both column 0 and other columns
   });
 
   /**
