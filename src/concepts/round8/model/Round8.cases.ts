@@ -843,10 +843,30 @@ export const DifferenceWrung = (
   // Phase 1.6: If routing to SUM, delegate to SumWrung with routing operands
   if (routing.effectiveOp === 'sum') {
     console.log('SIGN ROUTING: Delegating to SumWrung (subtracting negative = adding)');
+    console.log(`  minuend col0=[${routing.minuend[1]},${routing.minuend[2]},${routing.minuend[3]}]`);
+    console.log(`  subtrahend col0=[${routing.subtrahend[1]},${routing.subtrahend[2]},${routing.subtrahend[3]}]`);
     const sumResult = SumWrung(routing.minuend, routing.subtrahend);
+    console.log(`SUMWRUNG RETURNED: col0=[${sumResult[1]},${sumResult[2]},${sumResult[3]}], col1=[${sumResult[4]},${sumResult[5]},${sumResult[6]}]`);
     // Apply routing result sign
     sumResult[0] = routing.resultSign;
     console.log(`SUM DELEGATION COMPLETE: resultSign=${routing.resultSign} applied`);
+
+    // CRITICAL: Apply normalization before returning
+    // SumWrung can return ZERO_CASE which needs column 0 normalization
+    const col0Binary = [sumResult[1], sumResult[2], sumResult[3]];
+    const col1Binary = [sumResult[4], sumResult[5], sumResult[6]];
+    console.log(`SUM DELEGATION NORMALIZATION CHECK: col0=[${col0Binary}], col1=[${col1Binary}]`);
+    const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
+
+    if (isExternalCarry) {
+      const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
+      console.log(`  isExternalCarry=true, hasCarryToColumn1=${hasCarryToColumn1}`);
+      if (!hasCarryToColumn1) {
+        console.log('SUM DELEGATION NORMALIZATION: Column 0 [0,0,0] → [0,0,1] (zero result → marquee display)');
+        sumResult[3] = 1;
+      }
+    }
+
     return sumResult;
   }
 
@@ -913,6 +933,22 @@ export const DifferenceWrung = (
       result[pos19 + 2] = 1;
       console.log('SPECIAL CASE: Marquee SET at column 19, result at column 20');
     }
+
+    // CRITICAL: Apply normalization before returning
+    // The "no marquee" case can return ZERO_CASE which needs column 0 normalization
+    // Check column 0 and normalize if needed
+    const col0Binary = [result[1], result[2], result[3]];
+    const col1Binary = [result[4], result[5], result[6]];
+    const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
+
+    if (isExternalCarry) {
+      const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
+      if (!hasCarryToColumn1) {
+        console.log('SPECIAL CASE NORMALIZATION: Column 0 [0,0,0] → [0,0,1] (zero result → marquee display)');
+        result[3] = 1;
+      }
+    }
+
     return result;
   }
   // Phase 7: Branch based on exactEven

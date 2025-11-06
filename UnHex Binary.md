@@ -1,15 +1,15 @@
 # UnHexing Binary
 88 : Count of 72 Decimal
 8,88 : Count of 584 Decimal
-88,88 : Count of 4680 length of 4095 Decimal
+88,88 : Count of 4680 Decimal - Total Length of 4095 Decimal
 1,88,88: Count of 8776 Decimal
 2,88,88: Count of 12872 Decimal
 3,88,88: Count of 16969 Decimal
 4,88,88: Count of 21064 Decimal
-5,88,88: Count of 25160
-6,88,88: Count of 29256
-7,88,88: Count of 33352
-8,88,88: Count of 37448 Total Length of 32768 Decimal
+5,88,88: Count of 25160 Decimal
+6,88,88: Count of 29256 Decimal
+7,88,88: Count of 33352 Decimal
+8,88,88: Count of 37448 Decimal - Total Length of 32768 Decimal
 1,88,88: Count of 70216 <- Round8 Surpasses Hex Binary
 
 Round8

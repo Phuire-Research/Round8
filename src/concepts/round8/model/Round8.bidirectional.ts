@@ -50,11 +50,11 @@ export type MarqueeState = {
 // of the Count. Otherwise if it is not the Final Twist Case while being 000, it is Invalid. If there is Any Count in
 // 1st Position we Mark it as Valid and Each Remaining Position.
 
-// [x] While still Scanning for Sign at 1, After 1st Position the Rules are Simplier. 000 it is Invalid, if 001 it is a 
+// [x] While still Scanning for Sign at 1, After 1st Position the Rules are Simplier. 000 it is Invalid, if 001 it is a
 // Marquee Case and is the Bounding Position for the Rest of the Count. With the rest of the Rows Valid. Noting that
 // our Marquees at this Point are a Two Step Validation. Once we find our Marquee we have our Delimiter.
 
-// [x] Our Final Case when Iterating through the Array and do not Find a Marquee, is our Last Position that would be 
+// [x] Our Final Case when Iterating through the Array and do not Find a Marquee, is our Last Position that would be
 // Counted Valid Regardless. As our Sign = 1 Marks a 000 as Valid in Last Position. So be Default we will Always be
 // Inferring the Last Positions Spool, so long as the Sign = 1.
 
