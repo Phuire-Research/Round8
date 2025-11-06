@@ -649,6 +649,472 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
   console.log(
     `SUMWRUNG START: wrungA[61-63]=[${wrungA[61]},${wrungA[62]},${wrungA[63]}] wrungB[61-63]=[${wrungB[61]},${wrungB[62]},${wrungB[63]}]`
   );
+
+  // PHASE 1: SIGN ROUTING
+  const signA = wrungA[0] as 0 | 1;
+  const signB = wrungB[0] as 0 | 1;
+  console.log(
+    `SIGN ROUTING: signA=${signA} (${signA === 1 ? 'Positive' : 'Unsigned'}), ` +
+    `signB=${signB} (${signB === 1 ? 'Positive' : 'Unsigned'}), operation='+'`
+  );
+
+  // CASE 2: Both negative → normal sum, apply negative sign
+  if (signA === 0 && signB === 0) {
+    console.log('CASE 2: Both negative → negative sum (signs ignored during operation)');
+
+    // Create positive temps for magnitude summation
+    const tempA = new Uint8Array(wrungA);
+    tempA[0] = 1; // Make positive
+    const tempB = new Uint8Array(wrungB);
+    tempB[0] = 1; // Make positive
+
+    // Recursive call → hits Case 1 logic (both positive)
+    const result = SumWrung(tempA, tempB);
+
+    // Apply negative sign as metadata
+    result[0] = 0; // Unsigned = Negative
+    console.log('CASE 2 COMPLETE: Applied negative sign to result');
+
+    return result;
+  }
+
+  // CASE 3: (+A) + (-B) → A - B with magnitude-based sign
+  if (signA === 1 && signB === 0) {
+    console.log('CASE 3: (+A) + (-B) → Difference Spool (A - abs(B))');
+
+    // Create positive temps for magnitude operation
+    const tempA = new Uint8Array(wrungA);
+    tempA[0] = 1;
+    const tempB = new Uint8Array(wrungB);
+    tempB[0] = 1;
+
+    // Conference for marquee detection
+    const case3Conf = ConferBidirectionally(tempA, tempB);
+
+    // Special case: both zero
+    if (case3Conf.wrungAMarquee.isAbsoluteZero && case3Conf.wrungBMarquee.isAbsoluteZero) {
+      return SPECIAL_CASE_STORE.ZERO_CASE;
+    }
+
+    // Create result buffer
+    const result = new Uint8Array(64);
+    result[0] = 1; // Temporary positive (will be corrected below)
+
+    // Borrow accumulator (NOT carry - this is subtraction)
+    const borrows: Uint8Array<ArrayBuffer>[] = [];
+
+    // EXACT EVEN PATH
+    if (case3Conf.exactEven) {
+      console.log(`CASE 3 EXACT EVEN: Marquees at ${case3Conf.sharedValidColumn}`);
+
+      for (let column = 20; column >= case3Conf.sharedValidColumn; column--) {
+        const pos = 1 + column * 3;
+        const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
+
+        // Deplete borrows into tempA
+        let intermediate = new Uint8Array([tempA[pos], tempA[pos + 1], tempA[pos + 2]]);
+        while (borrows.length > 0) {
+          const borrow = borrows.pop()!;
+          const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
+            | Uint8Array
+            | number
+          )[];
+          if (borrowTuple.length === 1) {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+          } else {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+            const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+            borrows.push(newBorrow);
+          }
+        }
+
+        // Subtract tempB from intermediate
+        const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempB[pos]][tempB[pos + 1]][tempB[pos + 2]] as (
+          | Uint8Array<ArrayBuffer>
+          | number
+        )[];
+        const finalResult = finalTuple[0] as Uint8Array;
+
+        // Write result
+        result[pos] = finalResult[0];
+        result[pos + 1] = finalResult[1];
+        result[pos + 2] = finalResult[2];
+
+        // Push borrow if exists
+        if (finalTuple.length === 2) {
+          const finalBorrow = finalTuple[1] as Uint8Array<ArrayBuffer>;
+          borrows.push(finalBorrow);
+        }
+      }
+    } else {
+      // SHIFTED PATH
+      const wrungAFirst = case3Conf.wrungAMarquee.firstValidColumn ?? 20;
+      const wrungBFirst = case3Conf.wrungBMarquee.firstValidColumn ?? 20;
+      const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
+      console.log(`CASE 3 SHIFTED: tempA first=${wrungAFirst}, tempB first=${wrungBFirst}`);
+
+      // SHARED ZONE (sharedValidColumn → 20)
+      for (let column = 20; column >= case3Conf.sharedValidColumn; column--) {
+        const pos = 1 + column * 3;
+        const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
+
+        // Deplete borrows
+        let intermediate = new Uint8Array([tempA[pos], tempA[pos + 1], tempA[pos + 2]]);
+        while (borrows.length > 0) {
+          const borrow = borrows.pop()!;
+          const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
+            | Uint8Array
+            | number
+          )[];
+          if (borrowTuple.length === 1) {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+          } else {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+            const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+            borrows.push(newBorrow);
+          }
+        }
+
+        // Subtract tempB
+        const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempB[pos]][tempB[pos + 1]][tempB[pos + 2]] as (
+          | Uint8Array<ArrayBuffer>
+          | number
+        )[];
+        const finalResult = finalTuple[0] as Uint8Array;
+
+        result[pos] = finalResult[0];
+        result[pos + 1] = finalResult[1];
+        result[pos + 2] = finalResult[2];
+
+        if (finalTuple.length === 2) {
+          const finalBorrow = finalTuple[1] as Uint8Array<ArrayBuffer>;
+          borrows.push(finalBorrow);
+        }
+      }
+
+      // EXCLUSIVE ZONE
+      if (case3Conf.sharedValidColumn > earlierMarquee) {
+        const exclusiveOperand = wrungAFirst < wrungBFirst ? tempA : tempB;
+        console.log(`CASE 3 EXCLUSIVE ZONE: columns ${case3Conf.sharedValidColumn - 1} to ${earlierMarquee}`);
+
+        for (let column = case3Conf.sharedValidColumn - 1; column >= earlierMarquee; column--) {
+          const pos = 1 + column * 3;
+          const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
+
+          let intermediate = new Uint8Array([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
+          while (borrows.length > 0) {
+            const borrow = borrows.pop()!;
+            const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
+              | Uint8Array
+              | number
+            )[];
+            if (borrowTuple.length === 1) {
+              intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+            } else {
+              intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+              const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+              borrows.push(newBorrow);
+            }
+          }
+
+          result[pos] = intermediate[0];
+          result[pos + 1] = intermediate[1];
+          result[pos + 2] = intermediate[2];
+        }
+      }
+    }
+
+    // PLACEHOLDER ZONE (if borrows remain)
+    if (borrows.length > 0) {
+      console.log(`CASE 3 PLACEHOLDER: ${borrows.length} borrows remaining`);
+      const earliestColumn = Math.min(
+        case3Conf.wrungAMarquee.firstValidColumn ?? 20,
+        case3Conf.wrungBMarquee.firstValidColumn ?? 20
+      );
+
+      for (let column = earliestColumn - 1; column >= 0; column--) {
+        const pos = 1 + column * 3;
+        let intermediate = new Uint8Array([0, 0, 0]);
+
+        while (borrows.length > 0) {
+          const borrow = borrows.pop()!;
+          const borrowTuple = SpooledDifferenceSeries[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
+            | Uint8Array
+            | number
+          )[];
+          if (borrowTuple.length === 1) {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+          } else {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+            const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+            borrows.push(newBorrow);
+          }
+        }
+
+        result[pos] = intermediate[0];
+        result[pos + 1] = intermediate[1];
+        result[pos + 2] = intermediate[2];
+
+        if (borrows.length === 0) break;
+      }
+    }
+
+    // Column 0 Normalization
+    const col0Binary = [result[1], result[2], result[3]];
+    const col1Binary = [result[4], result[5], result[6]];
+    const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
+
+    if (isExternalCarry) {
+      const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
+      if (!hasCarryToColumn1) {
+        result[3] = 1; // Normalize to marquee
+        console.log('CASE 3: Normalized column 0 to marquee [0,0,1]');
+      }
+    }
+
+    // Magnitude comparison for sign determination
+    // compareMagnitude returns true if A > B, false if B >= A
+    const aGreaterThanB = compareMagnitude(
+      tempA,
+      tempB,
+      case3Conf.wrungAMarquee.firstValidColumn ?? 20,
+      case3Conf.wrungBMarquee.firstValidColumn ?? 20
+    );
+
+    if (!aGreaterThanB) {
+      // B >= A: Result negative
+      result[0] = 0; // Unsigned = Negative
+      console.log('CASE 3: B >= A → Result sign flips to Unsigned (negative)');
+    } else {
+      // A > B: Result positive
+      result[0] = 1;
+      console.log('CASE 3: A > B → Result sign positive');
+    }
+
+    return result;
+  }
+
+  // CASE 4: (-A) + (+B) → B - A with magnitude-based sign
+  if (signA === 0 && signB === 1) {
+    console.log('CASE 4: (-A) + (+B) → Difference Spool (B - abs(A))');
+
+    // Create positive temps for magnitude operation
+    const tempA = new Uint8Array(wrungA);
+    tempA[0] = 1;
+    const tempB = new Uint8Array(wrungB);
+    tempB[0] = 1;
+
+    // Conference for marquee detection
+    const case4Conf = ConferBidirectionally(tempA, tempB);
+
+    // Special case: both zero
+    if (case4Conf.wrungAMarquee.isAbsoluteZero && case4Conf.wrungBMarquee.isAbsoluteZero) {
+      return SPECIAL_CASE_STORE.ZERO_CASE;
+    }
+
+    // Create result buffer
+    const result = new Uint8Array(64);
+    result[0] = 1; // Temporary positive (will be corrected below)
+
+    // Borrow accumulator (NOT carry - this is subtraction)
+    const borrows: Uint8Array<ArrayBuffer>[] = [];
+
+    // EXACT EVEN PATH
+    if (case4Conf.exactEven) {
+      console.log(`CASE 4 EXACT EVEN: Marquees at ${case4Conf.sharedValidColumn}`);
+
+      for (let column = 20; column >= case4Conf.sharedValidColumn; column--) {
+        const pos = 1 + column * 3;
+        const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
+
+        // Deplete borrows into tempB (minuend in Case 4)
+        let intermediate = new Uint8Array([tempB[pos], tempB[pos + 1], tempB[pos + 2]]);
+        while (borrows.length > 0) {
+          const borrow = borrows.pop()!;
+          const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
+            | Uint8Array
+            | number
+          )[];
+          if (borrowTuple.length === 1) {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+          } else {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+            const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+            borrows.push(newBorrow);
+          }
+        }
+
+        // Subtract tempA from intermediate (B - A)
+        const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempA[pos]][tempA[pos + 1]][tempA[pos + 2]] as (
+          | Uint8Array<ArrayBuffer>
+          | number
+        )[];
+        const finalResult = finalTuple[0] as Uint8Array;
+
+        // Write result
+        result[pos] = finalResult[0];
+        result[pos + 1] = finalResult[1];
+        result[pos + 2] = finalResult[2];
+
+        // Push borrow if exists
+        if (finalTuple.length === 2) {
+          const finalBorrow = finalTuple[1] as Uint8Array<ArrayBuffer>;
+          borrows.push(finalBorrow);
+        }
+      }
+    } else {
+      // SHIFTED PATH
+      const wrungAFirst = case4Conf.wrungAMarquee.firstValidColumn ?? 20;
+      const wrungBFirst = case4Conf.wrungBMarquee.firstValidColumn ?? 20;
+      const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
+      console.log(`CASE 4 SHIFTED: tempA first=${wrungAFirst}, tempB first=${wrungBFirst}`);
+
+      // SHARED ZONE (sharedValidColumn → 20)
+      for (let column = 20; column >= case4Conf.sharedValidColumn; column--) {
+        const pos = 1 + column * 3;
+        const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
+
+        // Deplete borrows into tempB
+        let intermediate = new Uint8Array([tempB[pos], tempB[pos + 1], tempB[pos + 2]]);
+        while (borrows.length > 0) {
+          const borrow = borrows.pop()!;
+          const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
+            | Uint8Array
+            | number
+          )[];
+          if (borrowTuple.length === 1) {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+          } else {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+            const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+            borrows.push(newBorrow);
+          }
+        }
+
+        // Subtract tempA (B - A)
+        const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempA[pos]][tempA[pos + 1]][tempA[pos + 2]] as (
+          | Uint8Array<ArrayBuffer>
+          | number
+        )[];
+        const finalResult = finalTuple[0] as Uint8Array;
+
+        result[pos] = finalResult[0];
+        result[pos + 1] = finalResult[1];
+        result[pos + 2] = finalResult[2];
+
+        if (finalTuple.length === 2) {
+          const finalBorrow = finalTuple[1] as Uint8Array<ArrayBuffer>;
+          borrows.push(finalBorrow);
+        }
+      }
+
+      // EXCLUSIVE ZONE
+      if (case4Conf.sharedValidColumn > earlierMarquee) {
+        const exclusiveOperand = wrungAFirst < wrungBFirst ? tempA : tempB;
+        console.log(`CASE 4 EXCLUSIVE ZONE: columns ${case4Conf.sharedValidColumn - 1} to ${earlierMarquee}`);
+
+        for (let column = case4Conf.sharedValidColumn - 1; column >= earlierMarquee; column--) {
+          const pos = 1 + column * 3;
+          const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
+
+          let intermediate = new Uint8Array([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
+          while (borrows.length > 0) {
+            const borrow = borrows.pop()!;
+            const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
+              | Uint8Array
+              | number
+            )[];
+            if (borrowTuple.length === 1) {
+              intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+            } else {
+              intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+              const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+              borrows.push(newBorrow);
+            }
+          }
+
+          result[pos] = intermediate[0];
+          result[pos + 1] = intermediate[1];
+          result[pos + 2] = intermediate[2];
+        }
+      }
+    }
+
+    // PLACEHOLDER ZONE (if borrows remain)
+    if (borrows.length > 0) {
+      console.log(`CASE 4 PLACEHOLDER: ${borrows.length} borrows remaining`);
+      const earliestColumn = Math.min(
+        case4Conf.wrungAMarquee.firstValidColumn ?? 20,
+        case4Conf.wrungBMarquee.firstValidColumn ?? 20
+      );
+
+      for (let column = earliestColumn - 1; column >= 0; column--) {
+        const pos = 1 + column * 3;
+        let intermediate = new Uint8Array([0, 0, 0]);
+
+        while (borrows.length > 0) {
+          const borrow = borrows.pop()!;
+          const borrowTuple = SpooledDifferenceSeries[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
+            | Uint8Array
+            | number
+          )[];
+          if (borrowTuple.length === 1) {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+          } else {
+            intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+            const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+            borrows.push(newBorrow);
+          }
+        }
+
+        result[pos] = intermediate[0];
+        result[pos + 1] = intermediate[1];
+        result[pos + 2] = intermediate[2];
+
+        if (borrows.length === 0) {
+          break;
+        }
+      }
+    }
+
+    // Column 0 Normalization
+    const col0Binary = [result[1], result[2], result[3]];
+    const col1Binary = [result[4], result[5], result[6]];
+    const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
+
+    if (isExternalCarry) {
+      const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
+      if (!hasCarryToColumn1) {
+        result[3] = 1; // Normalize to marquee
+        console.log('CASE 4: Normalized column 0 to marquee [0,0,1]');
+      }
+    }
+
+    // Magnitude comparison for sign determination
+    // compareMagnitude returns true if first arg > second arg
+    const bGreaterThanA = compareMagnitude(
+      tempB,
+      tempA,
+      case4Conf.wrungBMarquee.firstValidColumn ?? 20,
+      case4Conf.wrungAMarquee.firstValidColumn ?? 20
+    );
+
+    if (bGreaterThanA) {
+      // B > A: Result positive
+      result[0] = 1; // Positive
+      console.log('CASE 4: B > A → Result Signed as Positive');
+    } else {
+      // A >= B: Result negative
+      result[0] = 0; // Unsigned = Negative
+      console.log('CASE 4: A >= B → Result negative');
+    }
+
+    return result;
+  }
+
+  // CASE 1: Both positive → existing SumWrung logic (unchanged)
+  console.log('CASE 1: Both positive → normal sum');
+
   // Phase 2: Conference both operands to determine Marquee states
   const conferredState = ConferBidirectionally(wrungA, wrungB);
   // Special case: Both absolute zero
