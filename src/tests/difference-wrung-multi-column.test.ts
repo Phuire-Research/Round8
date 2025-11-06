@@ -174,9 +174,6 @@ describe('DifferenceWrung - Multi-Column Operations', () => {
 
   describe('Case 5: (+A) - (+B) - Both Positive', () => {
     test('Two-column subtraction with borrow propagation (Column 20 → 19)', () => {
-      // BufferA: Column 20 = Display 2, Column 19 = Display 5
-      // BufferB: Column 20 = Display 5, Column 19 = Display 3
-      // Expected: Borrow from Column 20 to Column 19 (backward propagation)
       const bufferA = createMultiColumnBuffer({ 20: 2, 19: 5 });
       const bufferB = createMultiColumnBuffer({ 20: 5, 19: 3 });
 
@@ -186,7 +183,6 @@ describe('DifferenceWrung - Multi-Column Operations', () => {
 
       const result = DifferenceWrung(bufferA, bufferB);
 
-      // OBSERVATIONAL LOGGING (matching SumWrung pattern)
       console.log('\nRESULT BUFFER STATE:');
       for (let col = 20; col >= 1; col--) {
         const value = extractColumnValue(result, col);
@@ -203,9 +199,245 @@ describe('DifferenceWrung - Multi-Column Operations', () => {
       console.log('  marqueeColumn:', marqueeState.marqueeColumn);
       console.log('  isFinalTwist:', marqueeState.isFinalTwist);
       console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
+    });
 
-      // Validates: Backward borrow propagation from Column 20 → Column 19
-      // Observational - specific values depend on spool implementation
+    test('Three-column borrow cascade (Column 20 → 19 → 18)', () => {
+      const bufferA = createMultiColumnBuffer({ 20: 1, 19: 2, 18: 3 });
+      const bufferB = createMultiColumnBuffer({ 20: 8, 19: 7, 18: 1 });
+
+      console.log('\n========== Case 5: Three-Column Borrow Cascade ==========');
+      console.log('INPUT A: Column 20 = Display 1, Column 19 = Display 2, Column 18 = Display 3');
+      console.log('INPUT B: Column 20 = Display 8, Column 19 = Display 7, Column 18 = Display 1');
+
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      console.log('\nRESULT BUFFER STATE:');
+      for (let col = 20; col >= 1; col--) {
+        const value = extractColumnValue(result, col);
+        const binary = getColumnBinary(result, col);
+        if (value !== 1 || col === 20 || col === 19 || col === 18) {
+          console.log(`Column ${col}: Display ${value}, Binary [${binary[0]},${binary[1]},${binary[2]}]`);
+        }
+      }
+
+      const marqueeState = BidirectionalConference(result);
+      console.log('\nMARQUEE STATE:');
+      console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
+      console.log('  firstValidColumn:', marqueeState.firstValidColumn);
+      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  isFinalTwist:', marqueeState.isFinalTwist);
+      console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
+    });
+
+    test('Multi-column A > B (positive result)', () => {
+      const bufferA = createMultiColumnBuffer({ 20: 8, 19: 7, 18: 6 });
+      const bufferB = createMultiColumnBuffer({ 20: 3, 19: 2, 18: 1 });
+
+      console.log('\n========== Case 5: Multi-Column A > B ==========');
+      console.log('INPUT A: Column 20 = Display 8, Column 19 = Display 7, Column 18 = Display 6');
+      console.log('INPUT B: Column 20 = Display 3, Column 19 = Display 2, Column 18 = Display 1');
+
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      console.log('\nRESULT BUFFER STATE:');
+      for (let col = 20; col >= 1; col--) {
+        const value = extractColumnValue(result, col);
+        const binary = getColumnBinary(result, col);
+        if (value !== 1 || col === 20 || col === 19 || col === 18) {
+          console.log(`Column ${col}: Display ${value}, Binary [${binary[0]},${binary[1]},${binary[2]}]`);
+        }
+      }
+
+      const marqueeState = BidirectionalConference(result);
+      console.log('\nMARQUEE STATE:');
+      console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
+      console.log('  firstValidColumn:', marqueeState.firstValidColumn);
+      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  isFinalTwist:', marqueeState.isFinalTwist);
+      console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
+    });
+  });
+
+  // ==================== PHASE 3: CASE 6 - BOTH NEGATIVE ====================
+
+  describe('Case 6: (-A) - (-B) - Both Negative [SIGN FLIP]', () => {
+    test('Multi-column both negative with operand swap', () => {
+      const bufferA = createMultiColumnBuffer({ 20: 5, 19: 4, 18: 3 }, false);
+      const bufferB = createMultiColumnBuffer({ 20: 2, 19: 1, 18: 1 }, false);
+
+      console.log('\n========== Case 6: Both Negative with Sign Flip ==========');
+      console.log('INPUT A: Column 20 = Display 5, Column 19 = Display 4, Column 18 = Display 3 (NEGATIVE)');
+      console.log('INPUT B: Column 20 = Display 2, Column 19 = Display 1, Column 18 = Display 1 (NEGATIVE)');
+      console.log('Expected: Operand swap (B - A) with sign flip');
+
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      console.log('\nRESULT BUFFER STATE:');
+      for (let col = 20; col >= 1; col--) {
+        const value = extractColumnValue(result, col);
+        const binary = getColumnBinary(result, col);
+        if (value !== 1 || col === 20 || col === 19 || col === 18) {
+          console.log(`Column ${col}: Display ${value}, Binary [${binary[0]},${binary[1]},${binary[2]}]`);
+        }
+      }
+
+      const marqueeState = BidirectionalConference(result);
+      console.log('\nMARQUEE STATE:');
+      console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
+      console.log('  firstValidColumn:', marqueeState.firstValidColumn);
+      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  isFinalTwist:', marqueeState.isFinalTwist);
+      console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
+    });
+
+    test('Both negative with borrow cascade', () => {
+      const bufferA = createMultiColumnBuffer({ 20: 3, 19: 2, 18: 1 }, false);
+      const bufferB = createMultiColumnBuffer({ 20: 7, 19: 6, 18: 5 }, false);
+
+      console.log('\n========== Case 6: Both Negative with Borrow ==========');
+      console.log('INPUT A: Column 20 = Display 3, Column 19 = Display 2, Column 18 = Display 1 (NEGATIVE)');
+      console.log('INPUT B: Column 20 = Display 7, Column 19 = Display 6, Column 18 = Display 5 (NEGATIVE)');
+
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      console.log('\nRESULT BUFFER STATE:');
+      for (let col = 20; col >= 1; col--) {
+        const value = extractColumnValue(result, col);
+        const binary = getColumnBinary(result, col);
+        if (value !== 1 || col === 20 || col === 19 || col === 18) {
+          console.log(`Column ${col}: Display ${value}, Binary [${binary[0]},${binary[1]},${binary[2]}]`);
+        }
+      }
+
+      const marqueeState = BidirectionalConference(result);
+      console.log('\nMARQUEE STATE:');
+      console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
+      console.log('  firstValidColumn:', marqueeState.firstValidColumn);
+      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  isFinalTwist:', marqueeState.isFinalTwist);
+      console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
+    });
+  });
+
+  // ==================== PHASE 4: CASE 7 - CONVERTS TO SUM ====================
+
+  describe('Case 7: (+A) - (-B) - Converts to Sum', () => {
+    test('Multi-column positive minus negative delegates to SumWrung', () => {
+      const bufferA = createMultiColumnBuffer({ 20: 5, 19: 4, 18: 3 }, true);
+      const bufferB = createMultiColumnBuffer({ 20: 2, 19: 1, 18: 1 }, false);
+
+      console.log('\n========== Case 7: (+A) - (-B) → Delegates to Sum ==========');
+      console.log('INPUT A: Column 20 = Display 5, Column 19 = Display 4, Column 18 = Display 3 (POSITIVE)');
+      console.log('INPUT B: Column 20 = Display 2, Column 19 = Display 1, Column 18 = Display 1 (NEGATIVE)');
+      console.log('Expected: Delegates to SumWrung (positive sum)');
+
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      console.log('\nRESULT BUFFER STATE:');
+      for (let col = 20; col >= 1; col--) {
+        const value = extractColumnValue(result, col);
+        const binary = getColumnBinary(result, col);
+        if (value !== 1 || col === 20 || col === 19 || col === 18) {
+          console.log(`Column ${col}: Display ${value}, Binary [${binary[0]},${binary[1]},${binary[2]}]`);
+        }
+      }
+
+      const marqueeState = BidirectionalConference(result);
+      console.log('\nMARQUEE STATE:');
+      console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
+      console.log('  firstValidColumn:', marqueeState.firstValidColumn);
+      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  isFinalTwist:', marqueeState.isFinalTwist);
+      console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
+    });
+
+    test('Delegation with carry propagation validation', () => {
+      const bufferA = createMultiColumnBuffer({ 20: 8, 19: 7, 18: 6 }, true);
+      const bufferB = createMultiColumnBuffer({ 20: 3, 19: 4, 18: 5 }, false);
+
+      console.log('\n========== Case 7: Delegation with Carry ==========');
+      console.log('INPUT A: Column 20 = Display 8, Column 19 = Display 7, Column 18 = Display 6 (POSITIVE)');
+      console.log('INPUT B: Column 20 = Display 3, Column 19 = Display 4, Column 18 = Display 5 (NEGATIVE)');
+
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      console.log('\nRESULT BUFFER STATE:');
+      for (let col = 20; col >= 1; col--) {
+        const value = extractColumnValue(result, col);
+        const binary = getColumnBinary(result, col);
+        if (value !== 1 || col === 20 || col === 19 || col === 18) {
+          console.log(`Column ${col}: Display ${value}, Binary [${binary[0]},${binary[1]},${binary[2]}]`);
+        }
+      }
+
+      const marqueeState = BidirectionalConference(result);
+      console.log('\nMARQUEE STATE:');
+      console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
+      console.log('  firstValidColumn:', marqueeState.firstValidColumn);
+      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  isFinalTwist:', marqueeState.isFinalTwist);
+      console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
+    });
+  });
+
+  // ==================== PHASE 5: CASE 8 - CONVERTS TO NEGATIVE SUM ====================
+
+  describe('Case 8: (-A) - (+B) - Converts to Sum', () => {
+    test('Multi-column negative minus positive delegates to SumWrung', () => {
+      const bufferA = createMultiColumnBuffer({ 20: 5, 19: 4, 18: 3 }, false);
+      const bufferB = createMultiColumnBuffer({ 20: 2, 19: 1, 18: 1 }, true);
+
+      console.log('\n========== Case 8: (-A) - (+B) → Delegates to Sum (Negative) ==========');
+      console.log('INPUT A: Column 20 = Display 5, Column 19 = Display 4, Column 18 = Display 3 (NEGATIVE)');
+      console.log('INPUT B: Column 20 = Display 2, Column 19 = Display 1, Column 18 = Display 1 (POSITIVE)');
+      console.log('Expected: Delegates to SumWrung (negative sum)');
+
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      console.log('\nRESULT BUFFER STATE:');
+      for (let col = 20; col >= 1; col--) {
+        const value = extractColumnValue(result, col);
+        const binary = getColumnBinary(result, col);
+        if (value !== 1 || col === 20 || col === 19 || col === 18) {
+          console.log(`Column ${col}: Display ${value}, Binary [${binary[0]},${binary[1]},${binary[2]}]`);
+        }
+      }
+
+      const marqueeState = BidirectionalConference(result);
+      console.log('\nMARQUEE STATE:');
+      console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
+      console.log('  firstValidColumn:', marqueeState.firstValidColumn);
+      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  isFinalTwist:', marqueeState.isFinalTwist);
+      console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
+    });
+
+    test('Delegation with negative result validation', () => {
+      const bufferA = createMultiColumnBuffer({ 20: 3, 19: 2, 18: 1 }, false);
+      const bufferB = createMultiColumnBuffer({ 20: 6, 19: 5, 18: 4 }, true);
+
+      console.log('\n========== Case 8: Delegation with Negative Sum ==========');
+      console.log('INPUT A: Column 20 = Display 3, Column 19 = Display 2, Column 18 = Display 1 (NEGATIVE)');
+      console.log('INPUT B: Column 20 = Display 6, Column 19 = Display 5, Column 18 = Display 4 (POSITIVE)');
+
+      const result = DifferenceWrung(bufferA, bufferB);
+
+      console.log('\nRESULT BUFFER STATE:');
+      for (let col = 20; col >= 1; col--) {
+        const value = extractColumnValue(result, col);
+        const binary = getColumnBinary(result, col);
+        if (value !== 1 || col === 20 || col === 19 || col === 18) {
+          console.log(`Column ${col}: Display ${value}, Binary [${binary[0]},${binary[1]},${binary[2]}]`);
+        }
+      }
+
+      const marqueeState = BidirectionalConference(result);
+      console.log('\nMARQUEE STATE:');
+      console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
+      console.log('  firstValidColumn:', marqueeState.firstValidColumn);
+      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  isFinalTwist:', marqueeState.isFinalTwist);
+      console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
     });
   });
 });
