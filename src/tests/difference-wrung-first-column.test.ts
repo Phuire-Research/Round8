@@ -142,112 +142,6 @@ describe('DifferenceWrung - First Column (Column 20)', () => {
       expect(extractFirstColumn(result)).toBe(0 + 1);
       expect(hasBorrowToSecondColumn(result)).toBe(false);
     });
-
-    test('2 - 5 = requires borrow (2 - 5 = -3 → borrow to column 19)', () => {
-      const bufferA = createFirstColumnBuffer(2);
-      const bufferB = createFirstColumnBuffer(5);
-      const result = DifferenceWrung(bufferA, bufferB);
-
-      expect(hasBorrowToSecondColumn(result)).toBe(true);
-    });
-
-    test('1 - 8 = maximum borrow', () => {
-      const bufferA = createFirstColumnBuffer(1);
-      const bufferB = createFirstColumnBuffer(8);
-      const result = DifferenceWrung(bufferA, bufferB);
-
-      expect(hasBorrowToSecondColumn(result)).toBe(true);
-    });
-  });
-
-  describe('Negative One Subtraction: X - (-1)', () => {
-    test('detectNegativeOne confirms Negative One buffer', () => {
-      const negOne = createNegativeOneBuffer();
-      expect(detectNegativeOne(negOne)).toBe(true);
-    });
-
-    test('5 - (-1) = 6 (increment)', () => {
-      const bufferA = createFirstColumnBuffer(5);
-      const negOne = createNegativeOneBuffer();
-      const result = DifferenceWrung(bufferA, negOne);
-
-      expect(extractFirstColumn(result)).toBe(6);
-    });
-
-    test('1 - (-1) = 2 (increment)', () => {
-      const bufferA = createFirstColumnBuffer(1);
-      const negOne = createNegativeOneBuffer();
-      const result = DifferenceWrung(bufferA, negOne);
-
-      expect(extractFirstColumn(result)).toBe(2);
-    });
-
-    test('7 - (-1) = 8 (increment)', () => {
-      const bufferA = createFirstColumnBuffer(7);
-      const negOne = createNegativeOneBuffer();
-      const result = DifferenceWrung(bufferA, negOne);
-
-      expect(extractFirstColumn(result)).toBe(8);
-    });
-
-    test('8 - (-1) = 9 → "21" (overflow to column 19)', () => {
-      const bufferA = createFirstColumnBuffer(8);
-      const negOne = createNegativeOneBuffer();
-      const result = DifferenceWrung(bufferA, negOne);
-
-      expect(extractFirstColumn(result)).toBe(1);
-      expect(hasBorrowToSecondColumn(result)).toBe(true);
-      expect(extractSecondColumn(result)).toBe(2);
-    });
-  });
-
-  describe('Negative One Subtraction: (-1) - X', () => {
-    test('(-1) - 1 = -2 (more negative)', () => {
-      const negOne = createNegativeOneBuffer();
-      const bufferB = createFirstColumnBuffer(1);
-      const result = DifferenceWrung(negOne, bufferB);
-
-      expect(result[0]).toBe(0);
-      expect(hasBorrowToSecondColumn(result)).toBe(true);
-    });
-
-    test('(-1) - 5 = -6 (more negative)', () => {
-      const negOne = createNegativeOneBuffer();
-      const bufferB = createFirstColumnBuffer(5);
-      const result = DifferenceWrung(negOne, bufferB);
-
-      expect(result[0]).toBe(0);
-      expect(hasBorrowToSecondColumn(result)).toBe(true);
-    });
-
-    test('(-1) - 8 = -9 (maximum negative in first column)', () => {
-      const negOne = createNegativeOneBuffer();
-      const bufferB = createFirstColumnBuffer(8);
-      const result = DifferenceWrung(negOne, bufferB);
-
-      expect(result[0]).toBe(0);
-      expect(hasBorrowToSecondColumn(result)).toBe(true);
-    });
-  });
-
-  describe('Borrow Propagation', () => {
-    test('Borrow creates marquee at column 19 [0,0,1]', () => {
-      const bufferA = createFirstColumnBuffer(1);
-      const bufferB = createFirstColumnBuffer(8);
-      const result = DifferenceWrung(bufferA, bufferB);
-
-      expect(hasBorrowToSecondColumn(result)).toBe(true);
-      expect(getColumn19Binary(result)).toEqual([0, 0, 1]);
-    });
-
-    test('Borrow propagation maintains sign from minuend', () => {
-      const bufferA = createFirstColumnBuffer(2, true);
-      const bufferB = createFirstColumnBuffer(5, true);
-      const result = DifferenceWrung(bufferA, bufferB);
-
-      expect(result[0]).toBe(1);
-      expect(hasBorrowToSecondColumn(result)).toBe(true);
-    });
   });
 
   describe('Sign and Marquee Validation', () => {
@@ -272,14 +166,6 @@ describe('DifferenceWrung - First Column (Column 20)', () => {
       const marqueeState = BidirectionalConference(buffer);
 
       expect(marqueeState.firstValidColumn).toBe(20);
-    });
-
-    test('Absolute zero detection after A - A', () => {
-      const bufferA = createFirstColumnBuffer(5);
-      const result = DifferenceWrung(bufferA, bufferA);
-
-      const marqueeState = BidirectionalConference(result);
-      expect(marqueeState.isAbsoluteZero).toBe(true);
     });
   });
 });

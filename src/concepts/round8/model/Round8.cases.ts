@@ -14,6 +14,7 @@ import {
 } from './Round8.negative.one.shifted.difference.cases';
 import { GreaterThanSeries } from './Round8.greater.than.cases';
 import { LessThanSeries } from './Round8.less.than.cases';
+import { ShiftedGreaterThanSeries } from './Round8.shifted.greater.than.cases';
 import { BidirectionalConference, ConferBidirectionally, MarqueeState, ConferredMarqueeState } from './Round8.bidirectional';
 
 export const SPECIAL_CASE_STORE = {
@@ -119,6 +120,7 @@ const SpooledShiftedNegativeOneMinusSomeNumberSeries: SpooledWrung = initializeS
 // Logical Comparison Spools (return boolean 0 or 1)
 const SpooledGreaterThanSeries: SpooledWrung = initializeSpooledWrung();
 const SpooledLessThanSeries: SpooledWrung = initializeSpooledWrung();
+const SpooledShiftedGreaterThanSeries: SpooledWrung = initializeSpooledWrung();
 
 const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
   let count = 0;
@@ -162,6 +164,7 @@ spool(ShiftedNegativeOneMinusSomeNumberSeries, SpooledShiftedNegativeOneMinusSom
 // Spool Logical Comparisons
 spool(GreaterThanSeries, SpooledGreaterThanSeries);
 spool(LessThanSeries, SpooledLessThanSeries);
+spool(ShiftedGreaterThanSeries, SpooledShiftedGreaterThanSeries);
 
 export {
   SpooledSumSeries,
@@ -355,6 +358,50 @@ export const notEquals = (columnX: Uint8Array, columnY: Uint8Array): number => {
 };
 
 /**
+ * Shifted Greater Than (X > Y) - Column 0 Shifted Topology Comparison
+ *
+ * Uses shifted topology ordering where Display 7 [0,0,0] is MAXIMUM (Full Twist)
+ * and Display 0 [0,0,1] is MINIMUM (Marquee position).
+ *
+ * Shifted Ordering: 001 < 010 < 011 < 100 < 101 < 110 < 111 < 000
+ *
+ * @param columnX - 3-bit column value in shifted topology
+ * @param columnY - 3-bit column value in shifted topology
+ * @returns 1 if X > Y in shifted topology, 0 otherwise
+ */
+export const shiftedGreaterThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  const result =
+    SpooledShiftedGreaterThanSeries[columnX[0]][columnX[1]][columnX[2]][columnY[0]][columnY[1]][columnY[2]];
+  return result[0] as unknown as number;
+};
+
+/**
+ * Shifted Less Than (X < Y) - Derived from shiftedGreaterThan
+ *
+ * X < Y is equivalent to Y > X in shifted topology.
+ *
+ * @param columnX - 3-bit column value in shifted topology
+ * @param columnY - 3-bit column value in shifted topology
+ * @returns 1 if X < Y in shifted topology, 0 otherwise
+ */
+export const shiftedLessThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  return shiftedGreaterThan(columnY, columnX);
+};
+
+/**
+ * Shifted Equals (X == Y) - Direct bit comparison
+ *
+ * Equality is topology-agnostic: same bits = equal regardless of topology.
+ *
+ * @param columnX - 3-bit column value
+ * @param columnY - 3-bit column value
+ * @returns 1 if X == Y, 0 otherwise
+ */
+export const shiftedEquals = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  return columnX[0] === columnY[0] && columnX[1] === columnY[1] && columnX[2] === columnY[2] ? 1 : 0;
+};
+
+/**
  * Logical AND - Universal Boolean Operator
  * @param a - Boolean value (0 or 1)
  * @param b - Boolean value (0 or 1)
@@ -394,10 +441,12 @@ export const not = (a: number): number => {
 };
 
 /**
- * Compare Magnitudes - Column-by-column comparison using validated greaterThan()
+ * Compare Magnitudes - Column-aware comparison using topology-appropriate operators
  *
  * Compares absolute values of two wrungs from most significant to least significant column.
- * Uses validated greaterThan() operator for each column comparison.
+ * Uses COLUMN-AWARE comparison:
+ * - Column 0: shiftedGreaterThan() for shifted topology (Display 0-7, Full Twist maximum)
+ * - Columns 1-20: greaterThan() for regular topology (Display 1-8)
  *
  * @param wrungA - First operand buffer (64 positions)
  * @param wrungB - Second operand buffer (64 positions)
@@ -421,14 +470,16 @@ export const compareMagnitude = (
     const columnA = new Uint8Array([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
     const columnB = new Uint8Array([wrungB[pos], wrungB[pos + 1], wrungB[pos + 2]]);
 
-    // Compare using validated greaterThan operator
-    const aGreater = greaterThan(columnA, columnB);
+    // CRITICAL: Column 0 uses shifted topology, columns 1-20 use regular topology
+    const comparisonFunc = (col === 0) ? shiftedGreaterThan : greaterThan;
+
+    const aGreater = comparisonFunc(columnA, columnB);
     if (aGreater === 1) {
       // A has greater magnitude at this column
       return true;
     }
 
-    const bGreater = greaterThan(columnB, columnA);
+    const bGreater = comparisonFunc(columnB, columnA);
     if (bGreater === 1) {
       // B has greater magnitude at this column
       return false;
@@ -805,8 +856,9 @@ export const DifferenceWrung = (
   wrungB: Uint8Array<ArrayBuffer>
 ): Uint8Array<ArrayBuffer> => {
   console.log(
-    `DIFFERENCEWRUNG START: wrungA[61-63]=[${wrungA[61]},${wrungA[62]},${wrungA[63]}] ` +
-      `wrungB[61-63]=[${wrungB[61]},${wrungB[62]},${wrungB[63]}]`
+    `DIFFERENCEWRUNG START: ` +
+      `wrungA col0=[${wrungA[1]},${wrungA[2]},${wrungA[3]}] col20=[${wrungA[61]},${wrungA[62]},${wrungA[63]}] ` +
+      `wrungB col0=[${wrungB[1]},${wrungB[2]},${wrungB[3]}] col20=[${wrungB[61]},${wrungB[62]},${wrungB[63]}]`
   );
   // Phase 1: Conference both operands to determine Marquee states
   const conferredState = ConferBidirectionally(wrungA, wrungB);
