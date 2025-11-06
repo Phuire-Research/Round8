@@ -810,6 +810,12 @@ export const DifferenceWrung = (
   );
   // Phase 1: Conference both operands to determine Marquee states
   const conferredState = ConferBidirectionally(wrungA, wrungB);
+  console.log(
+    `CONFERENCE RESULT: ` +
+    `wrungAMarquee.marqueeColumn=${conferredState.wrungAMarquee.marqueeColumn}, ` +
+    `wrungBMarquee.marqueeColumn=${conferredState.wrungBMarquee.marqueeColumn}, ` +
+    `sharedValidColumn=${conferredState.sharedValidColumn}`
+  );
   // Phase 1.5: Sign routing - Determine effective operation based on signs
   const signA = wrungA[0] as 0 | 1;
   const signB = wrungB[0] as 0 | 1;

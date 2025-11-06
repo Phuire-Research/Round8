@@ -21,7 +21,7 @@ Using 3 bits to represent 8 Counts (1-8, not 0-7), each Round8 Bit is 2.67~ Digi
 
 Thus within this Framing. We have enough room to Call Victor to Round8 for any Information Equal to or Greater than 16bits. Where we begin at the floor with a Ridiculous 7% More Digits Represented in Binary than Hex.
 
-Hex
+Hexed Binary
 1111 1111 , 1111 1111 16 bits @ 65,536
 1111 , 1111 1111 , 1111 1111 20bits @ 1,048,576
 1111 1111 , 1111 1111 , 1111 1111 24bits @ 16,777,216
@@ -29,3 +29,4 @@ Hex
 Cheers,
 MTK @ PhuirE Research
 
+(Note it is known that we are using binary operations in order to inform our modern day switches. This method is similar, but instead uses the signals relatively alongside bidirectional higher ordered compositional principles. No intended value judgement on that creates an arbitrary symbol. This demonstrates the limit perceptual scope of unidirectional associations without bidirectional conference.)
