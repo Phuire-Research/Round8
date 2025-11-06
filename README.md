@@ -1,5 +1,10 @@
 # Round8 v0.0.1
 
+[![Node.js CI](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml/badge.svg)](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml)
+[![npm version](https://badge.fury.io/js/round8.svg)](https://www.npmjs.com/package/round8)
+[![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/Phuire-Research/Round8)
+[![Live Demo](https://img.shields.io/badge/demo-live-blue.svg)](https://phuire-research.github.io/Round8/)
+
 **Base-72 Numeral System with String-Only API**
 
 Round8 is a pure spatial coordinate stratimuxian mathematics library that provides energy-efficient numerical operations through a string-based API. No hex crumbling - operations work directly on Round8 string representations.
