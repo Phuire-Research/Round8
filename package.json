@@ -2,7 +2,7 @@
   "name": "round8",
   "license": "GPL-3.0",
   "version": "0.0.01",
-  "description": "Round8 Spatial Cordinate System",
+  "description": "Round8 Spatial Coordinate System",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -39,7 +39,9 @@
     "Muxified Turing Machine",
     "Asynchronous Graph Programming",
     "Concept",
-    "Hex"
+    "Formatic Concept",
+    "Round8",
+    "UnHex"
   ],
   "author": "Micah T. Keller (public@phuire.org)",
   "devDependencies": {

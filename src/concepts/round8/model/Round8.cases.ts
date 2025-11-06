@@ -1096,11 +1096,14 @@ export const DifferenceWrung = (
   // Phase 9: Apply routing result sign (from sign routing logic)
   result[0] = routing.resultSign;
 
-  // Phase 9.5: PRE-NORMALIZATION - Check for computed zero at column 0
-  // Round8 Principle: No Zero in natural counting (1→2→3→4→5→6→7→8→1...)
-  // Computed zeros (6-6=0, 7-7=0) must show marquee [0,0,1], not external carry [0,0,0]
+  // Phase 9.5: PRE-NORMALIZATION - Shifted Topology Column 0 Zero Representation
+  // When spool returns ZERO_CASE (64-bit product, greater than 3 bits input)
+  // Column 0 must be normalized to marquee [0,0,1] (Display "0"), not [0,0,0] (External Carry)
+  // Exception: Full Twist (real carry to column 1) keeps [0,0,0]
   const col0Binary = [result[1], result[2], result[3]];
   const col1Binary = [result[4], result[5], result[6]];
+
+  console.log(`NORMALIZATION CHECK: col0=[${col0Binary}], col1=[${col1Binary}]`);
 
   // If column 0 shows [0,0,0] (external carry encoding)
   const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
@@ -1109,11 +1112,14 @@ export const DifferenceWrung = (
     // Check if column 1 is empty (no actual carry present)
     const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
 
-    // If NO actual carry, normalize to marquee [0,0,1] BEFORE conferencing
-    // This prevents BidirectionalConference from detecting as "absolute zero"
+    console.log(`  isExternalCarry=true, hasCarryToColumn1=${hasCarryToColumn1}`);
+
+    // If NO actual carry, normalize to marquee [0,0,1]
+    // This applies to ZERO_CASE (64-bit product from spool) and computed zeros
+    // Does NOT apply to Full Twist (real external carry to column 1)
     if (!hasCarryToColumn1) {
-      console.log('PRE-NORMALIZATION: Column 0 [0,0,0] → [0,0,1] (computed zero → marquee display)');
-      result[3] = 1; // Set bit0 to 1
+      console.log('PRE-NORMALIZATION: Column 0 [0,0,0] → [0,0,1] (zero product → marquee display)');
+      result[3] = 1; // Set bit0 to 1, creating [0,0,1] (Display "0" shifted topology)
     }
   }
 
