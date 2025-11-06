@@ -2,7 +2,7 @@
 
 **Base-72 Numeral System with String-Only API**
 
-Round8 is a pure spatial coordinate stratimuxian mathematics library that provides energy-efficient numerical operations through a string-based API. No hex contamination - operations work directly on Round8 string representations.
+Round8 is a pure spatial coordinate stratimuxian mathematics library that provides energy-efficient numerical operations through a string-based API. No hex crumbling - operations work directly on Round8 string representations.
 
 ## Installation
 
@@ -79,7 +79,7 @@ type r8Value = {
 };
 ```
 
-**Note**: No `decimal` property - pure string-only API.
+**Note**: For 0.0.1 `decimal` property - pure string-only API.
 
 ## Energy Efficiency Proof
 
@@ -87,13 +87,17 @@ type r8Value = {
 
 At 16-bit precision, Round8 demonstrates **7% energy efficiency advantage** over traditional hexadecimal binary representation.
 
-**Measurement Basis**: Energy consumption per operation at equivalent precision levels.
+**Measurable Proof**: Verifiable proven reference table is attached to this repository. Which a complete test suite for addition and subtraction alongside logical operators.
 
-**Result**: Round8 operations require 7% less computational energy than hex binary operations at 16-bit scale.
+**Result**: Round8 store 7% more data than hex binary operations starting at 16-bits. 
 
 **Validation**: Empirically verified through controlled benchmark testing.
 
-This energy advantage scales with increasing precision levels, making Round8 particularly valuable for energy-conscious computing applications.
+Due to the system utilizing combinations of a Base 72 System. In theory this stores 72^11th digits. Roughly 10x more than Hex.
+
+But the range between 3-15 bits, is less and Hex. Meaning the True Upper Range given current methods is Unknown.
+
+Note this is not a true counting replacement. We have a variant Base 100 System called RoundX. That will be extend the Series for some Time, but would exist on top of Round8.
 
 ## Test Coverage
 
@@ -204,4 +208,4 @@ Micah T. Keller - Founder @ PhuirE Research ([public@phuire.org](mailto:public@p
 
 ---
 
-**Round8 v0.0.1** - Pure spatial coordinate stratimuxian mathematics with proven energy efficiency.
+**Round8 v0.0.1** - Pure spatial coordinate stratimuxian mathematics with proven energy efficiency.
