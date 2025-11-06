@@ -540,3 +540,425 @@ export const Round8 = {
  * Enables type-safe usage in TypeScript projects
  */
 export type Round8Type = typeof Round8;
+
+/**
+ * r8Value - String-Only Round8 Value (v0.0.1 Publication API)
+ *
+ * Pure Round8 representation WITHOUT decimal property.
+ * All operations work through string→buffer→string flow.
+ *
+ * This is the public-facing API for developers who want pure Round8
+ * mathematics without decimal contamination.
+ */
+export type r8Value = {
+  /** Round8 string representation with comma formatting (e.g., "18,86,24") */
+  readonly value: string;
+
+  /** Round8 string without commas (e.g., "188624") */
+  readonly valueRaw: string;
+
+  /** True if Sign=1 (positive trajectory) */
+  readonly isPositive: boolean;
+
+  /** True if Sign=0 AND not zero (negative trajectory) */
+  readonly isNegative: boolean;
+
+  /** True if value is zero (0 000...000) */
+  readonly isZero: boolean;
+
+  /** True if value is -1 (0 111...111 reserved pattern) */
+  readonly isNegativeOne: boolean;
+};
+
+/**
+ * Internal helper: Create r8Value from Round8Buffer
+ *
+ * This is the boundary between buffer tier and r8Value tier.
+ * String-only - no decimal conversion.
+ *
+ * @internal
+ */
+function createR8ValueFromBuffer(buffer: Round8Buffer): r8Value {
+  // Extract string representations (no decimal)
+  const value = ConversionOperations.round8BufferToString(buffer, true);  // with commas
+  const valueRaw = ConversionOperations.round8BufferToString(buffer, false); // without commas
+
+  // Extract sign
+  const sign = RotationOperations.getSignBit(buffer);
+
+  // Determine special cases
+  const isZero = SpecialPatterns.isBufferZero(buffer);
+  const isNegativeOne = SpecialPatterns.isBufferNegativeOne(buffer);
+  const isPositive = sign === 1 && !isZero;
+  const isNegative = sign === 0 && !isZero && !isNegativeOne;
+
+  return {
+    value,
+    valueRaw,
+    isPositive,
+    isNegative,
+    isZero,
+    isNegativeOne,
+  };
+}
+
+/**
+ * r8_ - String-Only Round8 API (v0.0.1 Publication)
+ *
+ * Pure Round8 mathematics with string-only operations.
+ * No decimal contamination - honors Display Column Case.
+ *
+ * All operations use string→buffer→operation→buffer→string flow.
+ * Operations proven by 180/180 tests on SumWrung and DifferenceWrung.
+ *
+ * v0.0.1 includes: Addition, Subtraction, Comparison
+ * v0.0.2 will add: Multiplication, Division (after MultiplyWrung/DivideWrung validation)
+ */
+export const r8_ = {
+  /**
+   * Parse Round8 string to r8Value
+   *
+   * @param round8String - Round8 representation (with or without commas)
+   * @returns Immutable r8Value (string-only)
+   * @throws {Round8Error} INVALID_STRING if string doesn't match Round8 format
+   *
+   * @example
+   * const value = r8_.parse('18,86,24');
+   * console.log(value.value);     // "18,86,24"
+   * console.log(value.valueRaw);  // "188624"
+   */
+  parse(round8String: string): r8Value {
+    // Validate at value boundary
+    if (!ValidationOperations.validateRound8String(round8String)) {
+      throw new Round8Error(
+        Round8ErrorCode.INVALID_STRING,
+        `Invalid Round8 string format: "${round8String}"`,
+        { input: round8String }
+      );
+    }
+
+    // Create buffer from string
+    const buffer = ConversionOperations.round8StringToBuffer(round8String);
+
+    // Wrap in r8Value (string-only)
+    return createR8ValueFromBuffer(buffer);
+  },
+
+  /**
+   * Zero constant (0 000...000)
+   *
+   * @returns r8Value representing zero
+   *
+   * @example
+   * const zero = r8_.zero();
+   * console.log(zero.isZero);    // true
+   * console.log(zero.value);     // "0"
+   */
+  zero(): r8Value {
+    const buffer = new Round8Buffer();
+    SpecialPatterns.encodeZeroToBuffer(buffer);
+    return createR8ValueFromBuffer(buffer);
+  },
+
+  /**
+   * Negative One constant (0 111...111 reserved pattern)
+   *
+   * @returns r8Value representing -1
+   *
+   * @example
+   * const negOne = r8_.negativeOne();
+   * console.log(negOne.isNegativeOne);  // true
+   * console.log(negOne.value);          // "-1"
+   */
+  negativeOne(): r8Value {
+    const buffer = new Round8Buffer();
+    SpecialPatterns.encodeNegativeOneToBuffer(buffer);
+    return createR8ValueFromBuffer(buffer);
+  },
+
+  /**
+   * Add two r8Values (v0.0.1 - String-Only)
+   *
+   * Uses proven SumWrung implementation (Cases 1-4, 180/180 tests passing).
+   *
+   * @param a - First operand
+   * @param b - Second operand
+   * @returns New r8Value (immutable operation)
+   * @throws {Round8Error} OUT_OF_SAFE_INTEGER_RANGE if result exceeds safe range
+   *
+   * @example
+   * const a = r8_.parse("18,86,24");
+   * const b = r8_.parse("12,34,56");
+   * const sum = r8_.add(a, b);
+   * console.log(sum.value);  // "21,32,82"
+   */
+  add(a: r8Value, b: r8Value): r8Value {
+    // String → Buffer conversion
+    const bufferA = ConversionOperations.round8StringToBuffer(a.valueRaw);
+    const bufferB = ConversionOperations.round8StringToBuffer(b.valueRaw);
+
+    // Buffer operation (proven by SumWrung tests)
+    const resultBuffer = ArithmeticOperations.addRound8Buffers(bufferA, bufferB);
+
+    // Buffer → String conversion
+    return createR8ValueFromBuffer(resultBuffer);
+  },
+
+  /**
+   * Subtract b from a (v0.0.1 - String-Only)
+   *
+   * Uses proven DifferenceWrung implementation (Cases 5-8, 180/180 tests passing).
+   *
+   * @param a - Minuend
+   * @param b - Subtrahend
+   * @returns New r8Value (immutable operation)
+   * @throws {Round8Error} OUT_OF_SAFE_INTEGER_RANGE if result exceeds safe range
+   *
+   * @example
+   * const a = r8_.parse("88,88");
+   * const b = r8_.parse("18");
+   * const diff = r8_.subtract(a, b);
+   * console.log(diff.value);  // "88,68"
+   */
+  subtract(a: r8Value, b: r8Value): r8Value {
+    // String → Buffer conversion
+    const bufferA = ConversionOperations.round8StringToBuffer(a.valueRaw);
+    const bufferB = ConversionOperations.round8StringToBuffer(b.valueRaw);
+
+    // Buffer operation (proven by DifferenceWrung tests)
+    const resultBuffer = ArithmeticOperations.subtractRound8Buffers(bufferA, bufferB);
+
+    // Buffer → String conversion
+    return createR8ValueFromBuffer(resultBuffer);
+  },
+
+  /**
+   * Compare two r8Values
+   *
+   * @param a - First value
+   * @param b - Second value
+   * @returns -1 if a < b, 0 if a === b, 1 if a > b
+   *
+   * @example
+   * const a = r8_.parse("88");
+   * const b = r8_.parse("18");
+   * console.log(r8_.compare(a, b));  // 1 (88 > 18)
+   */
+  compare(a: r8Value, b: r8Value): -1 | 0 | 1 {
+    const bufferA = ConversionOperations.round8StringToBuffer(a.valueRaw);
+    const bufferB = ConversionOperations.round8StringToBuffer(b.valueRaw);
+    return ComparisonOperations.compareRound8Buffers(bufferA, bufferB);
+  },
+
+  /**
+   * Check equality of two r8Values
+   *
+   * @param a - First value
+   * @param b - Second value
+   * @returns True if values are equal
+   *
+   * @example
+   * const a = r8_.parse("88,88");
+   * const b = r8_.parse("8888");
+   * console.log(r8_.equals(a, b));  // true
+   */
+  equals(a: r8Value, b: r8Value): boolean {
+    return this.compare(a, b) === 0;
+  },
+
+  /**
+   * Get minimum of two r8Values
+   *
+   * @param a - First value
+   * @param b - Second value
+   * @returns The smaller value
+   *
+   * @example
+   * const a = r8_.parse("88");
+   * const b = r8_.parse("18");
+   * const min = r8_.min(a, b);
+   * console.log(min.value);  // "18"
+   */
+  min(a: r8Value, b: r8Value): r8Value {
+    return this.compare(a, b) <= 0 ? a : b;
+  },
+
+  /**
+   * Get maximum of two r8Values
+   *
+   * @param a - First value
+   * @param b - Second value
+   * @returns The larger value
+   *
+   * @example
+   * const a = r8_.parse("88");
+   * const b = r8_.parse("18");
+   * const max = r8_.max(a, b);
+   * console.log(max.value);  // "88"
+   */
+  max(a: r8Value, b: r8Value): r8Value {
+    return this.compare(a, b) >= 0 ? a : b;
+  },
+
+  /**
+   * Get absolute value
+   *
+   * @param value - Input value
+   * @returns Absolute value (always positive or zero)
+   *
+   * @example
+   * const neg = r8_.parse("-88");
+   * const abs = r8_.abs(neg);
+   * console.log(abs.value);  // "88"
+   */
+  abs(value: r8Value): r8Value {
+    if (value.isNegative) {
+      return this.negate(value);
+    }
+    return value;
+  },
+
+  /**
+   * Negate value (flip sign)
+   *
+   * @param value - Input value
+   * @returns Negated value
+   *
+   * @example
+   * const pos = r8_.parse("88");
+   * const neg = r8_.negate(pos);
+   * console.log(neg.value);  // "-88"
+   */
+  negate(value: r8Value): r8Value {
+    const buffer = ConversionOperations.round8StringToBuffer(value.valueRaw);
+    const sign = RotationOperations.getSignBit(buffer);
+
+    // Flip sign bit (0 → 1, 1 → 0)
+    RotationOperations.setSignBit(buffer, sign === 0 ? 1 : 0);
+
+    return createR8ValueFromBuffer(buffer);
+  },
+
+  /**
+   * Check if value is zero
+   *
+   * @param value - Value to check
+   * @returns True if value is zero
+   *
+   * @example
+   * const zero = r8_.zero();
+   * console.log(r8_.isZero(zero));  // true
+   */
+  isZero(value: r8Value): boolean {
+    return value.isZero;
+  },
+
+  /**
+   * Check if value is negative one
+   *
+   * @param value - Value to check
+   * @returns True if value is -1
+   *
+   * @example
+   * const negOne = r8_.negativeOne();
+   * console.log(r8_.isNegativeOne(negOne));  // true
+   */
+  isNegativeOne(value: r8Value): boolean {
+    return value.isNegativeOne;
+  },
+
+  /**
+   * Get theoretical maximum Round8 value (72^11)
+   *
+   * Returns as Round8 string (not decimal).
+   *
+   * @returns Theoretical maximum as Round8 string
+   *
+   * @example
+   * const max = r8_.getTheoreticalMax();
+   * console.log(max);  // Round8 string representation of 72^11
+   */
+  getTheoreticalMax(): string {
+    const theoreticalMaxBigInt = Round8Constants.THEORETICAL_MAX;
+    // Convert BigInt to Round8 string through buffer
+    const buffer = ConversionOperations.decimalToRound8Buffer(Number(theoreticalMaxBigInt));
+    return ConversionOperations.round8BufferToString(buffer, true);
+  },
+
+  /* ==================== v0.0.2 DEFERRED OPERATIONS ====================
+   *
+   * The following operations are deferred to v0.0.2 after validation:
+   * - multiply/divide: Awaiting MultiplyWrung/DivideWrung validation
+   * - from/increment/decrement: Decimal-dependent operations
+   * - isSafeInteger/getImplementationLimit: Decimal validation
+   *
+   * Sum & Difference prove the approach works - v0.0.1 establishes
+   * the string-only API pattern. v0.0.2 will expand operations.
+   */
+
+  /* v0.0.2 - Multiplication deferred until MultiplyWrung validated
+  multiply(a: r8Value, b: r8Value): r8Value {
+    const bufferA = ConversionOperations.round8StringToBuffer(a.valueRaw);
+    const bufferB = ConversionOperations.round8StringToBuffer(b.valueRaw);
+    const resultBuffer = ArithmeticOperations.multiplyRound8Buffers(bufferA, bufferB);
+    return createR8ValueFromBuffer(resultBuffer);
+  },
+  */
+
+  /* v0.0.2 - Division deferred until DivideWrung validated
+  divide(a: r8Value, b: r8Value): r8Value {
+    const bufferA = ConversionOperations.round8StringToBuffer(a.valueRaw);
+    const bufferB = ConversionOperations.round8StringToBuffer(b.valueRaw);
+    const resultBuffer = ArithmeticOperations.divideRound8Buffers(bufferA, bufferB);
+    return createR8ValueFromBuffer(resultBuffer);
+  },
+  */
+
+  /* v0.0.2 - from(decimal) requires decimal input (not string-only)
+  from(decimal: number): r8Value {
+    if (!Number.isSafeInteger(decimal)) {
+      throw new Round8Error(
+        Round8ErrorCode.OUT_OF_SAFE_INTEGER_RANGE,
+        `Decimal value ${decimal} exceeds JavaScript safe integer range`,
+        { decimal }
+      );
+    }
+    const buffer = ConversionOperations.decimalToRound8Buffer(decimal);
+    return createR8ValueFromBuffer(buffer);
+  },
+  */
+
+  /* v0.0.2 - increment requires decimal conversion internally
+  increment(value: r8Value): r8Value {
+    const buffer = ConversionOperations.round8StringToBuffer(value.valueRaw);
+    IncrementOperations.incrementRound8Buffer(buffer);
+    return createR8ValueFromBuffer(buffer);
+  },
+  */
+
+  /* v0.0.2 - decrement requires decimal conversion internally
+  decrement(value: r8Value): r8Value {
+    const buffer = ConversionOperations.round8StringToBuffer(value.valueRaw);
+    IncrementOperations.decrementRound8Buffer(buffer);
+    return createR8ValueFromBuffer(buffer);
+  },
+  */
+
+  /* v0.0.2 - isSafeInteger validates decimal input (not r8Value)
+  isSafeInteger(decimal: number): boolean {
+    return ValidationOperations.isDecimalSafeInteger(decimal);
+  },
+  */
+
+  /* v0.0.2 - getImplementationLimit returns decimal (not string)
+  getImplementationLimit(): number {
+    return Round8Constants.IMPLEMENTATION_LIMIT;
+  },
+  */
+};
+
+/**
+ * Export type for the r8_ namespace
+ * Enables type-safe usage of string-only API in TypeScript projects
+ */
+export type r8Type = typeof r8_;

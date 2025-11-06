@@ -1,8 +1,8 @@
 {
   "name": "round8",
   "license": "GPL-3.0",
-  "version": "0.0.01",
-  "description": "Round8 Spatial Coordinate System",
+  "version": "0.0.1",
+  "description": "Round8 Base-72 Numeral System - Pure Spatial Coordinate Stratimuxian Mathematics with String-Only API",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "directory": "https://github.com/Phuire-Research/Round8.git"
+    "url": "https://github.com/Phuire-Research/Round8.git"
   },
   "scripts": {
     "dev": "npx nodemon",
