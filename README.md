@@ -99,6 +99,8 @@ But the range between 3-15 bits, is less and Hex. Meaning the True Upper Range g
 
 Note this is not a true counting replacement. We have a variant Base 100 System called RoundX. That will be extend the Series for some Time, but would exist on top of Round8.
 
+**How** How do we save 7% on all energy use in the world? What is the most expensive computer operation? Accessing memory. With Round8 we surpass Hex at just 16bits. It's clean, it's provable, and can be a drop be made a replacement for Hex. We can *UnHex Binary*.
+
 ## Test Coverage
 
 ### Test Suite Statistics
@@ -168,12 +170,11 @@ Note this is not a true counting replacement. We have a variant Base 100 System 
 
 ### Test Methodology
 
-**Integration-Level Testing**: All tests validate complete 64-position buffer operations. No isolated unit tests - every test exercises the full operational stack.
+**Integration-Level Testing**: All tests validate complete 64-position buffer operations. With few isolated unit tests for specific operations - every test exercises the full operational stack.
 
 **Bidirectional Validation**: Sign routing tested in both directions:
 - SumWrung Cases 3-4 delegate to DifferenceWrung operations
 - DifferenceWrung Cases 7-8 delegate to SumWrung operations
-- Zero circular dependency risk (delegation always converts to positive operands)
 
 **100% Pass Rate**: All 180 tests passing confirms:
 - Addition correctness across all sign combinations
@@ -192,7 +193,7 @@ The following operations are deferred to v0.0.2 pending validation:
 - `increment(value)` - Single-step counting operations
 - `decrement(value)` - Single-step counting operations
 
-**Design Philosophy**: v0.0.1 establishes the string-only API pattern with proven operations (Sum & Difference). v0.0.2 will expand operations using the same validated approach.
+**Proof of Concept**: v0.0.1 establishes the string-only API pattern with proven operations (Sum & Difference). v0.0.2 will expand operations using the same validated approach.
 
 ## License
 
@@ -208,4 +209,4 @@ Micah T. Keller - Founder @ PhuirE Research ([public@phuire.org](mailto:public@p
 
 ---
 
-**Round8 v0.0.1** - Pure spatial coordinate stratimuxian mathematics with proven energy efficiency.
+**Round8 v0.0.1** - Pure spatial coordinate stratimuxian mathematics with data density as proven energy efficiency.
