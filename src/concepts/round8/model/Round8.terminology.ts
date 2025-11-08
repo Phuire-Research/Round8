@@ -251,3 +251,47 @@ export const getMarqueeBitRotation = (): [0 | 1, 0 | 1, 0 | 1] => {
     ((threeBits >> 2) & 0b001) as 0 | 1
   ];
 };
+
+/**
+ * getRegularRotation - Get masked 3-bit value for regular position (1-8)
+ * @param position - Display position 1-8
+ * @returns 3-bit BigInt value (0n-7n)
+ */
+export const getRegularRotation = (position: RegularPosition): bigint => {
+  // Get the display store from unified memory
+  const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
+
+  // Calculate bit position: position 1 starts at bit 61, position 8 at bit 40
+  const startBit = 64 - 3 - ((position - 1) * 3);
+
+  // Extract and return masked 3 bits
+  return (displayStore >> BigInt(startBit)) & 0b111n;
+};
+
+/**
+ * getShiftedRotation - Get masked 3-bit value for shifted position (0-7)
+ * @param position - Display position 0-7
+ * @returns 3-bit BigInt value (0n-7n)
+ */
+export const getShiftedRotation = (position: ShiftedPosition): bigint => {
+  // Get the display store from unified memory
+  const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
+
+  // Calculate bit position: position 0 starts at bit 37, position 7 at bit 16
+  const startBit = 40 - 3 - (position * 3);
+
+  // Extract and return masked 3 bits
+  return (displayStore >> BigInt(startBit)) & 0b111n;
+};
+
+/**
+ * getMarqueeRotation - Get the marquee 3-bit value
+ * @returns 3-bit BigInt value (should be 0b001n)
+ */
+export const getMarqueeRotation = (): bigint => {
+  // Get the display store from unified memory
+  const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
+
+  // Extract and return marquee bits at position 13-15
+  return (displayStore >> 13n) & 0b111n;
+};

@@ -26,7 +26,10 @@ import {
   getBinaryRotation,
   getRegularBitRotation,
   getShiftedBitRotation,
-  getMarqueeBitRotation
+  getMarqueeBitRotation,
+  getRegularRotation,
+  getShiftedRotation,
+  getMarqueeRotation
 } from '../concepts/round8/model/Round8.terminology';
 
 // ==================== PHASE 2: CASE 1 - BOTH POSITIVE (EXISTING COVERAGE) ====================
@@ -115,6 +118,28 @@ describe('Case 1: (+A) + (+B) - Both Positive → Positive Sum', () => {
       marqueePattern[0] === 1 && marqueePattern[1] === 0 && marqueePattern[2] === 0
         ? '✓ SUCCESS - Marquee pattern is [0,0,1]'
         : '✗ FAILED');
+
+    // PROOF 3: Test masked rotation value getters
+    console.log('\n=== Masked Rotation Value Proof ===');
+
+    // Test Regular rotations
+    console.log('Regular Rotation Values:');
+    console.log('Position 1:', getRegularRotation(1), '→ Expected 0b000n (0n)');
+    console.log('Position 2:', getRegularRotation(2), '→ Expected 0b001n (1n)');
+    console.log('Position 5:', getRegularRotation(5), '→ Expected 0b100n (4n)');
+    console.log('Position 8:', getRegularRotation(8), '→ Expected 0b111n (7n)');
+
+    // Test Shifted rotations
+    console.log('\nShifted Rotation Values:');
+    console.log('Position 0:', getShiftedRotation(0), '→ Expected 0b001n (1n)');
+    console.log('Position 3:', getShiftedRotation(3), '→ Expected 0b100n (4n)');
+    console.log('Position 7:', getShiftedRotation(7), '→ Expected 0b000n (0n)');
+
+    // Test Marquee rotation
+    console.log('\nMarquee Rotation Value:');
+    const marqueeValue = getMarqueeRotation();
+    console.log('Marquee:', marqueeValue, '→ Expected 0b001n (1n)');
+    console.log('Verification:', marqueeValue === 1n ? '✓ SUCCESS - Marquee is 1n' : '✗ FAILED');
 
     expect(true).toBe(true);
   });
