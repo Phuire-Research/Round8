@@ -17,7 +17,17 @@
 
 import { SPECIAL_CASE_STORE, SumWrung } from '../concepts/round8/model/Round8.cases';
 import { BidirectionalConference } from '../concepts/round8/model/Round8.bidirectional';
-import { createTrue64BitBuffer, getRotation, getRound8Case, mask64Bit, Round8Cases, getBinaryRotation, getRegularDisplay, getShiftedDisplay, getMarqueeDisplay } from '../concepts/round8/model/Round8.terminology';
+import {
+  createTrue64BitBuffer,
+  getRotation,
+  getRound8Case,
+  mask64Bit,
+  Round8Cases,
+  getBinaryRotation,
+  getRegularBitRotation,
+  getShiftedBitRotation,
+  getMarqueeBitRotation
+} from '../concepts/round8/model/Round8.terminology';
 
 // ==================== PHASE 2: CASE 1 - BOTH POSITIVE (EXISTING COVERAGE) ====================
 
@@ -78,33 +88,33 @@ describe('Case 1: (+A) + (+B) - Both Positive → Positive Sum', () => {
 
     // Test Regular Display mappings
     console.log('Regular Display Tests:');
-    console.log('Position 1 (Display 1):', getRegularDisplay(1), '→ Expected [0,0,0]');
-    console.log('Position 2 (Display 2):', getRegularDisplay(2), '→ Expected [0,0,1]');
-    console.log('Position 5 (Display 5):', getRegularDisplay(5), '→ Expected [1,0,0]');
-    console.log('Position 8 (Display 8):', getRegularDisplay(8), '→ Expected [1,1,1]');
+    console.log('Position 1 (Display 1):', getRegularBitRotation(1), '→ Expected [0,0,0]');
+    console.log('Position 2 (Display 2):', getRegularBitRotation(2), '→ Expected [0,0,1]');
+    console.log('Position 5 (Display 5):', getRegularBitRotation(5), '→ Expected [1,0,0]');
+    console.log('Position 8 (Display 8):', getRegularBitRotation(8), '→ Expected [1,1,1]');
 
     // Test Shifted Display mappings
     console.log('\nShifted Display Tests:');
-    console.log('Position 0 (Display 0):', getShiftedDisplay(0), '→ Expected [0,0,1]');
-    console.log('Position 1 (Display 1):', getShiftedDisplay(1), '→ Expected [0,1,0]');
-    console.log('Position 6 (Display 6):', getShiftedDisplay(6), '→ Expected [1,1,1]');
-    console.log('Position 7 (Display 7):', getShiftedDisplay(7), '→ Expected [0,0,0]');
+    console.log('Position 0 (Display 0):', getShiftedBitRotation(0), '→ Expected [0,0,1]');
+    console.log('Position 1 (Display 1):', getShiftedBitRotation(1), '→ Expected [0,1,0]');
+    console.log('Position 6 (Display 6):', getShiftedBitRotation(6), '→ Expected [1,1,1]');
+    console.log('Position 7 (Display 7):', getShiftedBitRotation(7), '→ Expected [0,0,0]');
 
     // Verify the mappings match
-    const regularCheck = getRegularDisplay(1);
-    const shiftedCheck = getShiftedDisplay(7);
+    const regularCheck = getRegularBitRotation(1);
+    const shiftedCheck = getShiftedBitRotation(7);
     console.log('\nCross-check: Regular Display 1 [0,0,0] === Shifted Display 7 [0,0,0]?',
       regularCheck[0] === 0 && regularCheck[1] === 0 && regularCheck[2] === 0 &&
       shiftedCheck[0] === 0 && shiftedCheck[1] === 0 && shiftedCheck[2] === 0 ? '✓ YES' : '✗ NO');
 
     // Test Marquee Display
     console.log('\n=== Marquee Display Proof ===');
-    const marqueePattern = getMarqueeDisplay();
+    const marqueePattern = getMarqueeBitRotation();
     console.log('Marquee pattern:', marqueePattern, '→ Expected [0,0,1]');
     console.log('Verification:',
       marqueePattern[0] === 1 && marqueePattern[1] === 0 && marqueePattern[2] === 0
-      ? '✓ SUCCESS - Marquee pattern is [0,0,1]'
-      : '✗ FAILED');
+        ? '✓ SUCCESS - Marquee pattern is [0,0,1]'
+        : '✗ FAILED');
 
     expect(true).toBe(true);
   });

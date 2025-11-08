@@ -195,7 +195,7 @@ export type ShiftedPosition = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
  * @param position - Display position 1-8
  * @returns 3-bit tuple representing the display pattern
  */
-export const getRegularDisplay = (position: RegularPosition): [0 | 1, 0 | 1, 0 | 1] => {
+export const getRegularBitRotation = (position: RegularPosition): [0 | 1, 0 | 1, 0 | 1] => {
   // Get the display store from unified memory
   const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
 
@@ -217,7 +217,7 @@ export const getRegularDisplay = (position: RegularPosition): [0 | 1, 0 | 1, 0 |
  * @param position - Display position 0-7
  * @returns 3-bit tuple representing the display pattern
  */
-export const getShiftedDisplay = (position: ShiftedPosition): [0 | 1, 0 | 1, 0 | 1] => {
+export const getShiftedBitRotation = (position: ShiftedPosition): [0 | 1, 0 | 1, 0 | 1] => {
   // Get the display store from unified memory
   const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
 
@@ -238,7 +238,7 @@ export const getShiftedDisplay = (position: ShiftedPosition): [0 | 1, 0 | 1, 0 |
  * getMarqueeDisplay - Get the marquee bit pattern
  * @returns 3-bit tuple [0,0,1] representing the marquee pattern
  */
-export const getMarqueeDisplay = (): [0 | 1, 0 | 1, 0 | 1] => {
+export const getMarqueeBitRotation = (): [0 | 1, 0 | 1, 0 | 1] => {
   // Get the display store from unified memory
   const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
 
