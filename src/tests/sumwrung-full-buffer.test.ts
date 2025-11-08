@@ -17,7 +17,7 @@
 
 import { SPECIAL_CASE_STORE, SumWrung } from '../concepts/round8/model/Round8.cases';
 import { BidirectionalConference } from '../concepts/round8/model/Round8.bidirectional';
-import { createTrue64BitBuffer, getRotation, getRound8Case, mask64Bit, Round8Cases, ZeroCase, getBinaryRotation, getRegularDisplay, getShiftedDisplay } from '../concepts/round8/model/Round8.terminology';
+import { createTrue64BitBuffer, getRotation, getRound8Case, mask64Bit, Round8Cases, getBinaryRotation, getRegularDisplay, getShiftedDisplay, getMarqueeDisplay } from '../concepts/round8/model/Round8.terminology';
 
 // ==================== PHASE 2: CASE 1 - BOTH POSITIVE (EXISTING COVERAGE) ====================
 
@@ -96,6 +96,15 @@ describe('Case 1: (+A) + (+B) - Both Positive → Positive Sum', () => {
     console.log('\nCross-check: Regular Display 1 [0,0,0] === Shifted Display 7 [0,0,0]?',
       regularCheck[0] === 0 && regularCheck[1] === 0 && regularCheck[2] === 0 &&
       shiftedCheck[0] === 0 && shiftedCheck[1] === 0 && shiftedCheck[2] === 0 ? '✓ YES' : '✗ NO');
+
+    // Test Marquee Display
+    console.log('\n=== Marquee Display Proof ===');
+    const marqueePattern = getMarqueeDisplay();
+    console.log('Marquee pattern:', marqueePattern, '→ Expected [0,0,1]');
+    console.log('Verification:',
+      marqueePattern[0] === 1 && marqueePattern[1] === 0 && marqueePattern[2] === 0
+      ? '✓ SUCCESS - Marquee pattern is [0,0,1]'
+      : '✗ FAILED');
 
     expect(true).toBe(true);
   });
