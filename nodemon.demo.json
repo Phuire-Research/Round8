@@ -1,0 +1,6 @@
+{
+  "watch": ["demo"],
+  "ext": "css,html,ts",
+  "ignore": ["dist/**/*"],
+  "exec": "npm run build:demo && npx http-server dist/demo -p 7888 -c-1"
+}

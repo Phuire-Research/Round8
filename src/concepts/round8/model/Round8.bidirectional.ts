@@ -7,10 +7,10 @@
 
 export type MarqueeState = {
   /** First valid column for counting (0-20), or -1 for absolute zero */
-  firstValidColumn?: number;
+  firstValidRotation?: number;
 
   /** Whether column 0 is in shifted holding state (001) */
-  marqueeColumn?: number;
+  marqueeRotation?: number;
 
   /** Whether column 0 is the final twist case (000 with all others 111) */
   isFinalTwist?: boolean;
@@ -121,18 +121,56 @@ const countZeroFirstColumn = (buffer: Uint8Array<ArrayBuffer>) => {
   return zeros;
 };
 
+const firstColumStringProspection = (str: string): MarqueeState => {
+  console.log('HITTING SINGLE ROTATION CHECK');
+  let base = str;
+  if (str.length >= 21) {
+    if (str.startsWith('-')) {
+      base = str.slice(1);
+    } else if (str.length >= 22) {
+      return {isFinalTwist: true};
+    }
+    if (base.startsWith('7')) {
+      let isFinalTwist = false;
+      const informative = base.slice(1);
+      for (let char of [
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7'
+      ]) {
+        if (informative.includes(char)) {
+          isFinalTwist = false;
+          break;
+        }
+      }
+      if (isFinalTwist) {
+        return {isFinalTwist};
+      }
+      return {
+        firstValidRotation: 0
+      };
+    }
+  }
+  return {};
+};
+
 const firstColumnSignedProspection = (buffer: Uint8Array<ArrayBuffer>): MarqueeState => {
+  console.log('CHECK', buffer, buffer[63], buffer[62], buffer[61]);
   if (
     // 000 Case 1st Position, Check Next Index for 1
-    buffer[1] === 0 &&
-    buffer[2] === 0 &&
-    buffer[3] === 0
+    buffer[63] === 0 &&
+    buffer[62] === 0 &&
+    buffer[61] === 0
     && buffer.length >= 4 ) {
-    if (buffer[4] === 1) {
-      for (let i = 5; i < buffer.length; i++) {
+    if (buffer[60] === 1) {
+      for (let i = 60; i > -1; i--) {
         if (buffer[i] !== 1) {
           return {
-            firstValidColumn: 0
+            firstValidRotation: 0
           };
         }
       }
@@ -149,14 +187,14 @@ const firstColumnSignedProspection = (buffer: Uint8Array<ArrayBuffer>): MarqueeS
     buffer[3] === 1
   ) {
     return {
-      firstValidColumn: 1,
-      marqueeColumn: 0
+      firstValidRotation: 1,
+      marqueeRotation: 0
     };
   } else if (
     countZeroFirstColumn(buffer) !== 3
   ) {
     return {
-      firstValidColumn: 0
+      firstValidRotation: 0
     };
   } else {
     return {};
@@ -207,13 +245,13 @@ export const BidirectionalConference = (buffer: Uint8Array<ArrayBuffer>): Marque
         col[2] === 1
       ) {
         return {
-          firstValidColumn: i + 2,
-          marqueeColumn: i + 1
+          firstValidRotation: i + 2,
+          marqueeRotation: i + 1
         };
       }
     } else {
       return {
-        firstValidColumn: 20
+        firstValidRotation: 20
       };
     }
   }
@@ -226,6 +264,40 @@ export type ConferredMarqueeState = {
   wrungBMarquee: MarqueeState;
   sharedValidColumn: number;
   exactEven: boolean;
+};
+
+// eslint-disable-next-line complexity
+// Note this is only Handling our Positive Sign
+export const BidirectionalStringConference = (str: string): MarqueeState => {
+  // FIRST: Check for negative one (maximum negative magnitude)
+  const isNegative = str.startsWith('-');
+  if (!isNegative) {
+    if (str.length === 2 && str === '1') {
+      return { isNegativeOne: true };
+    }
+  }
+
+  if (!isNegative) {
+    if (str === '0') {
+      return {
+        isAbsoluteZero: true,
+      };
+    }
+  }
+
+  // Handle First Column
+  const firstCasing = firstColumStringProspection(str);
+
+  // If column 0 is 001: Valid shifted holding position
+  if (Object.keys(firstCasing).length > 0) {
+    return firstCasing;
+  }
+  if ((isNegative && str.length > 2) || (!isNegative && str.length > 1)) {
+    return {
+      marqueeRotation: str.length + 3,
+    };
+  }
+  return {};
 };
 
 /**
@@ -259,7 +331,7 @@ export const ConferBidirectionally = (
     return {
       wrungAMarquee,
       wrungBMarquee,
-      sharedValidColumn: wrungBMarquee.firstValidColumn ?? 20,
+      sharedValidColumn: wrungBMarquee.firstValidRotation ?? 20,
       exactEven: false,
     };
   }
@@ -267,18 +339,18 @@ export const ConferBidirectionally = (
     return {
       wrungAMarquee,
       wrungBMarquee,
-      sharedValidColumn: wrungAMarquee.firstValidColumn ?? 20,
+      sharedValidColumn: wrungAMarquee.firstValidRotation ?? 20,
       exactEven: false,
     };
   }
 
-  // Both non-zero: shared valid zone is the RIGHTMOST (maximum) firstValidColumn
-  const firstValidA = wrungAMarquee.firstValidColumn ?? 20;
-  const firstValidB = wrungBMarquee.firstValidColumn ?? 20;
+  // Both non-zero: shared valid zone is the RIGHTMOST (maximum) firstValidRotation
+  const firstValidA = wrungAMarquee.firstValidRotation ?? 20;
+  const firstValidB = wrungBMarquee.firstValidRotation ?? 20;
   const sharedValidColumn = Math.max(firstValidA, firstValidB);
 
-  // Marquees are exactEven if firstValidColumns match
-  const exactEven = wrungAMarquee.firstValidColumn === wrungBMarquee.firstValidColumn;
+  // Marquees are exactEven if firstValidRotations match
+  const exactEven = wrungAMarquee.firstValidRotation === wrungBMarquee.firstValidRotation;
 
   return {
     wrungAMarquee,

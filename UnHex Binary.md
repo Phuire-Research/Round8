@@ -1,4 +1,5 @@
-# UnHexing Binary
+# A Y2K to UnHexing Binary
+### "What can be saved and employed at the same time?"
 88 : Count of 72 Decimal
 8,88 : Count of 584 Decimal
 88,88 : Count of 4680 Decimal - Total Length of 4095 Decimal
@@ -26,7 +27,12 @@ Hexed Binary
 1111 , 1111 1111 , 1111 1111 20bits @ 1,048,576
 1111 1111 , 1111 1111 , 1111 1111 24bits @ 16,777,216
 
+Then note the Major Success that Stratimux brings to the Table via the Study of Abstractions and their Underlying Manifolds. Enables the creation of "Bidirectional Higher Ordered Look Up Tables" enabling the Relative Position of Bits for Increased Combinations. And Immunity from Shor's Factorization Attack on Binary Operands. So Counter Intuitively, where people would Fail to Understand this Paradigm Shift. Is where this Paradigm shift is Quantum Proof by a Measure of Current Techniques.
+
+What was Once in Civilization, a **Y2K** is at our doorstep *Once Again.*
+
 Cheers,
 MTK @ PhuirE Research
 
 (Note it is known that we are using binary operations in order to inform our modern day switches. This method is similar, but instead uses the signals relatively alongside bidirectional higher ordered compositional principles. No intended value judgement on that creates an arbitrary symbol. This demonstrates the limit perceptual scope of unidirectional associations without bidirectional conference.)
+

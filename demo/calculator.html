@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Round8 Base-72 UnHexed Shor's Proofed Calculator</title>
+    <meta name="description" content="Round8 Base-72 UnHexed Binary Calculator - Four-row integrated display with dial pad input">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- Orbitron Monospace Font for Displays -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- HiFi Functional Design Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Dual Display Binary Visualization Styles -->
+    <style>
+        /* Display Label (Round8: / Binary:) */
+        .display-label {
+            font-weight: 600;
+            margin-right: 0.75rem;
+            color: var(--text-primary, #e2e8f0);
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        /* Binary Display Container */
+        .binary-display {
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-size: 9.2px;
+            color: #e2e8f0;
+            padding: 0.5rem 0.75rem;
+            background: #4d0000;
+            border-radius: 0.375rem;
+            margin-top: 0.5rem;
+            overflow-x: auto;
+            white-space: nowrap;
+            border: 1px solid rgba(77, 0, 0, 0.4);
+            transition: all 0.2s ease;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Binary Display Hover Effect */
+        .binary-display:hover {
+            background: #660000;
+            border-color: rgba(102, 0, 0, 0.6);
+        }
+
+        /* Binary Value (scrollable if needed) */
+        .binary-value {
+            display: inline-block;
+            letter-spacing: 0;
+            font-weight: 400;
+            color: #d4853d;
+        }
+
+        /* Hide Binary Label */
+        .binary-display .display-label {
+            display: none;
+        }
+
+        /* Dark Mode (default) */
+        .dark .binary-display {
+            background: #4d0000;
+            border-color: rgba(77, 0, 0, 0.4);
+        }
+
+        .dark .binary-value {
+            color: #d4853d;
+        }
+
+        .dark .display-label {
+            color: #e2e8f0;
+        }
+
+        /* Light Mode */
+        body:not(.dark) .binary-display {
+            background: #4d0000;
+            border-color: rgba(77, 0, 0, 0.4);
+        }
+
+        body:not(.dark) .binary-value {
+            color: #d4853d;
+        }
+
+        body:not(.dark) .display-label {
+            color: #1e293b;
+        }
+
+        /* Input Display Enhancement */
+        .input-display,
+        .output-display {
+            position: relative;
+        }
+
+        /* Responsive: smaller screens */
+        @media (max-width: 640px) {
+            .binary-display {
+                font-size: 9.2px;
+                padding: 0.375rem 0.5rem;
+            }
+
+            .display-label {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-800 via-slate-900 to-black min-h-screen flex items-center justify-center p-4">
+
+    <!-- Calculator Container -->
+    <div id="calculatorContainer" class="calculator-container">
+
+        <!-- Calculator Header -->
+        <div class="calculator-header">
+            <h1 class="calculator-title">
+                <span class="text-white bg-gradient-to-r from-maroon via-ochre to-rose bg-clip-text">
+                    Round8 Binary Calculator
+                </span>
+            </h1>
+            <p class="calculator-subtitle">
+                Base-72 UnHexed Shor's Proofed Binary
+            </p>
+        </div>
+
+        <!-- Four-Row Integrated Display Section -->
+        <div class="display-section">
+
+            <!-- Dark/Light Mode Toggle -->
+            <!-- <div class="mode-toggle-container">
+                <label class="mode-toggle">
+                    <input type="checkbox" id="darkModeToggle" class="sr-only" checked>
+                    <div class="toggle-track">
+                        <div class="toggle-thumb"></div>
+                    </div>
+                    <span class="toggle-label">
+                        <span class="light-label">Light</span>
+                        <span class="dark-label">Dark</span>
+                    </span>
+                </label>
+            </div> -->
+
+            <!-- Row 1: Input 1 Dual Display -->
+            <div
+                id="input1Row"
+                class="display-row input-row input-row-active"
+                data-input="input1"
+                role="textbox"
+                aria-readonly="true"
+                aria-label="Round8 Input 1: Use dial pad to enter positions"
+                tabindex="0">
+                <label class="input-label">
+                    <span class="label-text">Round8 Input 1</span>
+                    <span class="label-hint text-ochre">(Focus)</span>
+                </label>
+
+                <!-- Round8 String Display -->
+                <div class="input-display" id="input1Display">
+                    <span class="display-label">Round8:</span>
+                    <span class="input-value" id="input1Value"></span>
+                    <span class="input-cursor" id="input1Cursor">|</span>
+                </div>
+
+                <!-- Binary Display (Quantum-Resistant Verification) -->
+                <div class="binary-display" id="input1BinaryDisplay">
+                    <span class="display-label">Binary:</span>
+                    <span class="binary-value" id="input1Binary"></span>
+                </div>
+            </div>
+
+            <!-- Row 2: Operand Display -->
+            <div id="operandRow" class="display-row operand-row">
+                <label class="operand-label" id="operandLabel">
+                    <span class="label-text">Operation Selected</span>
+                </label>
+                <div class="operand-display" id="operandDisplay">
+                    <span class="operand-symbol" id="operandSymbol"></span>
+                    <span class="operand-name" id="operandName"></span>
+                </div>
+            </div>
+
+            <!-- Row 3: Input 2 Dual Display -->
+            <div
+                id="input2Row"
+                class="display-row input-row"
+                data-input="input2"
+                role="textbox"
+                aria-readonly="true"
+                aria-label="Round8 Input 2: Use dial pad to enter positions"
+                tabindex="0">
+                <label class="input-label">
+                    <span class="label-text">Round8 Input 2</span>
+                    <span class="label-hint text-ochre">(Focus)</span>
+                </label>
+
+                <!-- Round8 String Display -->
+                <div class="input-display" id="input2Display">
+                    <span class="display-label">Round8:</span>
+                    <span class="input-value" id="input2Value"></span>
+                    <span class="input-cursor" id="input2Cursor">|</span>
+                </div>
+
+                <!-- Binary Display (Quantum-Resistant Verification) -->
+                <div class="binary-display" id="input2BinaryDisplay">
+                    <span class="display-label">Binary:</span>
+                    <span class="binary-value" id="input2Binary"></span>
+                </div>
+            </div>
+
+            <!-- Row 4: Output Dual Display -->
+            <div id="outputRow" class="display-row output-row">
+                <label class="output-label">
+                    <span class="label-text">Result</span>
+                    <span class="label-hint text-maroon">(Read)</span>
+                </label>
+
+                <!-- Round8 String Display -->
+                <div class="output-display" id="outputDisplay">
+                    <span class="display-label">Round8:</span>
+                    <span class="output-value" id="outputValue"></span>
+                </div>
+
+                <!-- Binary Display (Quantum-Resistant Verification) -->
+                <div class="binary-display" id="outputBinaryDisplay">
+                    <span class="display-label">Binary:</span>
+                    <span class="binary-value" id="outputBinary"></span>
+                </div>
+            </div>
+
+            <!-- Error Display (Alternative to Output Row) -->
+            <div id="errorRow" class="display-row error-row hidden">
+                <div class="error-display">
+                    <span class="error-icon">⚠️</span>
+                    <span class="error-message" id="errorMessage"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operands Section -->
+        <div class="operands-section">
+            <div class="operands-grid">
+
+                <!-- Row 1: Arithmetic Operations -->
+                <button
+                    id="addBtn"
+                    class="operand-btn operand-add"
+                    data-operation="add"
+                    data-symbol="+"
+                    data-color="viridian"
+                    title="Add - Viridian: Instillation">
+                    <span class="btn-symbol">+</span>
+                    <span class="btn-label">Add</span>
+                </button>
+
+                <button
+                    id="subtractBtn"
+                    class="operand-btn operand-subtract"
+                    data-operation="subtract"
+                    data-symbol="−"
+                    data-color="cobalt"
+                    title="Subtract - Cobalt: Implementation">
+                    <span class="btn-symbol">−</span>
+                    <span class="btn-label">Subtract</span>
+                </button>
+
+                <button
+                    class="operand-btn operand-multiply disabled"
+                    disabled
+                    title="Multiply - Coming in v0.0.2">
+                    <span class="btn-symbol">×</span>
+                    <span class="btn-label">Mult</span>
+                    <span class="version-tag">v0.0.2</span>
+                </button>
+
+                <button
+                    class="operand-btn operand-divide disabled"
+                    disabled
+                    title="Divide - Coming in v0.0.2">
+                    <span class="btn-symbol">÷</span>
+                    <span class="btn-label">Div</span>
+                    <span class="version-tag">v0.0.2</span>
+                </button>
+
+                <!-- Row 2: Comparison Operations -->
+                <button
+                    id="greaterBtn"
+                    class="operand-btn operand-compare"
+                    data-operation="compare"
+                    data-symbol=">"
+                    data-color="amethyst"
+                    title="Greater Than - Amethyst: Connection">
+                    <span class="btn-symbol">></span>
+                </button>
+
+                <button
+                    id="greaterEqualBtn"
+                    class="operand-btn operand-compare"
+                    data-operation="compare"
+                    data-symbol="=>"
+                    data-color="amethyst"
+                    title="Greater or Equal - Amethyst: Connection">
+                    <span class="btn-symbol">=></span>
+                </button>
+
+                <button
+                    id="lessBtn"
+                    class="operand-btn operand-compare"
+                    data-operation="compare"
+                    data-symbol="<"
+                    data-color="amethyst"
+                    title="Less Than - Amethyst: Connection">
+                    <span class="btn-symbol"><</span>
+                </button>
+
+                <button
+                    id="lessEqualBtn"
+                    class="operand-btn operand-compare"
+                    data-operation="compare"
+                    data-symbol="=<"
+                    data-color="amethyst"
+                    title="Less or Equal - Amethyst: Connection">
+                    <span class="btn-symbol">=<</span>
+                </button>
+
+                <!-- Row 3: Control Operations -->
+                <button
+                    id="clearBtn"
+                    class="operand-btn operand-clear"
+                    title="Clear All - Red: Warning">
+                    <span class="btn-symbol">AC</span>
+                    <span class="btn-label">Clear</span>
+                </button>
+
+                <button
+                    id="equalsBtn"
+                    class="operand-btn operand-equals"
+                    data-operation="compare"
+                    data-symbol="="
+                    data-color="rose"
+                    title="Equals - Rose: System">
+                    <span class="btn-symbol">=</span>
+                    <span class="btn-label">Equals</span>
+                </button>
+
+                <button
+                    id="flipBtn"
+                    class="operand-btn operand-flip"
+                    title="Switch Active Input - Ochre: Attention">
+                    <span class="btn-symbol">⇅</span>
+                    <span class="btn-label">Select</span>
+                </button>
+
+                <button
+                    id="calculateBtn"
+                    class="operand-btn operand-calculate"
+                    title="Execute Calculation">
+                    <span class="btn-symbol">⏎</span>
+                    <span class="btn-label">Calc</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Round8 Dial Pad Section -->
+        <div class="dialpad-section">
+            <!-- Positions Grid -->
+            <div class="dialpad-grid">
+                <!-- Row 1: Positions 1-4 -->
+                <button class="dial-btn" data-position="1">1</button>
+                <button class="dial-btn" data-position="2">2</button>
+                <button class="dial-btn" data-position="3">3</button>
+                <button class="dial-btn" data-position="4">4</button>
+
+                <!-- Row 2: Positions 5-8 -->
+                <button class="dial-btn" data-position="5">5</button>
+                <button class="dial-btn" data-position="6">6</button>
+                <button class="dial-btn" data-position="7">7</button>
+                <button class="dial-btn" data-position="8">8</button>
+
+                <!-- Special Buttons -->
+                <button
+                    id="backspaceBtn"
+                    class="dial-btn dial-backspace"
+                    title="Remove Last Position">
+                    ⌫
+                </button>
+
+                <button
+                    id="zeroBtn"
+                    class="dial-btn dial-zero"
+                    title="Clear active input and set to zero"
+                    aria-label="Reset active input to zero">
+                    <span class="zero-text">Reset</span>
+                    <span class="zero-symbol">(0)</span>
+                </button>
+
+                <button
+                    id="commaBtn"
+                    class="dial-btn dial-comma"
+                    title="Insert Comma Separator">
+                    ,
+                </button>
+            </div>
+        </div>
+
+        <!-- Scientific Functions Section (Greyed Out) -->
+        <div class="scientific-section">
+            <div class="section-label">Scientific Functions (v0.0.2+)</div>
+
+            <!-- Row 1: Trigonometry -->
+            <div class="function-row">
+                <button class="sci-btn disabled" disabled>2nd</button>
+                <button class="sci-btn disabled" disabled>deg</button>
+                <button class="sci-btn disabled" disabled>sin</button>
+                <button class="sci-btn disabled" disabled>cos</button>
+                <button class="sci-btn disabled" disabled>tan</button>
+            </div>
+
+            <!-- Row 2: Powers & Roots -->
+            <div class="function-row">
+                <button class="sci-btn disabled" disabled>x²</button>
+                <button class="sci-btn disabled" disabled>x<sup>y</sup></button>
+                <button class="sci-btn disabled" disabled>√</button>
+                <button class="sci-btn disabled" disabled>∛</button>
+                <button class="sci-btn disabled" disabled>10<sup>x</sup></button>
+            </div>
+
+            <!-- Row 3: Logarithms & Constants -->
+            <div class="function-row">
+                <button class="sci-btn disabled" disabled>log</button>
+                <button class="sci-btn disabled" disabled>ln</button>
+                <button class="sci-btn disabled" disabled>e<sup>x</sup></button>
+                <button class="sci-btn disabled" disabled>π</button>
+                <button class="sci-btn disabled" disabled>e</button>
+            </div>
+
+            <!-- Row 4: Memory Functions -->
+            <div class="function-row memory-row">
+                <button class="mem-btn disabled" disabled>MC</button>
+                <button class="mem-btn disabled" disabled>MR</button>
+                <button class="mem-btn disabled" disabled>M+</button>
+                <button class="mem-btn disabled" disabled>M−</button>
+                <button class="mem-btn disabled" disabled>MS</button>
+            </div>
+        </div>
+
+        <!-- Version Info -->
+        <div class="version-info">
+            <p>Round8 Calculator v0.0.11</p>
+            <p>+7% Bit Packing Efficiency at 16-bits vs Hexed Binary</p>
+            <p>Theoretical 10x Bit Packing Efficiency due to not using Binary Operands</p>
+            <p>Binary Operands are the Attack Vector of Shor's Factorization Attack</p>
+        </div>
+    </div>
+
+    <!-- Round8 Calculator IIFE Bundle (includes UI logic via import) -->
+    <script src="calculator.global.js"></script>
+
+</body>
+</html>

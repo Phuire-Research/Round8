@@ -48,7 +48,6 @@ export const SPECIAL_CASE_STORE = {
   ]),
   POSITIVE_TWIST_CASE: Uint8Array.from([
     1,
-    0, 0, 0, 1, 1, 1,
     1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1,
@@ -58,7 +57,22 @@ export const SPECIAL_CASE_STORE = {
     1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1,
-    1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    0, 0, 0,
+  ]),
+  NEGATIVE_TWIST_CASE: Uint8Array.from([
+    0,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1,
+    0, 0, 0,
   ]),
   // First Position 0
   NEGATIVE_1_CASE: Uint8Array.from([
@@ -77,12 +91,12 @@ export const SPECIAL_CASE_STORE = {
   ]),
 };
 
-type SomeSeries = Record<string, ((Uint8Array<ArrayBuffer> | number)[] | number)[]>;
+export type SomeSeries = Record<string, ((Uint8Array<ArrayBuffer> | number | string)[] | number)[]>;
 
-type SpooledWrung = Uint8Array<ArrayBuffer>[][][][][][][];
+export type SpooledWrung = Uint8Array<ArrayBuffer>[][][][][][][];
 
 // Initialize 6-dimensional array structure for SpooledSumSeries
-const initializeSpooledWrung = (): SpooledWrung => {
+export const initializeSpooledWrung = (): SpooledWrung => {
   const arr: SpooledWrung = [];
   for (let i = 0; i < 2; i++) {
     arr[i] = [];
@@ -126,7 +140,7 @@ const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
   let count = 0;
   Object.keys(someSeries).forEach((sum) => {
     count++;
-    console.log(`Spooling case ${count}: ${sum}`);
+    // console.log(`Spooling case ${count}: ${sum}`);
     const caseArray = someSeries[sum];
     // caseArray structure: [bit2_X, bit1_X, bit0_X, bit2_Y, bit1_Y, [bit0_Y, result, carry?]]
     const one = caseArray[0] as number; // bit2_X
@@ -137,7 +151,7 @@ const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
     const tuple = caseArray[5] as (number | Uint8Array<ArrayBuffer>)[];
     const six = tuple[0] as number; // bit0_Y
     const sixValue = tuple.slice(1) as unknown as Uint8Array<ArrayBuffer>[]; // [result, carry?]
-    console.log(`  Storing at [${one}][${two}][${three}][${four}][${five}][${six}]:`, sixValue);
+    // console.log(`  Storing at [${one}][${two}][${three}][${four}][${five}][${six}]:`, sixValue);
     spooled[one][two][three][four][five][six] = sixValue;
     // Debug: Verify storage
     if (one === 0 && two === 0 && three === 0 && four === 0 && five === 0 && six === 0) {
@@ -223,15 +237,6 @@ export const STRING_TO_ROUND8_SHIFTED_ROTATION: Record<string, Uint8Array> = {
 };
 
 /**
- * Inverse Rotation Mappings (Uint8Array → String Display)
- *
- * Helper function to convert Uint8Array to lookup key
- */
-const uint8ArrayToKey = (arr: Uint8Array): string => {
-  return `${arr[0]},${arr[1]},${arr[2]}`;
-};
-
-/**
  * Regular Frame Inverse Mapping (Columns 1-20)
  */
 export const ROUND8_TO_STRING_ROTATION: Record<string, string> = {
@@ -258,6 +263,77 @@ export const ROUND8_TO_STRING_SHIFTED_ROTATION: Record<string, string> = {
   '1,1,1': '6', // Shifted Display 6
   '0,0,0': '7', // Shifted Display 7 (External Carry)
 };
+
+/**
+ * Generate Regular Frame String Lookup Spool
+ *
+ * Creates 3D array indexed by [bit2][bit1][bit0] → string digit "1"-"8"
+ * Used for columns 1-20 (regular frame, no Marquee shifting)
+ *
+ * @returns 3D string array for pure indexed lookup
+ */
+export function generateRegularFrameStringSpool(): string[][][] {
+  const spool: string[][][] = [];
+
+  for (let bit2 = 0; bit2 < 2; bit2++) {
+    spool[bit2] = [];
+    for (let bit1 = 0; bit1 < 2; bit1++) {
+      spool[bit2][bit1] = [];
+      for (let bit0 = 0; bit0 < 2; bit0++) {
+        const key = `${bit2},${bit1},${bit0}`;
+        spool[bit2][bit1][bit0] = ROUND8_TO_STRING_ROTATION[key];
+      }
+    }
+  }
+
+  return spool;
+}
+
+/**
+ * Generate Shifted Frame String Lookup Spool
+ *
+ * Creates 3D array indexed by [bit2][bit1][bit0] → string digit "0"-"7"
+ * Used for column 0 (shifted frame when Marquee is present)
+ *
+ * @returns 3D string array for pure indexed lookup
+ */
+export function generateShiftedFrameStringSpool(): string[][][] {
+  const spool: string[][][] = [];
+
+  for (let bit2 = 0; bit2 < 2; bit2++) {
+    spool[bit2] = [];
+    for (let bit1 = 0; bit1 < 2; bit1++) {
+      spool[bit2][bit1] = [];
+      for (let bit0 = 0; bit0 < 2; bit0++) {
+        const key = `${bit2},${bit1},${bit0}`;
+        spool[bit2][bit1][bit0] = ROUND8_TO_STRING_SHIFTED_ROTATION[key];
+      }
+    }
+  }
+
+  return spool;
+}
+
+/**
+ * Spooled String Lookup - Regular Frame (Columns 1-20)
+ *
+ * 3D array indexed by [bit2][bit1][bit0] → returns string digit "1"-"8"
+ * Pure indexed lookup, no decimal comparison
+ *
+ * Round8 spools are bidirectional operands optimized for 64-bit range,
+ * not traditional 8-bit binary operands
+ */
+export const SpooledRegularStringLookup: string[][][] = generateRegularFrameStringSpool();
+
+/**
+ * Spooled String Lookup - Shifted Frame (Column 0)
+ *
+ * 3D array indexed by [bit2][bit1][bit0] → returns string digit "0"-"7"
+ * Pure indexed lookup, no decimal comparison
+ *
+ * Used for column 0 (leftmost rotation) when Marquee is present
+ */
+export const SpooledShiftedStringLookup: string[][][] = generateShiftedFrameStringSpool();
 
 export const createShiftedColumnValue = (shiftedDisplay: number): Uint8Array => {
   switch (shiftedDisplay) {
@@ -748,8 +824,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
       }
     } else {
       // SHIFTED PATH
-      const wrungAFirst = case3Conf.wrungAMarquee.firstValidColumn ?? 20;
-      const wrungBFirst = case3Conf.wrungBMarquee.firstValidColumn ?? 20;
+      const wrungAFirst = case3Conf.wrungAMarquee.firstValidRotation ?? 20;
+      const wrungBFirst = case3Conf.wrungBMarquee.firstValidRotation ?? 20;
       const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
       console.log(`CASE 3 SHIFTED: tempA first=${wrungAFirst}, tempB first=${wrungBFirst}`);
 
@@ -808,6 +884,7 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
               | Uint8Array
               | number
             )[];
+            // eslint-disable-next-line max-depth
             if (borrowTuple.length === 1) {
               intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
             } else {
@@ -828,8 +905,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
     if (borrows.length > 0) {
       console.log(`CASE 3 PLACEHOLDER: ${borrows.length} borrows remaining`);
       const earliestColumn = Math.min(
-        case3Conf.wrungAMarquee.firstValidColumn ?? 20,
-        case3Conf.wrungBMarquee.firstValidColumn ?? 20
+        case3Conf.wrungAMarquee.firstValidRotation ?? 20,
+        case3Conf.wrungBMarquee.firstValidRotation ?? 20
       );
 
       for (let column = earliestColumn - 1; column >= 0; column--) {
@@ -855,7 +932,7 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
         result[pos + 1] = intermediate[1];
         result[pos + 2] = intermediate[2];
 
-        if (borrows.length === 0) break;
+        if (borrows.length === 0) {break;}
       }
     }
 
@@ -877,8 +954,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
     const aGreaterThanB = compareMagnitude(
       tempA,
       tempB,
-      case3Conf.wrungAMarquee.firstValidColumn ?? 20,
-      case3Conf.wrungBMarquee.firstValidColumn ?? 20
+      case3Conf.wrungAMarquee.firstValidRotation ?? 20,
+      case3Conf.wrungBMarquee.firstValidRotation ?? 20
     );
 
     if (!aGreaterThanB) {
@@ -964,8 +1041,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
       }
     } else {
       // SHIFTED PATH
-      const wrungAFirst = case4Conf.wrungAMarquee.firstValidColumn ?? 20;
-      const wrungBFirst = case4Conf.wrungBMarquee.firstValidColumn ?? 20;
+      const wrungAFirst = case4Conf.wrungAMarquee.firstValidRotation ?? 20;
+      const wrungBFirst = case4Conf.wrungBMarquee.firstValidRotation ?? 20;
       const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
       console.log(`CASE 4 SHIFTED: tempA first=${wrungAFirst}, tempB first=${wrungBFirst}`);
 
@@ -1024,6 +1101,7 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
               | Uint8Array
               | number
             )[];
+            // eslint-disable-next-line max-depth
             if (borrowTuple.length === 1) {
               intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
             } else {
@@ -1044,8 +1122,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
     if (borrows.length > 0) {
       console.log(`CASE 4 PLACEHOLDER: ${borrows.length} borrows remaining`);
       const earliestColumn = Math.min(
-        case4Conf.wrungAMarquee.firstValidColumn ?? 20,
-        case4Conf.wrungBMarquee.firstValidColumn ?? 20
+        case4Conf.wrungAMarquee.firstValidRotation ?? 20,
+        case4Conf.wrungBMarquee.firstValidRotation ?? 20
       );
 
       for (let column = earliestColumn - 1; column >= 0; column--) {
@@ -1095,8 +1173,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
     const bGreaterThanA = compareMagnitude(
       tempB,
       tempA,
-      case4Conf.wrungBMarquee.firstValidColumn ?? 20,
-      case4Conf.wrungAMarquee.firstValidColumn ?? 20
+      case4Conf.wrungBMarquee.firstValidRotation ?? 20,
+      case4Conf.wrungAMarquee.firstValidRotation ?? 20
     );
 
     if (bGreaterThanA) {
@@ -1130,8 +1208,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
 
   // SPECIAL CASE: Sign = 1, No Marquee Present (all 000)
   // Only column 20 valid, no backward propagation allowed
-  const hasMarqueeA = conferredState.wrungAMarquee.marqueeColumn !== undefined;
-  const hasMarqueeB = conferredState.wrungBMarquee.marqueeColumn !== undefined;
+  const hasMarqueeA = conferredState.wrungAMarquee.marqueeRotation !== undefined;
+  const hasMarqueeB = conferredState.wrungBMarquee.marqueeRotation !== undefined;
   const noMarqueePresent = !hasMarqueeA && !hasMarqueeB && conferredState.sharedValidColumn === 20;
   if (noMarqueePresent) {
     console.log('SPECIAL CASE: No marquee, Sign=1, processing column 20');
@@ -1205,8 +1283,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
     }
   } else {
     // SHIFTED PATH: Marquees at different positions, handle exclusive zones
-    const wrungAFirst = conferredState.wrungAMarquee.firstValidColumn ?? 20;
-    const wrungBFirst = conferredState.wrungBMarquee.firstValidColumn ?? 20;
+    const wrungAFirst = conferredState.wrungAMarquee.firstValidRotation ?? 20;
+    const wrungBFirst = conferredState.wrungBMarquee.firstValidRotation ?? 20;
     const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
     console.log(`SHIFTED: wrungA first=${wrungAFirst}, wrungB first=${wrungBFirst}, shared=${conferredState.sharedValidColumn}`);
     // SHARED ZONE: Both operands participate (sharedValidColumn → 20)
@@ -1278,8 +1356,8 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
   // PLACEHOLDER ZONE: Deplete remaining carries into placeholder columns
   if (carries.length > 0) {
     const earliestColumn = Math.min(
-      conferredState.wrungAMarquee.firstValidColumn ?? 20,
-      conferredState.wrungBMarquee.firstValidColumn ?? 20
+      conferredState.wrungAMarquee.firstValidRotation ?? 20,
+      conferredState.wrungBMarquee.firstValidRotation ?? 20
     );
     console.log(`PLACEHOLDER ZONE: columns ${earliestColumn - 1} to 0, ${carries.length} carries remaining`);
     for (let column = earliestColumn - 1; column >= 0; column--) {
@@ -1312,7 +1390,11 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
   }
   // If carries STILL remain after column 0, overflow occurred
   if (carries.length > 0) {
-    throw new Error('SumWrung overflow: carry beyond column 0');
+    console.log('Some Carries', carries);
+    return result[0] === 1 ?
+      SPECIAL_CASE_STORE.POSITIVE_1_CASE
+      :
+      SPECIAL_CASE_STORE.NEGATIVE_TWIST_CASE;
   }
   return result;
 };
@@ -1322,16 +1404,16 @@ export const DifferenceWrung = (
   wrungB: Uint8Array<ArrayBuffer>
 ): Uint8Array<ArrayBuffer> => {
   console.log(
-    `DIFFERENCEWRUNG START: ` +
+    'DIFFERENCEWRUNG START: ' +
       `wrungA col0=[${wrungA[1]},${wrungA[2]},${wrungA[3]}] col20=[${wrungA[61]},${wrungA[62]},${wrungA[63]}] ` +
       `wrungB col0=[${wrungB[1]},${wrungB[2]},${wrungB[3]}] col20=[${wrungB[61]},${wrungB[62]},${wrungB[63]}]`
   );
   // Phase 1: Conference both operands to determine Marquee states
   const conferredState = ConferBidirectionally(wrungA, wrungB);
   console.log(
-    `CONFERENCE RESULT: ` +
-    `wrungAMarquee.marqueeColumn=${conferredState.wrungAMarquee.marqueeColumn}, ` +
-    `wrungBMarquee.marqueeColumn=${conferredState.wrungBMarquee.marqueeColumn}, ` +
+    'CONFERENCE RESULT: ' +
+    `wrungAMarquee.marqueeRotation=${conferredState.wrungAMarquee.marqueeRotation}, ` +
+    `wrungBMarquee.marqueeRotation=${conferredState.wrungBMarquee.marqueeRotation}, ` +
     `sharedValidColumn=${conferredState.sharedValidColumn}`
   );
   // Phase 1.5: Sign routing - Determine effective operation based on signs
@@ -1345,8 +1427,8 @@ export const DifferenceWrung = (
     signB,
     wrungA,
     wrungB,
-    conferredState.wrungAMarquee.firstValidColumn ?? 20,
-    conferredState.wrungBMarquee.firstValidColumn ?? 20
+    conferredState.wrungAMarquee.firstValidRotation ?? 20,
+    conferredState.wrungBMarquee.firstValidRotation ?? 20
   );
 
   // Log routing decision with operand information
@@ -1417,8 +1499,8 @@ export const DifferenceWrung = (
 
   // Phase 6: SPECIAL CASE - No Marquee Present (Sign = 1, all 000)
   // Only column 20 valid, no backward propagation allowed
-  const hasMarqueeA = conferredState.wrungAMarquee.marqueeColumn !== undefined;
-  const hasMarqueeB = conferredState.wrungBMarquee.marqueeColumn !== undefined;
+  const hasMarqueeA = conferredState.wrungAMarquee.marqueeRotation !== undefined;
+  const hasMarqueeB = conferredState.wrungBMarquee.marqueeRotation !== undefined;
   const noMarqueePresent = !hasMarqueeA && !hasMarqueeB && conferredState.sharedValidColumn === 20;
   if (noMarqueePresent) {
     console.log('SPECIAL CASE: No marquee, processing column 20');
@@ -1525,8 +1607,8 @@ export const DifferenceWrung = (
     }
   } else {
     // SHIFTED PATH: Marquees at different positions, handle exclusive zones
-    const wrungAFirst = conferredState.wrungAMarquee.firstValidColumn ?? 20;
-    const wrungBFirst = conferredState.wrungBMarquee.firstValidColumn ?? 20;
+    const wrungAFirst = conferredState.wrungAMarquee.firstValidRotation ?? 20;
+    const wrungBFirst = conferredState.wrungBMarquee.firstValidRotation ?? 20;
     const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
     console.log(`SHIFTED: wrungA first=${wrungAFirst}, wrungB first=${wrungBFirst}, shared=${conferredState.sharedValidColumn}`);
     // SHARED ZONE: Both operands participate (sharedValidColumn → 20)
@@ -1617,8 +1699,8 @@ export const DifferenceWrung = (
   // Phase 8: PLACEHOLDER ZONE - Deplete remaining borrows into placeholder columns
   if (borrows.length > 0) {
     const earliestColumn = Math.min(
-      conferredState.wrungAMarquee.firstValidColumn ?? 20,
-      conferredState.wrungBMarquee.firstValidColumn ?? 20
+      conferredState.wrungAMarquee.firstValidRotation ?? 20,
+      conferredState.wrungBMarquee.firstValidRotation ?? 20
     );
     console.log(`PLACEHOLDER ZONE: columns ${earliestColumn - 1} to 0, ${borrows.length} borrows remaining`);
     for (let column = earliestColumn - 1; column >= 0; column--) {
@@ -1687,7 +1769,7 @@ export const DifferenceWrung = (
   // Re-conference the result buffer to discover actual marquee position after all operations
   const resultMarquee = BidirectionalConference(result);
   console.log(
-    `RESULT CONFERENCE: marqueeColumn=${resultMarquee.marqueeColumn}, ` +
+    `RESULT CONFERENCE: marqueeRotation=${resultMarquee.marqueeRotation}, ` +
     `isAbsoluteZero=${resultMarquee.isAbsoluteZero}`
   );
 

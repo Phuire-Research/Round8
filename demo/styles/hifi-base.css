@@ -1,0 +1,171 @@
+/* HiFi Functional Design - Base Color System */
+/* Direct CSS Variable Overrides (Stratithon Client Pattern) */
+/* Replaces Tailwind's default colors with functional meaning */
+
+@layer theme {
+  :root {
+    /* HiFi Seven-Suite Prismatic Spectrum - Direct Color Variables */
+
+    /* Suite 1: Maroon - Read/Document (Deep Red-Brown) */
+    --color-maroon: #800020;
+    --color-maroon-light: #a0002a;
+    --color-maroon-dark: #600018;
+
+    /* Suite 2: Rust - Transform/Convert (Iron Oxide Orange) */
+    --color-rust: #b7410e;
+    --color-rust-light: #d4551a;
+    --color-rust-dark: #9a3709;
+
+    /* Suite 3: Ochre - Attention/Focus (Yellow Earth) */
+    --color-ochre: #cc7722;
+    --color-ochre-light: #e6952d;
+    --color-ochre-dark: #b3651b;
+
+    /* Suite 4: Viridian - Instillation/Setup (Chromium Green) */
+    --color-viridian: #40826d;
+    --color-viridian-light: #52a085;
+    --color-viridian-dark: #306956;
+
+    /* Suite 5: Cobalt - Implementation/Execute (Deep Blue) */
+    --color-cobalt: #0047ab;
+    --color-cobalt-light: #0059d6;
+    --color-cobalt-dark: #003580;
+
+    /* Suite 6: Amethyst - Connection/Orchestrate (Deep Purple Crystal Core) */
+    --color-amethyst: #6a0dad;        /* Deep crystal interior */
+    --color-amethyst-light: #9966cc;  /* Surface reflection */
+    --color-amethyst-dark: #4b0082;   /* Core depth */
+
+    /* Suite 7: Rose - System/Refine (Non-Spectral Fuchsia) */
+    --color-rose: #ff007f;
+    --color-rose-light: #ff3399;
+    --color-rose-dark: #cc0066;
+
+    /* Utility: Red - Warning/Clear */
+    --color-red: #dc143c;
+    --color-red-light: #ff1744;
+    --color-red-dark: #b01030;
+  }
+}
+
+@layer utilities {
+  /* HiFi Background Colors */
+  .bg-maroon { background-color: var(--color-maroon); }
+  .bg-maroon-light { background-color: var(--color-maroon-light); }
+  .bg-maroon-dark { background-color: var(--color-maroon-dark); }
+
+  .bg-rust { background-color: var(--color-rust); }
+  .bg-rust-light { background-color: var(--color-rust-light); }
+  .bg-rust-dark { background-color: var(--color-rust-dark); }
+
+  .bg-ochre { background-color: var(--color-ochre); }
+  .bg-ochre-light { background-color: var(--color-ochre-light); }
+  .bg-ochre-dark { background-color: var(--color-ochre-dark); }
+
+  .bg-viridian { background-color: var(--color-viridian); }
+  .bg-viridian-light { background-color: var(--color-viridian-light); }
+  .bg-viridian-dark { background-color: var(--color-viridian-dark); }
+
+  .bg-cobalt { background-color: var(--color-cobalt); }
+  .bg-cobalt-light { background-color: var(--color-cobalt-light); }
+  .bg-cobalt-dark { background-color: var(--color-cobalt-dark); }
+
+  .bg-amethyst { background-color: var(--color-amethyst); }
+  .bg-amethyst-light { background-color: var(--color-amethyst-light); }
+  .bg-amethyst-dark { background-color: var(--color-amethyst-dark); }
+
+  .bg-rose { background-color: var(--color-rose); }
+  .bg-rose-light { background-color: var(--color-rose-light); }
+  .bg-rose-dark { background-color: var(--color-rose-dark); }
+
+  .bg-red { background-color: var(--color-red); }
+  .bg-red-light { background-color: var(--color-red-light); }
+  .bg-red-dark { background-color: var(--color-red-dark); }
+
+  /* HiFi Text Colors */
+  .text-maroon { color: var(--color-maroon); }
+  .text-rust { color: var(--color-rust); }
+  .text-ochre { color: var(--color-ochre); }
+  .text-viridian { color: var(--color-viridian); }
+  .text-cobalt { color: var(--color-cobalt); }
+  .text-amethyst { color: var(--color-amethyst); }
+  .text-rose { color: var(--color-rose); }
+  .text-red { color: var(--color-red); }
+
+  /* HiFi Border Colors */
+  .border-maroon { border-color: var(--color-maroon); }
+  .border-rust { border-color: var(--color-rust); }
+  .border-ochre { border-color: var(--color-ochre); }
+  .border-viridian { border-color: var(--color-viridian); }
+  .border-cobalt { border-color: var(--color-cobalt); }
+  .border-amethyst { border-color: var(--color-amethyst); }
+  .border-rose { border-color: var(--color-rose); }
+  .border-red { border-color: var(--color-red); }
+
+  /* HiFi Ring Colors (for focus states) */
+  .ring-maroon { --tw-ring-color: var(--color-maroon); }
+  .ring-rust { --tw-ring-color: var(--color-rust); }
+  .ring-ochre { --tw-ring-color: var(--color-ochre); }
+  .ring-viridian { --tw-ring-color: var(--color-viridian); }
+  .ring-cobalt { --tw-ring-color: var(--color-cobalt); }
+  .ring-amethyst { --tw-ring-color: var(--color-amethyst); }
+  .ring-rose { --tw-ring-color: var(--color-rose); }
+  .ring-red { --tw-ring-color: var(--color-red); }
+
+  /* HiFi Hover Variants */
+  .hover\:bg-maroon-light:hover { background-color: var(--color-maroon-light); }
+  .hover\:bg-rust-light:hover { background-color: var(--color-rust-light); }
+  .hover\:bg-ochre-light:hover { background-color: var(--color-ochre-light); }
+  .hover\:bg-viridian-light:hover { background-color: var(--color-viridian-light); }
+  .hover\:bg-cobalt-light:hover { background-color: var(--color-cobalt-light); }
+  .hover\:bg-amethyst-light:hover { background-color: var(--color-amethyst-light); }
+  .hover\:bg-rose-light:hover { background-color: var(--color-rose-light); }
+  .hover\:bg-red-light:hover { background-color: var(--color-red-light); }
+}
+
+@layer components {
+  /* HiFi Gradient Compositions (Workflow Encodings) */
+  .gradient-add {
+    background: linear-gradient(135deg,
+      rgb(var(--color-ochre)) 0%,      /* Attention */
+      rgb(var(--color-viridian)) 50%,  /* Instillation */
+      rgb(var(--color-maroon)) 100%    /* Read Result */
+    );
+  }
+
+  .gradient-subtract {
+    background: linear-gradient(135deg,
+      rgb(var(--color-ochre)) 0%,      /* Attention */
+      rgb(var(--color-cobalt)) 50%,    /* Implementation */
+      rgb(var(--color-maroon)) 100%    /* Read Result */
+    );
+  }
+
+  .gradient-header {
+    background: linear-gradient(90deg,
+      rgb(var(--color-maroon)) 0%,
+      rgb(var(--color-ochre)) 50%,
+      rgb(var(--color-rose)) 100%
+    );
+  }
+
+  /* Animated gradient for loading/processing states */
+  .gradient-add-animated {
+    background: linear-gradient(
+      90deg,
+      rgb(var(--color-ochre)),
+      rgb(var(--color-viridian)),
+      rgb(var(--color-maroon)),
+      rgb(var(--color-viridian)),
+      rgb(var(--color-ochre))
+    );
+    background-size: 200% 100%;
+    animation: gradient-flow 2s ease infinite;
+  }
+
+  @keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}

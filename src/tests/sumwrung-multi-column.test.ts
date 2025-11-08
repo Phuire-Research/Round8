@@ -130,7 +130,7 @@ describe('SumWrung - Multi-Column Tests', () => {
    *
    * @param buffer - Buffer to validate
    * @param expectedFirstValid - Expected firstValidColumn value
-   * @param expectedMarquee - Expected marqueeColumn value (optional)
+   * @param expectedMarquee - Expected marqueeRotation value (optional)
    */
   const validateMarqueeState = (
     buffer: Uint8Array<ArrayBuffer>,
@@ -142,7 +142,7 @@ describe('SumWrung - Multi-Column Tests', () => {
     expect(marqueeState.firstValidColumn).toBe(expectedFirstValid);
 
     if (expectedMarquee !== undefined) {
-      expect(marqueeState.marqueeColumn).toBe(expectedMarquee);
+      expect(marqueeState.marqueeRotation).toBe(expectedMarquee);
     }
   };
 
@@ -245,7 +245,7 @@ describe('SumWrung - Multi-Column Tests', () => {
       console.log('\nMARQUEE STATE:');
       console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
       console.log('  firstValidColumn:', marqueeState.firstValidColumn);
-      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  marqueeRotation:', marqueeState.marqueeRotation);
       console.log('  isFinalTwist:', marqueeState.isFinalTwist);
       console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
     });
@@ -273,7 +273,7 @@ describe('SumWrung - Multi-Column Tests', () => {
       console.log('\nMARQUEE STATE:');
       console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
       console.log('  firstValidColumn:', marqueeState.firstValidColumn);
-      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  marqueeRotation:', marqueeState.marqueeRotation);
       console.log('  isFinalTwist:', marqueeState.isFinalTwist);
       console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
     });
@@ -306,7 +306,7 @@ describe('SumWrung - Multi-Column Tests', () => {
       console.log('\nMARQUEE STATE:');
       console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
       console.log('  firstValidColumn:', marqueeState.firstValidColumn);
-      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  marqueeRotation:', marqueeState.marqueeRotation);
       console.log('  isFinalTwist:', marqueeState.isFinalTwist);
       console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
     });
@@ -334,7 +334,7 @@ describe('SumWrung - Multi-Column Tests', () => {
       console.log('\nMARQUEE STATE:');
       console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
       console.log('  firstValidColumn:', marqueeState.firstValidColumn);
-      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  marqueeRotation:', marqueeState.marqueeRotation);
       console.log('  isFinalTwist:', marqueeState.isFinalTwist);
       console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
     });
@@ -367,7 +367,7 @@ describe('SumWrung - Multi-Column Tests', () => {
       console.log('\nMARQUEE STATE:');
       console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
       console.log('  firstValidColumn:', marqueeState.firstValidColumn);
-      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  marqueeRotation:', marqueeState.marqueeRotation);
       console.log('  isFinalTwist:', marqueeState.isFinalTwist);
       console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
     });
@@ -396,7 +396,7 @@ describe('SumWrung - Multi-Column Tests', () => {
       console.log('\nMARQUEE STATE:');
       console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
       console.log('  firstValidColumn:', marqueeState.firstValidColumn);
-      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  marqueeRotation:', marqueeState.marqueeRotation);
       console.log('  isFinalTwist:', marqueeState.isFinalTwist);
       console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
     });
@@ -429,7 +429,7 @@ describe('SumWrung - Multi-Column Tests', () => {
       console.log('\nMARQUEE STATE:');
       console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
       console.log('  firstValidColumn:', marqueeState.firstValidColumn);
-      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  marqueeRotation:', marqueeState.marqueeRotation);
       console.log('  isFinalTwist:', marqueeState.isFinalTwist);
       console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
     });
@@ -458,7 +458,7 @@ describe('SumWrung - Multi-Column Tests', () => {
       console.log('\nMARQUEE STATE:');
       console.log('  Sign:', result[0] === 1 ? 'Positive (+)' : 'Negative (-)');
       console.log('  firstValidColumn:', marqueeState.firstValidColumn);
-      console.log('  marqueeColumn:', marqueeState.marqueeColumn);
+      console.log('  marqueeRotation:', marqueeState.marqueeRotation);
       console.log('  isFinalTwist:', marqueeState.isFinalTwist);
       console.log('  isAbsoluteZero:', marqueeState.isAbsoluteZero);
     });

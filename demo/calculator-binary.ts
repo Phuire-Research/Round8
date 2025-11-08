@@ -1,0 +1,425 @@
+/**
+ * Round8 Calculator v0.0.11 - Binary-First Implementation
+ *
+ * Quantum-Resistant Architecture:
+ * - Pure spool-based lookups (no binary operands)
+ * - Dual display validation (Round8 ↔ Binary correspondence)
+ * - Marquee system with shifted frame at position 21
+ * - Full Twist special case handling
+ *
+ * @version 0.0.11
+ * @purpose Compositional calculator API - create multiple instances inline
+ */
+
+import {
+  round8StringToBuffer,
+  round8BufferToString,
+  round8BufferToBinaryString,
+  addRound8BuffersBinary,
+  subtractRound8BuffersBinary,
+  Round8Error
+} from '../src/index';
+
+// ============================================================
+// Type Definitions
+// ============================================================
+
+type ActiveInputIdentifier = 'input1' | 'input2';
+type OperationType = '+' | '-' | null;
+
+interface InputState {
+  value: string;                        // Round8 string ("1,2,3")
+  buffer: Uint8Array<ArrayBuffer>;      // 64-bit buffer
+  binary: string;                       // Binary display ("1|001|010|011|...")
+}
+
+interface CalculatorState {
+  input1: InputState;
+  input2: InputState;
+  output: InputState;
+  operation: OperationType;
+  activeInput: ActiveInputIdentifier;
+  darkMode: boolean;
+}
+
+// ============================================================
+// Calculator Factory - Creates New Calculator Instances
+// ============================================================
+
+/**
+ * Create a new Round8 calculator instance
+ * Each instance maintains its own independent state
+ * Enables multiple calculators inline on same page
+ *
+ * @returns Calculator interface with operations and state access
+ */
+export function createCalculator() {
+  // Fresh state for THIS calculator instance
+  const state: CalculatorState = {
+    input1: {
+      value: '',
+      buffer: new Uint8Array(64) as Uint8Array<ArrayBuffer>,
+      binary: ''
+    },
+    input2: {
+      value: '',
+      buffer: new Uint8Array(64) as Uint8Array<ArrayBuffer>,
+      binary: ''
+    },
+    output: {
+      value: '',
+      buffer: new Uint8Array(64) as Uint8Array<ArrayBuffer>,
+      binary: ''
+    },
+    operation: null,
+    activeInput: 'input1',
+    darkMode: true
+  };
+
+  // ============================================================
+  // Display Update Functions (closure over THIS state)
+  // ============================================================
+
+  function updateInputDisplay(inputNumber: 1 | 2): void {
+    const inputState = inputNumber === 1 ? state.input1 : state.input2;
+
+    const valueElement = document.getElementById(`input${inputNumber}Value`);
+    if (valueElement) {
+      valueElement.textContent = inputState.value || '';
+    }
+
+    const binaryElement = document.getElementById(`input${inputNumber}Binary`);
+    if (binaryElement) {
+      binaryElement.textContent = inputState.binary || '';
+    }
+  }
+
+  function updateOutputDisplay(): void {
+    const valueElement = document.getElementById('outputValue');
+    if (valueElement) {
+      valueElement.textContent = state.output.value || '';
+    }
+
+    const binaryElement = document.getElementById('outputBinary');
+    if (binaryElement) {
+      binaryElement.textContent = state.output.binary || '';
+    }
+
+    const outputRow = document.getElementById('outputRow');
+    if (outputRow) {outputRow.style.display = 'block';}
+  }
+
+  function showError(message: string): void {
+    const errorMessage = document.getElementById('errorMessage');
+    const errorRow = document.getElementById('errorRow');
+    const outputRow = document.getElementById('outputRow');
+
+    if (errorMessage) {errorMessage.textContent = message;}
+    if (errorRow) {errorRow.classList.remove('hidden');}
+    if (outputRow) {outputRow.style.display = 'none';}
+
+    setTimeout(() => {
+      if (errorRow) {errorRow.classList.add('hidden');}
+    }, 3000);
+  }
+
+  function hideError(): void {
+    const errorRow = document.getElementById('errorRow');
+    if (errorRow) {errorRow.classList.add('hidden');}
+  }
+
+  // ============================================================
+  // Calculator Operations (closure over THIS state)
+  // ============================================================
+
+  function handleDigitEntry(digit: number): void {
+    console.log('HITTING', digit);
+    hideError();
+
+    const inputState = state[state.activeInput];
+    const currentValue = inputState.value;
+    // Just concatenate digits - no commas during entry
+    const newValue = currentValue ? `${currentValue}${digit}` : `${digit}`;
+
+    try {
+      const buffer = round8StringToBuffer(newValue);
+      const binary = round8BufferToBinaryString(buffer, {
+        separator: '|',
+        includeSign: true
+      });
+
+      // Format the display value with proper comma placement
+      const displayValue = round8BufferToString(buffer, true);
+
+      inputState.value = displayValue;  // Store formatted value for display
+      inputState.buffer = buffer;
+      inputState.binary = binary;
+
+      updateInputDisplay(state.activeInput === 'input1' ? 1 : 2);
+    } catch (error) {
+      if (error instanceof Round8Error) {
+        showError(error.message);
+      } else {
+        showError('Invalid input');
+      }
+    }
+  }
+
+  function handleBackspace(): void {
+    hideError();
+
+    const inputState = state[state.activeInput];
+    const currentValue = inputState.value;
+
+    if (!currentValue) {return;}
+
+    // Remove commas to get raw digits, then remove last digit
+    const rawDigits = currentValue.replace(/,/g, '');
+    const newDigits = rawDigits.slice(0, -1);
+
+    try {
+      if (newDigits === '') {
+        inputState.value = '';
+        inputState.buffer = new Uint8Array(64) as Uint8Array<ArrayBuffer>;
+        inputState.binary = '';
+      } else {
+        const buffer = round8StringToBuffer(newDigits);
+        const binary = round8BufferToBinaryString(buffer, {
+          separator: '|',
+          includeSign: true
+        });
+
+        // Format the display value with proper comma placement
+        const displayValue = round8BufferToString(buffer, true);
+
+        inputState.value = displayValue;
+        inputState.buffer = buffer;
+        inputState.binary = binary;
+      }
+
+      updateInputDisplay(state.activeInput === 'input1' ? 1 : 2);
+    } catch (error) {
+      showError('Backspace error');
+    }
+  }
+
+  function handleZero(): void {
+    hideError();
+
+    const inputState = state[state.activeInput];
+
+    inputState.value = '';
+    inputState.buffer = new Uint8Array(64) as Uint8Array<ArrayBuffer>;
+    inputState.buffer[0] = 1;
+    inputState.binary = '';
+
+    updateInputDisplay(state.activeInput === 'input1' ? 1 : 2);
+  }
+
+  function handleComma(): void {
+    // Commas are automatically added with digits
+  }
+
+  function handleOperation(operation: '+' | '-'): void {
+    hideError();
+
+    state.operation = operation;
+
+    const operandSymbol = document.getElementById('operandSymbol');
+    const operandName = document.getElementById('operandName');
+    const operandLabel = document.getElementById('operandLabel');
+
+    if (operandSymbol) {operandSymbol.textContent = operation;}
+    if (operandName) {
+      operandName.textContent = operation === '+' ? 'ADD' : 'SUBTRACT';
+    }
+    if (operandLabel) {
+      const labelText = operandLabel.querySelector('.label-text');
+      if (labelText) {labelText.textContent = 'Operation Selected';}
+    }
+
+    if (state.input1.value && state.activeInput === 'input1') {
+      handleInputSwitch();
+    }
+  }
+
+  function handleCalculate(): void {
+    hideError();
+
+    if (!state.operation) {
+      showError('No operation selected');
+      return;
+    }
+
+    if (!state.input1.value) {
+      showError('Input 1 is empty');
+      return;
+    }
+
+    if (!state.input2.value) {
+      showError('Input 2 is empty');
+      return;
+    }
+
+    try {
+      const buffer1 = state.input1.buffer;
+      const buffer2 = state.input2.buffer;
+
+      let resultBuffer: Uint8Array<ArrayBuffer>;
+
+      if (state.operation === '+') {
+        resultBuffer = addRound8BuffersBinary(buffer1, buffer2);
+      } else if (state.operation === '-') {
+        resultBuffer = subtractRound8BuffersBinary(buffer1, buffer2);
+      } else {
+        showError('Invalid operation');
+        return;
+      }
+
+      const resultString = round8BufferToString(resultBuffer, true);
+      const resultBinary = round8BufferToBinaryString(resultBuffer, {
+        separator: '|',
+        includeSign: true
+      });
+
+      state.output.value = resultString;
+      state.output.buffer = resultBuffer;
+      state.output.binary = resultBinary;
+
+      updateOutputDisplay();
+    } catch (error) {
+      if (error instanceof Round8Error) {
+        showError(error.message);
+      } else {
+        showError('Calculation failed');
+      }
+    }
+  }
+
+  function handleClear(): void {
+    hideError();
+
+    state.input1.value = '';
+    state.input1.buffer = new Uint8Array(64) as Uint8Array<ArrayBuffer>;
+    state.input1.buffer[0] = 1;
+    state.input1.binary = '';
+
+    state.input2.value = '';
+    state.input2.buffer = new Uint8Array(64) as Uint8Array<ArrayBuffer>;
+    state.input2.buffer[0] = 1;
+    state.input2.binary = '';
+
+    state.output.value = '';
+    state.output.buffer = new Uint8Array(64) as Uint8Array<ArrayBuffer>;
+    state.output.buffer[0] = 1;
+    state.output.binary = '';
+
+    state.operation = null;
+    state.activeInput = 'input1';
+
+    updateInputDisplay(1);
+    updateInputDisplay(2);
+    updateOutputDisplay();
+
+    const operandSymbol = document.getElementById('operandSymbol');
+    const operandName = document.getElementById('operandName');
+    const operandLabel = document.getElementById('operandLabel');
+
+    if (operandSymbol) {operandSymbol.textContent = '';}
+    if (operandName) {operandName.textContent = '';}
+    if (operandLabel) {
+      const labelText = operandLabel.querySelector('.label-text');
+      if (labelText) {labelText.textContent = 'Operation Selected';}
+    }
+
+    updateActiveInputHighlight();
+
+    const outputRow = document.getElementById('outputRow');
+    if (outputRow) {outputRow.style.display = 'none';}
+  }
+
+  function handleInputSwitch(): void {
+    state.activeInput = state.activeInput === 'input1' ? 'input2' : 'input1';
+    updateActiveInputHighlight();
+  }
+
+  function updateActiveInputHighlight(): void {
+    document.querySelectorAll('.input-row').forEach(row => {
+      row.classList.remove('input-row-active');
+      const cursor = row.querySelector('.input-cursor');
+      if (cursor) {(cursor as HTMLElement).style.opacity = '0';}
+    });
+
+    const activeRow = document.querySelector(`[data-input="${state.activeInput}"]`);
+    if (activeRow) {
+      activeRow.classList.add('input-row-active');
+      const cursor = activeRow.querySelector('.input-cursor');
+      if (cursor) {(cursor as HTMLElement).style.opacity = '1';}
+    }
+  }
+
+  function handleDarkModeToggle(): void {
+    state.darkMode = !state.darkMode;
+    document.documentElement.classList.toggle('dark', state.darkMode);
+  }
+
+  function initializeCalculatorState(): void {
+    console.log('Round8 Calculator v0.0.11 - Binary-First Architecture');
+    console.log('Quantum-Resistant: Pure spool-based lookups, no binary operands');
+
+    updateActiveInputHighlight();
+
+    const outputRow = document.getElementById('outputRow');
+    if (outputRow) {outputRow.style.display = 'none';}
+
+    window.dispatchEvent(new CustomEvent('round8-calculator-ready', {
+      detail: {
+        version: '0.0.11',
+        architecture: 'binary-first',
+        quantumResistant: true
+      }
+    }));
+  }
+
+  // ============================================================
+  // Return Calculator Interface
+  // ============================================================
+
+  return {
+    // State access
+    state,
+
+    // Display operations
+    updateInputDisplay,
+    updateOutputDisplay,
+    updateActiveInputHighlight,
+
+    // Error handling
+    showError,
+    hideError,
+
+    // Calculator operations
+    handleDigitEntry,
+    handleBackspace,
+    handleZero,
+    handleComma,
+    handleOperation,
+    handleCalculate,
+    handleClear,
+    handleInputSwitch,
+    handleDarkModeToggle,
+
+    // Initialization
+    initializeCalculatorState
+  };
+}
+
+// ============================================================
+// Convenience Export - Default Calculator Instance
+// ============================================================
+
+/**
+ * Default calculator instance for single-calculator use
+ * For multiple calculators, use createCalculator() factory
+ */
+export const r8Calc_ = createCalculator();

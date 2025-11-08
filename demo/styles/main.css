@@ -1,0 +1,938 @@
+/* HiFi Functional Design - Main Entry Point */
+/* Import-Bound Tailwind CSS with HiFi Base Replacement */
+
+/* 1. Import HiFi base colors FIRST (defines utility classes) */
+@import "./hifi-base.css";
+
+/* 2. Import Tailwind v4 (processes all layers) */
+@import "tailwindcss";
+
+/* 3. HiFi-specific calculator components */
+@layer components {
+  /* Calculator Container */
+  .calculator-container {
+    @apply max-w-2xl w-full;
+  }
+
+  /* Calculator Card */
+  .calculator-card {
+    @apply bg-slate-900 dark:bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700;
+  }
+
+  /* Input Fields with HiFi Focus (Ochre = Attention) */
+  .hifi-input {
+    @apply w-full px-4 py-3 rounded-lg transition-all;
+    @apply bg-white dark:bg-slate-800;
+    @apply border-2 border-slate-300 dark:border-slate-600;
+    @apply text-slate-900 dark:text-slate-100;
+  }
+
+  .hifi-input:focus {
+    border-color: var(--color-ochre);
+    --tw-ring-color: var(--color-ochre);
+    --tw-ring-opacity: 0.5;
+    @apply ring-2 outline-none;
+  }
+
+  /* Operation Buttons */
+  .calc-btn {
+    @apply px-6 py-3 rounded-lg font-semibold transition-all;
+    @apply transform hover:scale-105 shadow-lg hover:shadow-xl;
+    @apply text-white;
+  }
+
+  /* HiFi Button Variants */
+  .calc-btn-viridian {
+    background-color: var(--color-viridian);
+  }
+
+  .calc-btn-viridian:hover {
+    background-color: var(--color-viridian-light);
+  }
+
+  .calc-btn-cobalt {
+    background-color: var(--color-cobalt);
+  }
+
+  .calc-btn-cobalt:hover {
+    background-color: var(--color-cobalt-light);
+  }
+
+  .calc-btn-amethyst {
+    background-color: var(--color-amethyst);
+  }
+
+  .calc-btn-amethyst:hover {
+    background-color: var(--color-amethyst-light);
+  }
+
+  .calc-btn-ochre {
+    background-color: var(--color-ochre);
+  }
+
+  .calc-btn-ochre:hover {
+    background-color: var(--color-ochre-light);
+  }
+
+  .calc-btn-red {
+    background-color: var(--color-red);
+  }
+
+  .calc-btn-red:hover {
+    background-color: var(--color-red-light);
+  }
+
+  /* Disabled Button States */
+  .calc-btn:disabled {
+    @apply opacity-30 cursor-not-allowed;
+    @apply hover:scale-100 hover:shadow-lg;
+  }
+
+  /* Result Display (Maroon = Read) */
+  .result-display {
+    @apply p-4 rounded-lg border-2;
+    background-color: rgb(from var(--color-maroon) r g b / 0.1);
+    border-color: var(--color-maroon);
+    color: var(--color-maroon);
+  }
+
+  .dark .result-display {
+    background-color: rgb(from var(--color-maroon) r g b / 0.2);
+  }
+
+  /* Error Display (Red = Warning) */
+  .error-display {
+    @apply p-4 rounded-lg border-2;
+    background-color: rgb(from var(--color-red) r g b / 0.1);
+    border-color: var(--color-red);
+    color: var(--color-red);
+  }
+
+  .dark .error-display {
+    background-color: rgb(from var(--color-red) r g b / 0.2);
+  }
+
+  /* HiFi Labels (Secondary text on buttons) */
+  .hifi-label {
+    @apply text-xs opacity-75 mt-1 block;
+    @apply group-hover:opacity-100 transition-opacity;
+  }
+
+  /* Bidirectional Light/Dark Mode Surfaces */
+  .hifi-surface-light {
+    @apply bg-slate-50 text-slate-900;
+  }
+
+  .hifi-surface-dark {
+    @apply bg-slate-900 text-slate-100;
+  }
+}
+
+/* 4. Custom utilities for HiFi design */
+@layer utilities {
+  /* Text gradient for headers */
+  .text-gradient-hifi {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--color-maroon)),
+      rgb(var(--color-ochre)),
+      rgb(var(--color-rose))
+    );
+  }
+
+  /* Smooth transitions */
+  .transition-colors-300 {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+}
+
+/* === VIRIDIAN STRUCTURAL CORRECTIONS === */
+/* Suite 4 Viridian + Suite 3 Ochre Component Styles */
+
+/* 1. Accessibility-Safe Cursor Blink (2s cycle, fade not disappear) */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.2; }  /* Fade, not disappear */
+}
+
+.input-cursor {
+  width: 2px;
+  height: 28px;
+  background-color: var(--color-ochre);
+  animation: blink 2s infinite;  /* 0.5Hz instead of 1Hz */
+  opacity: 0;
+}
+
+.input-row-active .input-cursor {
+  opacity: 1;
+}
+
+/* 2. Hover State Isolation (Touch vs Mouse Devices) */
+@media (hover: none) {
+  /* Touch devices: disable hover transforms */
+  .dial-btn:hover,
+  .operand-btn:hover,
+  .sci-btn:hover {
+    transform: none;
+    box-shadow: none;
+    background-color: inherit;
+  }
+}
+
+@media (hover: hover) {
+  /* Mouse devices: enable hover transforms */
+  .dial-btn:hover {
+    background-color: rgb(15 23 42);  /* slate-900 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .operand-add:hover {
+    background-color: var(--color-viridian-light);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(64, 130, 109, 0.4);
+  }
+
+  .operand-subtract:hover {
+    background-color: var(--color-cobalt-light);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 71, 171, 0.4);
+  }
+
+  .operand-compare:hover {
+    background-color: var(--color-amethyst-light);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(106, 13, 173, 0.4);
+  }
+
+  .operand-calculate:hover {
+    background-color: rgb(34 197 94);  /* green-500 */
+    transform: scale(1.05);
+  }
+
+  .operand-clear:hover {
+    background-color: var(--color-red-light);
+    transform: scale(1.05);
+  }
+}
+
+/* 3. Additional Animations */
+@keyframes slideInGlow {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(0) scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+@keyframes flash-ochre {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(204, 119, 34, 0.3); }
+}
+
+@keyframes flash-red {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(220, 20, 60, 0.1); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* 4. Calculator Container Components */
+.calculator-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.calculator-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.calculator-subtitle {
+  font-size: 0.875rem;
+  color: rgb(148 163 184);  /* slate-400 */
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* 5. Display Section */
+.display-section {
+  background: linear-gradient(to bottom right,
+    rgba(15, 23, 42, 0.95),
+    rgba(0, 0, 0, 0.95)
+  );
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  position: relative;
+}
+
+/* Mode Toggle */
+.mode-toggle-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.toggle-track {
+  width: 56px;
+  height: 28px;
+  background-color: rgb(71 85 105);  /* slate-600 */
+  border-radius: 14px;
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+.dark .toggle-track {
+  background-color: rgb(51 65 85);  /* slate-700 */
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background-color: white;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+.dark .toggle-thumb {
+  transform: translateX(28px);
+}
+
+.toggle-label {
+  font-size: 0.875rem;
+  color: rgb(148 163 184);  /* slate-400 */
+}
+
+.dark .toggle-label .light-label {
+  display: none;
+}
+
+.dark .toggle-label .dark-label {
+  display: inline;
+}
+
+.toggle-label .dark-label {
+  display: none;
+}
+
+/* Display Rows */
+.display-row {
+  margin-bottom: 0.75rem;
+  border-radius: 0.75rem;
+  padding: 8px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.display-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Input Rows */
+.input-row {
+  background-color: rgba(30, 41, 59, 0.5);
+  border-color: rgb(71 85 105);  /* slate-600 */
+  cursor: pointer;
+}
+
+.input-row:hover {
+  background-color: rgba(30, 41, 59, 0.7);
+}
+
+.input-row-active {
+  border-color: var(--color-ochre);
+  background-color: rgba(204, 119, 34, 0.1);
+  box-shadow: 0 0 0 3px rgba(204, 119, 34, 0.2);
+}
+
+.input-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: rgb(148 163 184);  /* slate-400 */
+  font-weight: 500;
+}
+
+.label-hint {
+  font-size: 0.625rem;
+  opacity: 0.75;
+}
+
+.input-display {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgb(241 245 249);  /* slate-100 */
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.input-value {
+  flex: 1;
+}
+
+.input-value:empty::before {
+  content: '0';
+  opacity: 0.3;
+}
+
+/* Operand Row */
+.operand-row {
+  background-color: rgba(71, 85, 105, 0.3);
+  border: 2px solid rgba(71, 85, 105, 0.5);
+  text-align: center;
+  min-height: 68px;
+}
+
+.operand-row[data-operation="add"] {
+  background-color: rgba(64, 130, 109, 0.2);
+  border-color: var(--color-viridian);
+}
+
+.operand-row[data-operation="subtract"] {
+  background-color: rgba(0, 71, 171, 0.2);
+  border-color: var(--color-cobalt);
+}
+
+.operand-row[data-operation="compare"] {
+  background-color: rgba(106, 13, 173, 0.2);
+  border-color: var(--color-amethyst);
+}
+
+.operand-label {
+  font-size: 0.75rem;
+  color: rgb(148 163 184);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+  transform: translateY(14px);
+}
+
+.operand-display {
+  font-family: 'Orbitron', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.operand-symbol {
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgb(241 245 249);
+  transform: rotate(90deg);
+  display: inline-block;
+}
+
+.operand-name {
+  font-size: 0.875rem;
+  color: rgb(148 163 184);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Output Row */
+.output-row {
+  background-color: rgba(128, 0, 32, 0.15);
+  border: 2px solid var(--color-maroon);
+}
+
+.output-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: rgb(148 163 184);
+  font-weight: 500;
+}
+
+.output-display {
+  font-family: 'Orbitron', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+/* Error Row */
+.error-row {
+  background-color: rgba(220, 20, 60, 0.15);
+  border: 2px solid var(--color-red);
+}
+
+.error-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-red);
+}
+
+.error-icon {
+  font-size: 1.5rem;
+}
+
+.error-message {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* 6. Scientific Functions Section */
+.scientific-section {
+  margin-bottom: 1rem;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  color: rgb(100 116 139);  /* slate-500 */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.function-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.375rem;
+  margin-bottom: 0.375rem;
+}
+
+.function-row:last-child {
+  margin-bottom: 0;
+}
+
+.sci-btn,
+.mem-btn {
+  padding: 0.75rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  border: none;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.sci-btn:not(.disabled) {
+  background-color: rgb(51 65 85);  /* slate-700 */
+  color: white;
+}
+
+.sci-btn.disabled,
+.mem-btn.disabled {
+  background-color: rgb(30 41 59);  /* slate-800 */
+  color: rgb(71 85 105);  /* slate-600 */
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 7. Operands Section */
+.operands-section {
+  margin-bottom: 1rem;
+}
+
+.operands-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.operand-btn {
+  padding: 0.75rem 0.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
+}
+
+.btn-symbol {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.btn-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.version-tag {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  font-size: 0.625rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+}
+
+/* Operand Button Variants */
+.operand-add {
+  background-color: var(--color-viridian);
+  color: white;
+}
+
+.operand-subtract {
+  background-color: var(--color-cobalt);
+  color: white;
+}
+
+.operand-compare {
+  background-color: var(--color-amethyst);
+  color: white;
+}
+
+.operand-equals {
+  background-color: var(--color-rose);
+  color: white;
+}
+
+.operand-calculate {
+  background-color: rgb(22 163 74);  /* green-600 */
+  color: white;
+}
+
+.operand-clear {
+  background-color: var(--color-red);
+  color: white;
+}
+
+.operand-flip {
+  background-color: var(--color-ochre);
+  color: white;
+}
+
+.operand-btn.disabled {
+  background-color: rgb(51 65 85);  /* slate-700 */
+  color: rgb(100 116 139);  /* slate-500 */
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.operand-btn:active:not(.disabled) {
+  transform: scale(0.95);
+}
+
+/* 8. Dial Pad Section */
+.dialpad-section {
+  margin-bottom: 1rem;
+}
+
+.dialpad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.dial-btn {
+  padding: 1.25rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  border: none;
+  background-color: rgb(51 65 85);  /* slate-700 */
+  color: white;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dial-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Special Dial Buttons */
+.dial-zero {
+  grid-column: span 2;
+  background-color: var(--color-ochre);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.zero-text {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.zero-symbol {
+  font-size: 1.5rem;
+  opacity: 0.75;
+}
+
+.dial-backspace {
+  background-color: rgb(75 85 99);  /* gray-600 */
+}
+
+.dial-comma {
+  background-color: rgb(71 85 105);  /* slate-600 */
+}
+
+.dial-switch {
+  background-color: rgb(79 70 229);  /* indigo-600 */
+}
+
+/* 9. HiFi Legend */
+.hifi-legend {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background-color: rgba(15, 23, 42, 0.5);
+  border-radius: 0.5rem;
+}
+
+.legend-row {
+  display: flex;
+  justify-content: space-around;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.legend-row:last-child {
+  margin-bottom: 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.625rem;
+  color: rgb(148 163 184);
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+/* 10. Version Info */
+.version-info {
+  text-align: center;
+  font-size: 0.625rem;
+  color: rgb(100 116 139);  /* slate-600 */
+  line-height: 1.4;
+  margin-bottom: 72px;
+}
+
+/* 11. Utility Classes */
+.hidden {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* 12. Responsive Breakpoints */
+@media (max-width: 520px) {
+  .calculator-container {
+    padding: 1rem;
+  }
+
+  .operands-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dialpad-grid {
+    gap: 0.375rem;
+  }
+
+  .dial-btn {
+    padding: 1rem;
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .calculator-container {
+    max-width: 560px;
+  }
+}
+
+/* === SCIENTIFIC FRAME TOPOLOGY (⊐-shaped: top + left + right) === */
+
+/* Frame Container */
+.scientific-frame-container {
+  margin-top: 1rem;
+}
+
+/* Top Row (6 scientific buttons horizontal) */
+.scientific-top-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Content Wrapper (Left Column + Center Content + Right Column) */
+.scientific-content-wrapper {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.5rem;
+}
+
+/* Left Column (6 scientific buttons vertical) */
+.scientific-left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Center Content (Display + Operations + Dial Pad) */
+.scientific-center-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Right Column (6 scientific buttons vertical) */
+.scientific-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Operations Section (Single Row - 7 buttons) */
+.operations-section {
+  margin-bottom: 1rem;
+}
+
+.operations-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+/* Size Parity: Operations match sci-btn sizing */
+.operations-row .sci-btn {
+  padding: 0.75rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: none;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+/* Hover states for operations in frame (match sci-btn pattern) */
+@media (hover: none) {
+  .operations-row .sci-btn:hover {
+    transform: none;
+    box-shadow: none;
+    background-color: inherit;
+  }
+}
+
+@media (hover: hover) {
+  .operations-row .sci-btn:not(.disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .operand-add:hover {
+    background-color: var(--color-viridian-light);
+  }
+
+  .operand-subtract:hover {
+    background-color: var(--color-cobalt-light);
+  }
+
+  .operand-compare:hover {
+    background-color: var(--color-amethyst-light);
+  }
+
+  .operand-calculate:hover {
+    background-color: rgb(34 197 94);  /* green-500 */
+  }
+
+  .operand-clear:hover {
+    background-color: rgb(239 68 68);  /* red-500 */
+  }
+}
+
+.operations-row .sci-btn:active:not(.disabled) {
+  transform: scale(0.95);
+}
+
+/* Responsive: Stack frame vertically on mobile */
+@media (max-width: 640px) {
+  .scientific-top-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .scientific-content-wrapper {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .scientific-left-column,
+  .scientific-right-column {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .scientific-left-column .sci-btn,
+  .scientific-right-column .sci-btn {
+    flex: 1 1 calc(33.333% - 0.5rem);
+  }
+
+  .operations-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
