@@ -1,3 +1,5 @@
+// Position 0 is Pruned and is our Signed Single Bit
+// Each Position is 3 Bits as a Rotation
 export type Positions = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21;
 
 /**
@@ -13,22 +15,64 @@ export enum Round8Cases {
   DISPLAY_STORE = 5
 }
 
+/**
+ * getSignedBit - Get the signed bit (position 0) from a 64-bit buffer
+ * @param buffer - 64-bit BigInt buffer
+ * @returns The signed bit (0 or 1) at bit 63 (MSB)
+ */
+export const getSignedBit = (buffer: bigint): 0 | 1 => {
+  // Position 0: The signed bit at bit 63 (MSB)
+  // 0x7FFF... has MSB=0 (negative)
+  // 0xFFFF... has MSB=1 (positive)
+  return ((buffer >> 63n) & 1n) === 1n ? 1 : 0;
+};
+
+/**
+ * flipSignedBit - Flip the signed bit with special case handling
+ * @param buffer - 64-bit BigInt buffer
+ * @returns Buffer with flipped signed bit, handling special cases
+ */
+export const flipSignedBit = (buffer: bigint): bigint => {
+  // Special Case 1: POSITIVE_1_CASE (0x8000000000000000) → NEGATIVE_1_CASE (0x7FFFFFFFFFFFFFFF)
+  if (buffer === 0x8000000000000000n) {
+    return 0x7FFFFFFFFFFFFFFFn;
+  }
+
+  // Special Case 2: NEGATIVE_1_CASE (0x7FFFFFFFFFFFFFFF) → POSITIVE_1_CASE (0x8000000000000000)
+  if (buffer === 0x7FFFFFFFFFFFFFFFn) {
+    return 0x8000000000000000n;
+  }
+
+  // Standard case: Just flip the MSB (bit 63)
+  return buffer ^ (1n << 63n);
+};
+
+/**
+ * getRotationRange - Get bit position range for 3-bit rotations (positions 1-21)
+ * Position 0 (signed bit) is pruned and handled by getSignedBit
+ * @param position - Rotation position (1-21)
+ * @returns [startBit, endBit) for the 3-bit rotation
+ */
 export const getRotationRange = (position: Positions): [number, number] => {
-  const offSet = 64 - (position * 3) + 3;
+  // Position 1 starts at bit 60, position 2 at bit 57, etc.
+  // Formula: startBit = 63 - (position * 3)
+  const startBit = 63 - (position * 3);
   return [
-    offSet - 3,
-    offSet
+    startBit,
+    startBit + 3
   ];
 };
 
 /**
- * getRotation will Provide a Tuple of the Range
- * @param position
+ * getRotationByPosition - Get rotation bits from a 64-bit buffer
+ * @param buffer - 64-bit BigInt buffer
+ * @param position - Rotation position (1-21)
+ * @returns 3-bit BigInt value for the rotation
  */
-
-export const getRotation = (buffer: Uint8Array<ArrayBuffer>, position: Positions): Uint8Array<ArrayBuffer> =>  {
+export const getRotationByPosition = (buffer: bigint, position: Positions): bigint =>  {
   const range = getRotationRange(position);
-  return buffer.slice(range[0], range[1]);
+  // Extract the 3-bit rotation
+  return (buffer >> BigInt(range[0])) & 0b111n;
 };
 
 /**
@@ -285,13 +329,13 @@ export const getShiftedRotation = (position: ShiftedPosition): bigint => {
 };
 
 /**
- * getMarqueeRotation - Get the marquee 3-bit value
+ * MarqueeRotation - Get is the 3 bit Marquee Value
  * @returns 3-bit BigInt value (should be 0b001n)
  */
-export const getMarqueeRotation = (): bigint => {
+export const MarqueeRotation = ((): bigint => {
   // Get the display store from unified memory
   const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
 
   // Extract and return marquee bits at position 13-15
   return (displayStore >> 13n) & 0b111n;
-};
+})();

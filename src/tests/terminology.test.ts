@@ -7,7 +7,9 @@ import {
   getMarqueeBitRotation,
   getRegularRotation,
   getShiftedRotation,
-  getMarqueeRotation
+  MarqueeRotation,
+  getSignedBit,
+  flipSignedBit
 } from '../concepts/round8/model/Round8.terminology';
 
 describe('Round8 Terminology Proof', () => {
@@ -123,32 +125,88 @@ describe('Round8 Terminology Proof', () => {
 
     // Test Marquee rotation
     console.log('\nMarquee Rotation Value:');
-    const marqueeValue = getMarqueeRotation();
+    const marqueeValue = MarqueeRotation;
     console.log('Marquee:', marqueeValue, '→ Expected 0b001n (1n)');
     expect(marqueeValue).toBe(1n);
 
-    // PROOF 4: Verify all Special Cases are accessible
+    // PROOF 4: Test Signed Bit Helper
+    console.log('\n=== Signed Bit Validation ===');
+
+    // Test POSITIVE_TWIST_CASE signed bit (MSB should be 1)
+    const positiveTwist = getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);
+    const positiveSignedBit = getSignedBit(positiveTwist);
+    console.log('POSITIVE_TWIST_CASE signed bit:', positiveSignedBit, '→ Expected 1 (positive)');
+    expect(positiveSignedBit).toBe(1);
+
+    // Test NEGATIVE_TWIST_CASE signed bit (MSB should be 0)
+    const negativeTwist = getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
+    const negativeSignedBit = getSignedBit(negativeTwist);
+    console.log('NEGATIVE_TWIST_CASE signed bit:', negativeSignedBit, '→ Expected 0 (negative)');
+    expect(negativeSignedBit).toBe(0);
+
+    // Test POSITIVE_1_CASE signed bit (MSB should be 1)
+    const positive1Case = getRound8Case(Round8Cases.POSITIVE_1_CASE);
+    const positive1SignedBit = getSignedBit(positive1Case);
+    console.log('POSITIVE_1_CASE signed bit:', positive1SignedBit, '→ Expected 1 (positive)');
+    expect(positive1SignedBit).toBe(1);
+
+    // Test NEGATIVE_1_CASE signed bit (MSB should be 0)
+    const negative1Case = getRound8Case(Round8Cases.NEGATIVE_1_CASE);
+    const negative1SignedBit = getSignedBit(negative1Case);
+    console.log('NEGATIVE_1_CASE signed bit:', negative1SignedBit, '→ Expected 0 (negative)');
+    expect(negative1SignedBit).toBe(0);
+
+    // PROOF 5: Test flipSignedBit with special cases
+    console.log('\n=== Flip Signed Bit Validation ===');
+
+    // Test Special Case 1: POSITIVE_1_CASE → NEGATIVE_1_CASE
+    const flippedPositive1 = flipSignedBit(positive1Case);
+    console.log('POSITIVE_1_CASE flipped:', flippedPositive1.toString(16));
+    console.log('Expected NEGATIVE_1_CASE:', negative1Case.toString(16));
+    expect(flippedPositive1).toBe(0x7FFFFFFFFFFFFFFFn);
+    expect(flippedPositive1).toBe(negative1Case);
+
+    // Test Special Case 2: NEGATIVE_1_CASE → POSITIVE_1_CASE
+    const flippedNegative1 = flipSignedBit(negative1Case);
+    console.log('NEGATIVE_1_CASE flipped:', flippedNegative1.toString(16));
+    console.log('Expected POSITIVE_1_CASE:', positive1Case.toString(16));
+    expect(flippedNegative1).toBe(0x8000000000000000n);
+    expect(flippedNegative1).toBe(positive1Case);
+
+    // Test Standard Case: POSITIVE_TWIST_CASE → negative version
+    const flippedPositiveTwist = flipSignedBit(positiveTwist);
+    console.log('POSITIVE_TWIST_CASE flipped:', flippedPositiveTwist.toString(16));
+    expect(getSignedBit(flippedPositiveTwist)).toBe(0); // Should now be negative
+    expect(flippedPositiveTwist).toBe(0x7FFFFFFFFFFFFFF8n); // Same as NEGATIVE_TWIST_CASE
+
+    // Test Standard Case: NEGATIVE_TWIST_CASE → positive version
+    const flippedNegativeTwist = flipSignedBit(negativeTwist);
+    console.log('NEGATIVE_TWIST_CASE flipped:', flippedNegativeTwist.toString(16));
+    expect(getSignedBit(flippedNegativeTwist)).toBe(1); // Should now be positive
+    expect(flippedNegativeTwist).toBe(0xFFFFFFFFFFFFFFF8n); // Same as POSITIVE_TWIST_CASE
+
+    // PROOF 6: Verify all Special Cases are accessible
     console.log('\n=== Special Cases Validation ===');
 
     const zeroCase = getRound8Case(Round8Cases.ZERO_CASE);
     console.log('ZERO_CASE:', zeroCase.toString(16));
     expect(zeroCase).toBe(0n);
 
-    const positive1Case = getRound8Case(Round8Cases.POSITIVE_1_CASE);
-    console.log('POSITIVE_1_CASE:', positive1Case.toString(16));
-    expect(positive1Case).toBe(0x8000000000000000n);
+    const anotherPositive1Case = getRound8Case(Round8Cases.POSITIVE_1_CASE);
+    console.log('POSITIVE_1_CASE:', anotherPositive1Case.toString(16));
+    expect(anotherPositive1Case).toBe(0x8000000000000000n);
 
-    const positiveTwist = getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);
-    console.log('POSITIVE_TWIST_CASE:', positiveTwist.toString(16));
-    expect(positiveTwist).toBe(0xFFFFFFFFFFFFFFF8n);
+    const anotherPositiveTwist = getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);
+    console.log('POSITIVE_TWIST_CASE:', anotherPositiveTwist.toString(16));
+    expect(anotherPositiveTwist).toBe(0xFFFFFFFFFFFFFFF8n);
 
-    const negativeTwist = getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
-    console.log('NEGATIVE_TWIST_CASE:', negativeTwist.toString(16));
-    expect(negativeTwist).toBe(0x7FFFFFFFFFFFFFF8n);
+    const anotherNegativeTwist = getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
+    console.log('NEGATIVE_TWIST_CASE:', anotherNegativeTwist.toString(16));
+    expect(anotherNegativeTwist).toBe(0x7FFFFFFFFFFFFFF8n);
 
-    const negative1Case = getRound8Case(Round8Cases.NEGATIVE_1_CASE);
-    console.log('NEGATIVE_1_CASE:', negative1Case.toString(16));
-    expect(negative1Case).toBe(0x7FFFFFFFFFFFFFFFn);
+    const anotherNegative1Case = getRound8Case(Round8Cases.NEGATIVE_1_CASE);
+    console.log('NEGATIVE_1_CASE:', anotherNegative1Case.toString(16));
+    expect(anotherNegative1Case).toBe(0x7FFFFFFFFFFFFFFFn);
 
     const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
     console.log('DISPLAY_STORE (raw):', displayStore.toString(16));
