@@ -17,167 +17,159 @@
  * - Maximum position is Shifted Display 6 [1,1,1]
  * - Overflow past position 6 leads to carry handling
  * - Marquee acts as boundary delimiter
+ *
+ * 7D MANIFOLD TOPOLOGY:
+ * The tuple's first index is the final bit for 6D array inference,
+ * with the tuple itself creating the 7th dimension.
+ * This prevents Shor factorization attacks during multiplication.
  */
 
-type SomeSeries = Record<string, ((Uint8Array<ArrayBuffer> | number)[] | number)[]>;
+import { getShiftedBitRotation, getRegularBitRotation, getRound8Case, Round8Cases } from './Round8.terminology';
 
-// Zero case inlined
-const ZERO_CASE = Uint8Array.from([
-  0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0,
-]);
-
-// POSITIVE_TWIST_CASE - Overflow boundary marker for Column 0
-const POSITIVE_TWIST_CASE = Uint8Array.from([
-  1,
-  0, 0, 0, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1,
-]);
+type SomeSeries = Record<string, ((number)[] | number)[]>;
 
 export const ShiftedSomeNumberMinusNegativeOneSeries: SomeSeries = {
   // SHIFTED SPOOL 7: X - (-1) = X + 1 in Column 0 manifold
 
   // Marquee - (-1) = Shifted Display 1 (delimiter increments)
-  ShiftedMarqueeMinusNegativeOne: [
-    0, 0, 1,  // Marquee = 001
-    1, 1,     // Negative One [11_]
-    [1, new Uint8Array([0, 1, 0])]  // Result: Shifted Display 1 [010]
-  ],
+  ShiftedMarqueeMinusNegativeOne: (() => {
+    const x = getShiftedBitRotation(0);  // Marquee = 001 (Shifted position 0)
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const result = getShiftedBitRotation(1);  // Result: Shifted Display 1 [010]
+    return [x[0], x[1], x[2], negOne[0], negOne[1], [negOne[2], result]];
+  })(),
 
   // Shifted Display 1 - (-1) = Shifted Display 2
-  ShiftedDisplay1MinusNegativeOne: [
-    0, 1, 0,  // Shifted Display 1 = 010
-    1, 1,     // Negative One [11_]
-    [0, new Uint8Array([0, 1, 1])]  // Result: Shifted Display 2 [011]
-  ],
+  ShiftedDisplay1MinusNegativeOne: (() => {
+    const x = getShiftedBitRotation(1);  // Shifted Display 1 = 010
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const result = getShiftedBitRotation(2);  // Result: Shifted Display 2 [011]
+    return [x[0], x[1], x[2], negOne[0], negOne[1], [negOne[2], result]];
+  })(),
 
   // Shifted Display 2 - (-1) = Shifted Display 3
-  ShiftedDisplay2MinusNegativeOne: [
-    0, 1, 1,  // Shifted Display 2 = 011
-    1, 1,     // Negative One [11_]
-    [1, new Uint8Array([1, 0, 0])]  // Result: Shifted Display 3 [100]
-  ],
+  ShiftedDisplay2MinusNegativeOne: (() => {
+    const x = getShiftedBitRotation(2);  // Shifted Display 2 = 011
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const result = getShiftedBitRotation(3);  // Result: Shifted Display 3 [100]
+    return [x[0], x[1], x[2], negOne[0], negOne[1], [negOne[2], result]];
+  })(),
 
   // Shifted Display 3 - (-1) = Shifted Display 4
-  ShiftedDisplay3MinusNegativeOne: [
-    1, 0, 0,  // Shifted Display 3 = 100
-    1, 1,     // Negative One [11_]
-    [0, new Uint8Array([1, 0, 1])]  // Result: Shifted Display 4 [101]
-  ],
+  ShiftedDisplay3MinusNegativeOne: (() => {
+    const x = getShiftedBitRotation(3);  // Shifted Display 3 = 100
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const result = getShiftedBitRotation(4);  // Result: Shifted Display 4 [101]
+    return [x[0], x[1], x[2], negOne[0], negOne[1], [negOne[2], result]];
+  })(),
 
   // Shifted Display 4 - (-1) = Shifted Display 5
-  ShiftedDisplay4MinusNegativeOne: [
-    1, 0, 1,  // Shifted Display 4 = 101
-    1, 1,     // Negative One [11_]
-    [1, new Uint8Array([1, 1, 0])]  // Result: Shifted Display 5 [110]
-  ],
+  ShiftedDisplay4MinusNegativeOne: (() => {
+    const x = getShiftedBitRotation(4);  // Shifted Display 4 = 101
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const result = getShiftedBitRotation(5);  // Result: Shifted Display 5 [110]
+    return [x[0], x[1], x[2], negOne[0], negOne[1], [negOne[2], result]];
+  })(),
 
   // Shifted Display 5 - (-1) = Shifted Display 6 (maximum position)
-  ShiftedDisplay5MinusNegativeOne: [
-    1, 1, 0,  // Shifted Display 5 = 110
-    1, 1,     // Negative One [11_]
-    [0, new Uint8Array([1, 1, 1])]  // Result: Shifted Display 6 [111]
-  ],
+  ShiftedDisplay5MinusNegativeOne: (() => {
+    const x = getShiftedBitRotation(5);  // Shifted Display 5 = 110
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const result = getShiftedBitRotation(6);  // Result: Shifted Display 6 [111]
+    return [x[0], x[1], x[2], negOne[0], negOne[1], [negOne[2], result]];
+  })(),
 
   // Shifted Display 6 - (-1) = External Carry (overflow to position 7)
-  ShiftedDisplay6MinusNegativeOne: [
-    1, 1, 1,  // Shifted Display 6 = 111
-    1, 1,     // Negative One [11_]
-    [1, new Uint8Array([0, 0, 0])]  // Result: External carry [000] (position 7)
-  ],
+  ShiftedDisplay6MinusNegativeOne: (() => {
+    const x = getShiftedBitRotation(6);  // Shifted Display 6 = 111
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const result = getShiftedBitRotation(7);  // Result: External carry [000] (position 7)
+    return [x[0], x[1], x[2], negOne[0], negOne[1], [negOne[2], result]];
+  })(),
 
   // External Carry - (-1) = POSITIVE_TWIST_CASE (system overflow)
-  ShiftedCarryMinusNegativeOne: [
-    0, 0, 0,  // External carry = 000 (position 7)
-    1, 1,     // Negative One [11_]
-    [0, POSITIVE_TWIST_CASE]  // Result: POSITIVE_TWIST_CASE (overflow twist-off)
-  ],
+  ShiftedCarryMinusNegativeOne: (() => {
+    const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const result = getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);  // System overflow
+    return [x[0], x[1], x[2], negOne[0], negOne[1], [negOne[2], result]];
+  })(),
 };
 
 export const ShiftedNegativeOneMinusSomeNumberSeries: SomeSeries = {
   // SHIFTED SPOOL 8: (-1) - X in Column 0 manifold (increasing negative magnitude)
 
   // (-1) - (-1) = 0 (double negative cancellation)
-  ShiftedNegativeOneMinusNegativeOne: [
-    1, 1, 1,  // Negative One = 111
-    1, 1,     // Negative One high bits [11_]
-    [1, ZERO_CASE]  // Result: Absolute Zero
-  ],
+  ShiftedNegativeOneMinusNegativeOne: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getRegularBitRotation(8);  // Negative One = 111
+    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Absolute Zero
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) - Marquee = Boundary behavior (delimiter subtraction)
-  ShiftedNegativeOneMinusMarquee: [
-    1, 1, 1,  // Negative One = 111
-    0, 0,     // Marquee high bits [00_]
-    [1, new Uint8Array([1, 1, 0])]  // Result: Shifted Display 5 [110] = -2 magnitude
-  ],
+  ShiftedNegativeOneMinusMarquee: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getShiftedBitRotation(0);  // Marquee = 001
+    const result = getShiftedBitRotation(5);  // Result: Shifted Display 5 [110] = -2 magnitude
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) - Shifted Display 1 = -2 (increasing negative magnitude)
-  ShiftedNegativeOneMinusDisplay1: [
-    1, 1, 1,  // Negative One = 111
-    0, 1,     // Shifted Display 1 high bits [01_]
-    [0, new Uint8Array([1, 0, 1])]  // Result: Shifted Display 4 [101] = -3 magnitude
-  ],
+  ShiftedNegativeOneMinusDisplay1: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getShiftedBitRotation(1);  // Shifted Display 1 = 010
+    const result = getShiftedBitRotation(4);  // Result: Shifted Display 4 [101] = -3 magnitude
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) - Shifted Display 2 = -3 (increasing negative magnitude)
-  ShiftedNegativeOneMinusDisplay2: [
-    1, 1, 1,  // Negative One = 111
-    0, 1,     // Shifted Display 2 high bits [01_]
-    [1, new Uint8Array([1, 0, 0])]  // Result: Shifted Display 3 [100] = -4 magnitude
-  ],
+  ShiftedNegativeOneMinusDisplay2: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getShiftedBitRotation(2);  // Shifted Display 2 = 011
+    const result = getShiftedBitRotation(3);  // Result: Shifted Display 3 [100] = -4 magnitude
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) - Shifted Display 3 = -4 (increasing negative magnitude)
-  ShiftedNegativeOneMinusDisplay3: [
-    1, 1, 1,  // Negative One = 111
-    1, 0,     // Shifted Display 3 high bits [10_]
-    [0, new Uint8Array([0, 1, 1])]  // Result: Shifted Display 2 [011] = -5 magnitude
-  ],
+  ShiftedNegativeOneMinusDisplay3: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getShiftedBitRotation(3);  // Shifted Display 3 = 100
+    const result = getShiftedBitRotation(2);  // Result: Shifted Display 2 [011] = -5 magnitude
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) - Shifted Display 4 = -5 (increasing negative magnitude)
-  ShiftedNegativeOneMinusDisplay4: [
-    1, 1, 1,  // Negative One = 111
-    1, 0,     // Shifted Display 4 high bits [10_]
-    [1, new Uint8Array([0, 1, 0])]  // Result: Shifted Display 1 [010] = -6 magnitude
-  ],
+  ShiftedNegativeOneMinusDisplay4: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getShiftedBitRotation(4);  // Shifted Display 4 = 101
+    const result = getShiftedBitRotation(1);  // Result: Shifted Display 1 [010] = -6 magnitude
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) - Shifted Display 5 = -6 (approaching delimiter)
-  ShiftedNegativeOneMinusDisplay5: [
-    1, 1, 1,  // Negative One = 111
-    1, 1,     // Shifted Display 5 high bits [11_]
-    [0, new Uint8Array([0, 0, 1])]  // Result: Marquee [001] = boundary
-  ],
+  ShiftedNegativeOneMinusDisplay5: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getShiftedBitRotation(5);  // Shifted Display 5 = 110
+    const result = getShiftedBitRotation(0);  // Result: Marquee [001] = boundary
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) - Shifted Display 6 = Borrow (underflow, wraps)
-  ShiftedNegativeOneMinusDisplay6: [
-    1, 1, 1,  // Negative One = 111
-    1, 1,     // Shifted Display 6 high bits [11_]
-    [1, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]
-    // Borrow flag=1, wrapped result External carry [000], borrow Display 1
-  ],
+  ShiftedNegativeOneMinusDisplay6: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getShiftedBitRotation(6);  // Shifted Display 6 = 111
+    const result = getShiftedBitRotation(7);  // Wrapped result: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: Display 1 [000]
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
   // (-1) - External Carry = Maximum borrow (system boundary)
-  ShiftedNegativeOneMinusCarry: [
-    1, 1, 1,  // Negative One = 111
-    0, 0,     // External carry high bits [00_]
-    [0, new Uint8Array([1, 1, 1]), new Uint8Array([0, 0, 0])]
-    // Wrapped result Shifted Display 6 [111], borrow Display 1
-  ],
+  ShiftedNegativeOneMinusCarry: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getShiftedBitRotation(7);  // External carry = 000
+    const result = getShiftedBitRotation(6);  // Wrapped result: Shifted Display 6 [111]
+    const borrow = getRegularBitRotation(1);  // Borrow: Display 1 [000]
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result, borrow]];
+  })()
 };

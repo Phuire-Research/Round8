@@ -11,342 +11,342 @@
  * 8+8=18 (16 in decimal)
  */
 
-type SomeSeries = Record<string, ((Uint8Array<ArrayBuffer> | number)[] | number)[]>;
+import { SomeSeries, getRegularBitRotation, getRegularRotation } from './Round8.terminology';
 
 export const SumSeries: SomeSeries = {
   // 1 + N (N = 1-8)
-  SumOfOneAndOne: [
-    0, 0, 0,  // 1 = 000
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([0, 0, 1])]  // 1+1=2 (001)
-  ],
-  SumOfOneAndTwo: [
-    0, 0, 0,  // 1 = 000
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([0, 1, 0])]  // 1+2=3 (010)
-  ],
-  SumOfOneAndThree: [
-    0, 0, 0,  // 1 = 000
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([0, 1, 1])]  // 1+3=4 (011)
-  ],
-  SumOfOneAndFour: [
-    0, 0, 0,  // 1 = 000
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([1, 0, 0])]  // 1+4=5 (100)
-  ],
-  SumOfOneAndFive: [
-    0, 0, 0,  // 1 = 000
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([1, 0, 1])]  // 1+5=6 (101)
-  ],
-  SumOfOneAndSix: [
-    0, 0, 0,  // 1 = 000
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([1, 1, 0])]  // 1+6=7 (110)
-  ],
-  SumOfOneAndSeven: [
-    0, 0, 0,  // 1 = 000
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([1, 1, 1])]  // 1+7=8 (111)
-  ],
-  SumOfOneAndEight: [
-    0, 0, 0,  // 1 = 000
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // 1+8=9 → "11" (carry)
-  ],
+  SumOfOneAndOne: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2)]];
+  })(),
+  SumOfOneAndTwo: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3)]];
+  })(),
+  SumOfOneAndThree: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4)]];
+  })(),
+  SumOfOneAndFour: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5)]];
+  })(),
+  SumOfOneAndFive: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6)]];
+  })(),
+  SumOfOneAndSix: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7)]];
+  })(),
+  SumOfOneAndSeven: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(8)]];
+  })(),
+  SumOfOneAndEight: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]];
+  })(),
 
   // 2 + N (N = 1-8)
-  SumOfTwoAndOne: [
-    0, 0, 1,  // 2 = 001
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([0, 1, 0])]  // 2+1=3 (010)
-  ],
-  SumOfTwoAndTwo: [
-    0, 0, 1,  // 2 = 001
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([0, 1, 1])]  // 2+2=4 (011)
-  ],
-  SumOfTwoAndThree: [
-    0, 0, 1,  // 2 = 001
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([1, 0, 0])]  // 2+3=5 (100)
-  ],
-  SumOfTwoAndFour: [
-    0, 0, 1,  // 2 = 001
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([1, 0, 1])]  // 2+4=6 (101)
-  ],
-  SumOfTwoAndFive: [
-    0, 0, 1,  // 2 = 001
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([1, 1, 0])]  // 2+5=7 (110)
-  ],
-  SumOfTwoAndSix: [
-    0, 0, 1,  // 2 = 001
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([1, 1, 1])]  // 2+6=8 (111)
-  ],
-  SumOfTwoAndSeven: [
-    0, 0, 1,  // 2 = 001
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // 2+7=9 → "11"
-  ],
-  SumOfTwoAndEight: [
-    0, 0, 1,  // 2 = 001
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([0, 0, 1]), new Uint8Array([0, 0, 0])]  // 2+8=10 → "12"
-  ],
+  SumOfTwoAndOne: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3)]];
+  })(),
+  SumOfTwoAndTwo: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4)]];
+  })(),
+  SumOfTwoAndThree: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5)]];
+  })(),
+  SumOfTwoAndFour: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6)]];
+  })(),
+  SumOfTwoAndFive: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7)]];
+  })(),
+  SumOfTwoAndSix: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(8)]];
+  })(),
+  SumOfTwoAndSeven: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]];
+  })(),
+  SumOfTwoAndEight: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]];
+  })(),
 
   // 3 + N (N = 1-8)
-  SumOfThreeAndOne: [
-    0, 1, 0,  // 3 = 010
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([0, 1, 1])]  // 3+1=4 (011)
-  ],
-  SumOfThreeAndTwo: [
-    0, 1, 0,  // 3 = 010
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([1, 0, 0])]  // 3+2=5 (100)
-  ],
-  SumOfThreeAndThree: [
-    0, 1, 0,  // 3 = 010
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([1, 0, 1])]  // 3+3=6 (101)
-  ],
-  SumOfThreeAndFour: [
-    0, 1, 0,  // 3 = 010
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([1, 1, 0])]  // 3+4=7 (110)
-  ],
-  SumOfThreeAndFive: [
-    0, 1, 0,  // 3 = 010
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([1, 1, 1])]  // 3+5=8 (111)
-  ],
-  SumOfThreeAndSix: [
-    0, 1, 0,  // 3 = 010
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // 3+6=9 → "11"
-  ],
-  SumOfThreeAndSeven: [
-    0, 1, 0,  // 3 = 010
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([0, 0, 1]), new Uint8Array([0, 0, 0])]  // 3+7=10 → "12"
-  ],
-  SumOfThreeAndEight: [
-    0, 1, 0,  // 3 = 010
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([0, 1, 0]), new Uint8Array([0, 0, 0])]  // 3+8=11 → "13"
-  ],
+  SumOfThreeAndOne: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4)]];
+  })(),
+  SumOfThreeAndTwo: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5)]];
+  })(),
+  SumOfThreeAndThree: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6)]];
+  })(),
+  SumOfThreeAndFour: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7)]];
+  })(),
+  SumOfThreeAndFive: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(8)]];
+  })(),
+  SumOfThreeAndSix: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]];
+  })(),
+  SumOfThreeAndSeven: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]];
+  })(),
+  SumOfThreeAndEight: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]];
+  })(),
 
   // 4 + N (N = 1-8)
-  SumOfFourAndOne: [
-    0, 1, 1,  // 4 = 011
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([1, 0, 0])]  // 4+1=5 (100)
-  ],
-  SumOfFourAndTwo: [
-    0, 1, 1,  // 4 = 011
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([1, 0, 1])]  // 4+2=6 (101)
-  ],
-  SumOfFourAndThree: [
-    0, 1, 1,  // 4 = 011
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([1, 1, 0])]  // 4+3=7 (110)
-  ],
-  SumOfFourAndFour: [
-    0, 1, 1,  // 4 = 011
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([1, 1, 1])]  // 4+4=8 (111)
-  ],
-  SumOfFourAndFive: [
-    0, 1, 1,  // 4 = 011
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // 4+5=9 → "11"
-  ],
-  SumOfFourAndSix: [
-    0, 1, 1,  // 4 = 011
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([0, 0, 1]), new Uint8Array([0, 0, 0])]  // 4+6=10 → "12"
-  ],
-  SumOfFourAndSeven: [
-    0, 1, 1,  // 4 = 011
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([0, 1, 0]), new Uint8Array([0, 0, 0])]  // 4+7=11 → "13"
-  ],
-  SumOfFourAndEight: [
-    0, 1, 1,  // 4 = 011
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([0, 1, 1]), new Uint8Array([0, 0, 0])]  // 4+8=12 → "14"
-  ],
+  SumOfFourAndOne: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5)]];
+  })(),
+  SumOfFourAndTwo: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6)]];
+  })(),
+  SumOfFourAndThree: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7)]];
+  })(),
+  SumOfFourAndFour: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(8)]];
+  })(),
+  SumOfFourAndFive: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]];
+  })(),
+  SumOfFourAndSix: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]];
+  })(),
+  SumOfFourAndSeven: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]];
+  })(),
+  SumOfFourAndEight: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularRotation(1)]];
+  })(),
 
   // 5 + N (N = 1-8)
-  SumOfFiveAndOne: [
-    1, 0, 0,  // 5 = 100
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([1, 0, 1])]  // 5+1=6 (101)
-  ],
-  SumOfFiveAndTwo: [
-    1, 0, 0,  // 5 = 100
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([1, 1, 0])]  // 5+2=7 (110)
-  ],
-  SumOfFiveAndThree: [
-    1, 0, 0,  // 5 = 100
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([1, 1, 1])]  // 5+3=8 (111)
-  ],
-  SumOfFiveAndFour: [
-    1, 0, 0,  // 5 = 100
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // 5+4=9 → "11"
-  ],
-  SumOfFiveAndFive: [
-    1, 0, 0,  // 5 = 100
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([0, 0, 1]), new Uint8Array([0, 0, 0])]  // 5+5=10 → "12"
-  ],
-  SumOfFiveAndSix: [
-    1, 0, 0,  // 5 = 100
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([0, 1, 0]), new Uint8Array([0, 0, 0])]  // 5+6=11 → "13"
-  ],
-  SumOfFiveAndSeven: [
-    1, 0, 0,  // 5 = 100
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([0, 1, 1]), new Uint8Array([0, 0, 0])]  // 5+7=12 → "14"
-  ],
-  SumOfFiveAndEight: [
-    1, 0, 0,  // 5 = 100
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // 5+8=13 → "15"
-  ],
+  SumOfFiveAndOne: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6)]];
+  })(),
+  SumOfFiveAndTwo: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7)]];
+  })(),
+  SumOfFiveAndThree: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(8)]];
+  })(),
+  SumOfFiveAndFour: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]];
+  })(),
+  SumOfFiveAndFive: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]];
+  })(),
+  SumOfFiveAndSix: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]];
+  })(),
+  SumOfFiveAndSeven: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularRotation(1)]];
+  })(),
+  SumOfFiveAndEight: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularRotation(1)]];
+  })(),
 
   // 6 + N (N = 1-8)
-  SumOfSixAndOne: [
-    1, 0, 1,  // 6 = 101
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([1, 1, 0])]  // 6+1=7 (110)
-  ],
-  SumOfSixAndTwo: [
-    1, 0, 1,  // 6 = 101
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([1, 1, 1])]  // 6+2=8 (111)
-  ],
-  SumOfSixAndThree: [
-    1, 0, 1,  // 6 = 101
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // 6+3=9 → "11"
-  ],
-  SumOfSixAndFour: [
-    1, 0, 1,  // 6 = 101
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([0, 0, 1]), new Uint8Array([0, 0, 0])]  // 6+4=10 → "12"
-  ],
-  SumOfSixAndFive: [
-    1, 0, 1,  // 6 = 101
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([0, 1, 0]), new Uint8Array([0, 0, 0])]  // 6+5=11 → "13"
-  ],
-  SumOfSixAndSix: [
-    1, 0, 1,  // 6 = 101
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([0, 1, 1]), new Uint8Array([0, 0, 0])]  // 6+6=12 → "14"
-  ],
-  SumOfSixAndSeven: [
-    1, 0, 1,  // 6 = 101
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // 6+7=13 → "15"
-  ],
-  SumOfSixAndEight: [
-    1, 0, 1,  // 6 = 101
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // 6+8=14 → "16"
-  ],
+  SumOfSixAndOne: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7)]];
+  })(),
+  SumOfSixAndTwo: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(8)]];
+  })(),
+  SumOfSixAndThree: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]];
+  })(),
+  SumOfSixAndFour: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]];
+  })(),
+  SumOfSixAndFive: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]];
+  })(),
+  SumOfSixAndSix: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularRotation(1)]];
+  })(),
+  SumOfSixAndSeven: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularRotation(1)]];
+  })(),
+  SumOfSixAndEight: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6), getRegularRotation(1)]];
+  })(),
 
   // 7 + N (N = 1-8)
-  SumOfSevenAndOne: [
-    1, 1, 0,  // 7 = 110
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([1, 1, 1])]  // 7+1=8 (111)
-  ],
-  SumOfSevenAndTwo: [
-    1, 1, 0,  // 7 = 110
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // 7+2=9 → "11"
-  ],
-  SumOfSevenAndThree: [
-    1, 1, 0,  // 7 = 110
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([0, 0, 1]), new Uint8Array([0, 0, 0])]  // 7+3=10 → "12"
-  ],
-  SumOfSevenAndFour: [
-    1, 1, 0,  // 7 = 110
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([0, 1, 0]), new Uint8Array([0, 0, 0])]  // 7+4=11 → "13"
-  ],
-  SumOfSevenAndFive: [
-    1, 1, 0,  // 7 = 110
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([0, 1, 1]), new Uint8Array([0, 0, 0])]  // 7+5=12 → "14"
-  ],
-  SumOfSevenAndSix: [
-    1, 1, 0,  // 7 = 110
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // 7+6=13 → "15"
-  ],
-  SumOfSevenAndSeven: [
-    1, 1, 0,  // 7 = 110
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // 7+7=14 → "16"
-  ],
-  SumOfSevenAndEight: [
-    1, 1, 0,  // 7 = 110
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // 7+8=15 → "17"
-  ],
+  SumOfSevenAndOne: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(8)]];
+  })(),
+  SumOfSevenAndTwo: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]];
+  })(),
+  SumOfSevenAndThree: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]];
+  })(),
+  SumOfSevenAndFour: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]];
+  })(),
+  SumOfSevenAndFive: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularRotation(1)]];
+  })(),
+  SumOfSevenAndSix: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularRotation(1)]];
+  })(),
+  SumOfSevenAndSeven: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6), getRegularRotation(1)]];
+  })(),
+  SumOfSevenAndEight: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7), getRegularRotation(1)]];
+  })(),
 
   // 8 + N (N = 1-8)
-  SumOfEightAndOne: [
-    1, 1, 1,  // 8 = 111
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // 8+1=9 → "11"
-  ],
-  SumOfEightAndTwo: [
-    1, 1, 1,  // 8 = 111
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([0, 0, 1]), new Uint8Array([0, 0, 0])]  // 8+2=10 → "12"
-  ],
-  SumOfEightAndThree: [
-    1, 1, 1,  // 8 = 111
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([0, 1, 0]), new Uint8Array([0, 0, 0])]  // 8+3=11 → "13"
-  ],
-  SumOfEightAndFour: [
-    1, 1, 1,  // 8 = 111
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([0, 1, 1]), new Uint8Array([0, 0, 0])]  // 8+4=12 → "14"
-  ],
-  SumOfEightAndFive: [
-    1, 1, 1,  // 8 = 111
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // 8+5=13 → "15"
-  ],
-  SumOfEightAndSix: [
-    1, 1, 1,  // 8 = 111
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // 8+6=14 → "16"
-  ],
-  SumOfEightAndSeven: [
-    1, 1, 1,  // 8 = 111
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // 8+7=15 → "17"
-  ],
-  SumOfEightAndEight: [
-    1, 1, 1,  // 8 = 111
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([1, 1, 1]), new Uint8Array([0, 0, 0])]  // 8+8=16 → "18"
-  ],
+  SumOfEightAndOne: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]];
+  })(),
+  SumOfEightAndTwo: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]];
+  })(),
+  SumOfEightAndThree: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]];
+  })(),
+  SumOfEightAndFour: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularRotation(1)]];
+  })(),
+  SumOfEightAndFive: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularRotation(1)]];
+  })(),
+  SumOfEightAndSix: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6), getRegularRotation(1)]];
+  })(),
+  SumOfEightAndSeven: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7), getRegularRotation(1)]];
+  })(),
+  SumOfEightAndEight: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(8), getRegularRotation(1)]];
+  })(),
 };

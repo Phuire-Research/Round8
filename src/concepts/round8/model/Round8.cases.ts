@@ -16,84 +16,7 @@ import { GreaterThanSeries } from './Round8.greater.than.cases';
 import { LessThanSeries } from './Round8.less.than.cases';
 import { ShiftedGreaterThanSeries } from './Round8.shifted.greater.than.cases';
 import { BidirectionalConference, ConferBidirectionally, MarqueeState, ConferredMarqueeState } from './Round8.bidirectional';
-
-export const SPECIAL_CASE_STORE = {
-  ZERO_CASE: Uint8Array.from([
-    0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0,
-  ]),
-  POSITIVE_1_CASE: Uint8Array.from([
-    1,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0,
-    0, 0, 0,
-  ]),
-  POSITIVE_TWIST_CASE: Uint8Array.from([
-    1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    0, 0, 0,
-  ]),
-  NEGATIVE_TWIST_CASE: Uint8Array.from([
-    0,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    0, 0, 0,
-  ]),
-  // First Position 0
-  NEGATIVE_1_CASE: Uint8Array.from([
-    0,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1,
-  ]),
-};
-
-export type SomeSeries = Record<string, ((Uint8Array<ArrayBuffer> | number | string)[] | number)[]>;
-
-export type SpooledWrung = Uint8Array<ArrayBuffer>[][][][][][][];
+import { SomeSeries, SpooledWrung } from './Round8.terminology';
 
 // Initialize 6-dimensional array structure for SpooledSumSeries
 export const initializeSpooledWrung = (): SpooledWrung => {
@@ -148,9 +71,9 @@ const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
     const three = caseArray[2] as number; // bit0_X
     const four = caseArray[3] as number; // bit2_Y
     const five = caseArray[4] as number; // bit1_Y
-    const tuple = caseArray[5] as (number | Uint8Array<ArrayBuffer>)[];
+    const tuple = caseArray[5] as (number | bigint)[];
     const six = tuple[0] as number; // bit0_Y
-    const sixValue = tuple.slice(1) as unknown as Uint8Array<ArrayBuffer>[]; // [result, carry?]
+    const sixValue = tuple.slice(1) as unknown as bigint[]; // [result, carry?]
     // console.log(`  Storing at [${one}][${two}][${three}][${four}][${five}][${six}]:`, sixValue);
     spooled[one][two][three][four][five][six] = sixValue;
     // Debug: Verify storage
@@ -197,6 +120,7 @@ export {
   // Logical Comparison Spools
   SpooledGreaterThanSeries,
   SpooledLessThanSeries,
+  SpooledShiftedGreaterThanSeries,
 };
 
 export const DIFFERENCE_MAP = {
@@ -204,158 +128,6 @@ export const DIFFERENCE_MAP = {
   POSITIVE_1_CASE: Uint8Array.from([0, 0, 0]),
   // First Position 0
   NEGATIVE_1_CASE: Uint8Array.from([1, 1, 1]),
-};
-
-export const STRING_TO_ROUND8_ROTATION: Record<string, Uint8Array> = {
-  '1': Uint8Array.from([0, 0, 0]), // Binary 000 → Display "1"
-  '2': Uint8Array.from([0, 0, 1]), // Binary 001 → Display "2"
-  '3': Uint8Array.from([0, 1, 0]), // Binary 010 → Display "3"
-  '4': Uint8Array.from([0, 1, 1]), // Binary 011 → Display "4"
-  '5': Uint8Array.from([1, 0, 0]), // Binary 100 → Display "5"
-  '6': Uint8Array.from([1, 0, 1]), // Binary 101 → Display "6"
-  '7': Uint8Array.from([1, 1, 0]), // Binary 110 → Display "7"
-  '8': Uint8Array.from([1, 1, 1]), // Binary 111 → Display "8"
-};
-
-/**
- * Shifted Frame Rotation Mapping (Column 0 Topology)
- *
- * Column 0 uses shifted topology because leading zeros are pruned.
- * Display "0" (Marquee) must be represented, so entire topology shifts:
- * - [0,0,1] → Display "0" (Marquee, normally would be Display "2" in regular frame)
- * - [0,0,0] → Display "7" (External Carry, normally would be Display "1" in regular frame)
- */
-export const STRING_TO_ROUND8_SHIFTED_ROTATION: Record<string, Uint8Array> = {
-  '0': Uint8Array.from([0, 0, 1]), // Shifted Display 0 (Marquee - pruned leading zero)
-  '1': Uint8Array.from([0, 1, 0]), // Shifted Display 1
-  '2': Uint8Array.from([0, 1, 1]), // Shifted Display 2
-  '3': Uint8Array.from([1, 0, 0]), // Shifted Display 3
-  '4': Uint8Array.from([1, 0, 1]), // Shifted Display 4
-  '5': Uint8Array.from([1, 1, 0]), // Shifted Display 5
-  '6': Uint8Array.from([1, 1, 1]), // Shifted Display 6 (Maximum)
-  '7': Uint8Array.from([0, 0, 0]), // Shifted Display 7 (External Carry)
-};
-
-/**
- * Regular Frame Inverse Mapping (Columns 1-20)
- */
-export const ROUND8_TO_STRING_ROTATION: Record<string, string> = {
-  '0,0,0': '1', // Display 1
-  '0,0,1': '2', // Display 2
-  '0,1,0': '3', // Display 3
-  '0,1,1': '4', // Display 4
-  '1,0,0': '5', // Display 5
-  '1,0,1': '6', // Display 6
-  '1,1,0': '7', // Display 7
-  '1,1,1': '8', // Display 8
-};
-
-/**
- * Shifted Frame Inverse Mapping (Column 0)
- */
-export const ROUND8_TO_STRING_SHIFTED_ROTATION: Record<string, string> = {
-  '0,0,1': '0', // Shifted Display 0 (Marquee)
-  '0,1,0': '1', // Shifted Display 1
-  '0,1,1': '2', // Shifted Display 2
-  '1,0,0': '3', // Shifted Display 3
-  '1,0,1': '4', // Shifted Display 4
-  '1,1,0': '5', // Shifted Display 5
-  '1,1,1': '6', // Shifted Display 6
-  '0,0,0': '7', // Shifted Display 7 (External Carry)
-};
-
-/**
- * Generate Regular Frame String Lookup Spool
- *
- * Creates 3D array indexed by [bit2][bit1][bit0] → string digit "1"-"8"
- * Used for columns 1-20 (regular frame, no Marquee shifting)
- *
- * @returns 3D string array for pure indexed lookup
- */
-export function generateRegularFrameStringSpool(): string[][][] {
-  const spool: string[][][] = [];
-
-  for (let bit2 = 0; bit2 < 2; bit2++) {
-    spool[bit2] = [];
-    for (let bit1 = 0; bit1 < 2; bit1++) {
-      spool[bit2][bit1] = [];
-      for (let bit0 = 0; bit0 < 2; bit0++) {
-        const key = `${bit2},${bit1},${bit0}`;
-        spool[bit2][bit1][bit0] = ROUND8_TO_STRING_ROTATION[key];
-      }
-    }
-  }
-
-  return spool;
-}
-
-/**
- * Generate Shifted Frame String Lookup Spool
- *
- * Creates 3D array indexed by [bit2][bit1][bit0] → string digit "0"-"7"
- * Used for column 0 (shifted frame when Marquee is present)
- *
- * @returns 3D string array for pure indexed lookup
- */
-export function generateShiftedFrameStringSpool(): string[][][] {
-  const spool: string[][][] = [];
-
-  for (let bit2 = 0; bit2 < 2; bit2++) {
-    spool[bit2] = [];
-    for (let bit1 = 0; bit1 < 2; bit1++) {
-      spool[bit2][bit1] = [];
-      for (let bit0 = 0; bit0 < 2; bit0++) {
-        const key = `${bit2},${bit1},${bit0}`;
-        spool[bit2][bit1][bit0] = ROUND8_TO_STRING_SHIFTED_ROTATION[key];
-      }
-    }
-  }
-
-  return spool;
-}
-
-/**
- * Spooled String Lookup - Regular Frame (Columns 1-20)
- *
- * 3D array indexed by [bit2][bit1][bit0] → returns string digit "1"-"8"
- * Pure indexed lookup, no decimal comparison
- *
- * Round8 spools are bidirectional operands optimized for 64-bit range,
- * not traditional 8-bit binary operands
- */
-export const SpooledRegularStringLookup: string[][][] = generateRegularFrameStringSpool();
-
-/**
- * Spooled String Lookup - Shifted Frame (Column 0)
- *
- * 3D array indexed by [bit2][bit1][bit0] → returns string digit "0"-"7"
- * Pure indexed lookup, no decimal comparison
- *
- * Used for column 0 (leftmost rotation) when Marquee is present
- */
-export const SpooledShiftedStringLookup: string[][][] = generateShiftedFrameStringSpool();
-
-export const createShiftedColumnValue = (shiftedDisplay: number): Uint8Array => {
-  switch (shiftedDisplay) {
-  case 0:
-    return Uint8Array.from([0, 0, 1]); // Marquee (position 0)
-  case 1:
-    return Uint8Array.from([0, 1, 0]); // Shifted Display 1 (position 1)
-  case 2:
-    return Uint8Array.from([0, 1, 1]); // Shifted Display 2 (position 2)
-  case 3:
-    return Uint8Array.from([1, 0, 0]); // Shifted Display 3 (position 3)
-  case 4:
-    return Uint8Array.from([1, 0, 1]); // Shifted Display 4 (position 4)
-  case 5:
-    return Uint8Array.from([1, 1, 0]); // Shifted Display 5 (position 5)
-  case 6:
-    return Uint8Array.from([1, 1, 1]); // Shifted Display 6 (position 6, maximum)
-  case 7:
-    return Uint8Array.from([0, 0, 0]); // External carry placeholder (position 7)
-  default:
-    throw new Error('Invalid shifted display: ' + shiftedDisplay + '. Must be 0-7.');
-  }
 };
 
 /**

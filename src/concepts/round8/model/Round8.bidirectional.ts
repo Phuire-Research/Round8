@@ -22,6 +22,58 @@ export type MarqueeState = {
   isNegativeOne?: boolean;
 };
 
+
+/**
+ * findFirstNonZeroRotation - Scan forward to find first non-zero rotation
+ * Example utility function using scanForward
+ *
+ * @param buffer - 64-bit bigint buffer to scan
+ * @returns Position of first non-zero rotation, or 0 if all zeros
+ */
+export const findFirstNonZeroRotation = (buffer: bigint): Positions | 0 => {
+  return scanForward(buffer, (buf, pos) => {
+    const rotation = getRotationByPosition(buf, pos);
+    // Return false (stop) if non-zero found
+    return rotation === 0n;
+  });
+};
+
+/**
+ * findLastNonZeroRotation - Scan backward to find last non-zero rotation
+ * Example utility function using scanBackward
+ *
+ * @param buffer - 64-bit bigint buffer to scan
+ * @returns Position of last non-zero rotation, or 0 if all zeros
+ */
+export const findLastNonZeroRotation = (buffer: bigint): Positions | 0 => {
+  return scanBackward(buffer, (buf, pos) => {
+    const rotation = getRotationByPosition(buf, pos);
+    // Return false (stop) if non-zero found
+    return rotation === 0n;
+  });
+};
+
+/**
+ * findMarqueePosition - Scan for the Marquee pattern (Display 1)
+ * Uses either forward or backward scanning based on preference
+ *
+ * @param buffer - 64-bit bigint buffer to scan
+ * @param fromBack - If true, scan from back; if false, scan from front
+ * @returns Position where Marquee found, or 0 if not found
+ */
+export const findMarqueePosition = (buffer: bigint, fromBack: boolean = false): Positions | 0 => {
+  const scanFunction = fromBack ? scanBackward : scanForward;
+
+  return scanFunction(buffer, (buf, pos) => {
+    const rotation = getRotationByPosition(buf, pos);
+    // Check if this is the Marquee pattern (Display 1 = 0n in regular mapping)
+    if (rotation === getRegularRotation(1)) {
+      return false; // Stop scanning, found it
+    }
+    return true; // Continue scanning
+  });
+};
+
 /**
  * BidirectionalConference - Determines Marquee validity for a Round8 buffer
  *

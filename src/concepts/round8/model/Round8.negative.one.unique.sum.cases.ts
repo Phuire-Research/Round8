@@ -17,25 +17,16 @@
  * - Double Negative: (-1) + (-1) = -2 (both operands negative, sum magnitudes)
  * - Zero Crossing: (-1) + 1 = 0 (ZERO_CASE)
  * - Sign Flip: (-1) + X where X > 1 results in positive number
+ *
+ * 7D MANIFOLD TOPOLOGY:
+ * The tuple's first index is the final bit for 6D array inference,
+ * with the tuple itself creating the 7th dimension.
+ * This prevents Shor factorization attacks during multiplication.
  */
 
-type SomeSeries = Record<string, ((Uint8Array<ArrayBuffer> | number)[] | number)[]>;
+import { getRegularBitRotation, getRound8Case, Round8Cases } from './Round8.terminology';
 
-// Zero case inlined to avoid circular dependency
-const ZERO_CASE = Uint8Array.from([
-  0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0,
-]);
+type SomeSeries = Record<string, ((number)[] | number)[]>;
 
 export const NegativeOnePlusSomeNumberSeries: SomeSeries = {
   // SPOOL 3: (-1) + X with zero-crossing and sign flip semantics
@@ -43,66 +34,75 @@ export const NegativeOnePlusSomeNumberSeries: SomeSeries = {
   // (-1) + (-1) = -2 (DOUBLE NEGATIVE - both operands negative, sum magnitudes)
   // At column level: 111 + 111 with both negative signs
   // Result: Magnitude increases (becomes -2)
-  NegativeOnePlusNegativeOne: [
-    1, 1, 1,  // Negative One = 111 (operandA)
-    1, 1,     // Negative One high bits [11_] (operandB)
-    [1, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]
-    // Carry flag=1, result Display 7 [110] = -2 magnitude, carry Display 1
-  ],
+  NegativeOnePlusNegativeOne: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111 (operandA)
+    const y = getRegularBitRotation(8);  // Negative One = 111 (operandB)
+    const result = getRegularBitRotation(7);  // Result: Display 7 [110] = -2 magnitude
+    const carry = getRegularBitRotation(1);  // Carry: Display 1 [000]
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result, carry]];
+  })(),
 
   // (-1) + 1 = 0 (ZERO CROSSING)
-  NegativeOnePlusDisplay1: [
-    1, 1, 1,  // Negative One = 111
-    0, 0,     // Display 1 high bits [00_]
-    [0, ZERO_CASE]  // Result: Absolute Zero (negative + positive cancel)
-  ],
+  NegativeOnePlusDisplay1: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getRegularBitRotation(1);  // Display 1 = 000
+    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Result: Absolute Zero (negative + positive cancel)
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) + 2 = +1 (SIGN FLIP - becomes positive)
-  NegativeOnePlusDisplay2: [
-    1, 1, 1,  // Negative One = 111
-    0, 0,     // Display 2 high bits [00_]
-    [1, new Uint8Array([0, 0, 0])]  // Result: Display 1 [000] positive
-  ],
+  NegativeOnePlusDisplay2: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getRegularBitRotation(2);  // Display 2 = 001
+    const result = getRegularBitRotation(1);  // Result: Display 1 [000] positive
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) + 3 = +2 (positive result)
-  NegativeOnePlusDisplay3: [
-    1, 1, 1,  // Negative One = 111
-    0, 1,     // Display 3 high bits [01_]
-    [0, new Uint8Array([0, 0, 1])]  // Result: Display 2 [001] positive
-  ],
+  NegativeOnePlusDisplay3: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getRegularBitRotation(3);  // Display 3 = 010
+    const result = getRegularBitRotation(2);  // Result: Display 2 [001] positive
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) + 4 = +3 (positive result)
-  NegativeOnePlusDisplay4: [
-    1, 1, 1,  // Negative One = 111
-    0, 1,     // Display 4 high bits [01_]
-    [1, new Uint8Array([0, 1, 0])]  // Result: Display 3 [010] positive
-  ],
+  NegativeOnePlusDisplay4: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getRegularBitRotation(4);  // Display 4 = 011
+    const result = getRegularBitRotation(3);  // Result: Display 3 [010] positive
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) + 5 = +4 (positive result)
-  NegativeOnePlusDisplay5: [
-    1, 1, 1,  // Negative One = 111
-    1, 0,     // Display 5 high bits [10_]
-    [0, new Uint8Array([0, 1, 1])]  // Result: Display 4 [011] positive
-  ],
+  NegativeOnePlusDisplay5: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getRegularBitRotation(5);  // Display 5 = 100
+    const result = getRegularBitRotation(4);  // Result: Display 4 [011] positive
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) + 6 = +5 (positive result)
-  NegativeOnePlusDisplay6: [
-    1, 1, 1,  // Negative One = 111
-    1, 0,     // Display 6 high bits [10_]
-    [1, new Uint8Array([1, 0, 0])]  // Result: Display 5 [100] positive
-  ],
+  NegativeOnePlusDisplay6: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getRegularBitRotation(6);  // Display 6 = 101
+    const result = getRegularBitRotation(5);  // Result: Display 5 [100] positive
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) + 7 = +6 (positive result)
-  NegativeOnePlusDisplay7: [
-    1, 1, 1,  // Negative One = 111
-    1, 1,     // Display 7 high bits [11_]
-    [0, new Uint8Array([1, 0, 1])]  // Result: Display 6 [101] positive
-  ],
+  NegativeOnePlusDisplay7: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getRegularBitRotation(7);  // Display 7 = 110
+    const result = getRegularBitRotation(6);  // Result: Display 6 [101] positive
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 
   // (-1) + 8 = +7 (positive result)
-  NegativeOnePlusDisplay8: [
-    1, 1, 1,  // Negative One = 111
-    1, 1,     // Display 8 high bits [11_]
-    [1, new Uint8Array([1, 1, 0])]  // Result: Display 7 [110] positive
-  ],
+  NegativeOnePlusDisplay8: (() => {
+    const negOne = getRegularBitRotation(8);  // Negative One = 111
+    const y = getRegularBitRotation(8);  // Display 8 = 111
+    const result = getRegularBitRotation(7);  // Result: Display 7 [110] positive
+    return [negOne[0], negOne[1], negOne[2], y[0], y[1], [y[2], result]];
+  })(),
 };

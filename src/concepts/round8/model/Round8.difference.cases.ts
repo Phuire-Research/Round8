@@ -1,369 +1,464 @@
 /**
- * GENERATED - Complete Difference Series - All 64 Subtraction Cases (8x8)
+ * Difference Spool - Round8 Subtraction Operations
+ *
+ * SUBTRACTION SPOOL: X - Y returns result value and optional borrow
+ *
+ * This spool provides subtraction operations for Round8 Display values.
+ * When X < Y, a borrow is generated for the next position column.
+ *
+ * Ground Truth Operations (Round8 Display values 1-8):
+ * - Display 1 = 1 (decimal)
+ * - Display 2 = 2 (decimal)
+ * - Display 3 = 3 (decimal)
+ * - Display 4 = 4 (decimal)
+ * - Display 5 = 5 (decimal)
+ * - Display 6 = 6 (decimal)
+ * - Display 7 = 7 (decimal)
+ * - Display 8 = 8 (decimal)
+ *
+ * Result Structure:
+ * - When X >= Y: Result value (0-7), no borrow
+ * - When X < Y: Wrapped result (8 + X - Y), with borrow [0,0,0] = Display 1
  *
  * Pattern: DifferenceOfXAndY represents X - Y
- * Array structure: [bit2_X, bit1_X, bit0_X, bit2_Y, bit1_Y, [bit0_Y, result, borrow?]]
+ * Array structure: [bit2_X, bit1_X, bit0_X, bit2_Y, bit1_Y, [bit0_Y, result_bits, borrow_bits?]]
  *
- * When X < Y: Need to borrow from next column
- * Borrow is always "1" = [0, 0, 0] (rotates down the front-most column)
- *
- * Ground truth from Two-Columns-Varified.md:
- * 1-1=0, 2-1=1, 3-1=2, ..., 8-1=7
- * For X < Y cases, we borrow and wrap around
+ * 7D MANIFOLD TOPOLOGY:
+ * The tuple's first index is the final bit for 6D array inference,
+ * with the tuple itself creating the 7th dimension.
+ * This prevents Shor factorization attacks during multiplication.
  */
 
-type SomeSeries = Record<string, ((Uint8Array<ArrayBuffer> | number)[] | number)[]>;
+import { getRegularBitRotation } from './Round8.terminology';
 
-// Zero case inlined to avoid circular dependency
-const ZERO_CASE = Uint8Array.from([
-  0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0,
-]);
+type SomeSeries = Record<string, ((number)[] | number)[]>;
 
 export const DifferenceSeries: SomeSeries = {
-  // 1 - N (N = 1-8)
-  DifferenceOfOneAndOne: [
-    0, 0, 0,  // 1 = 000
-    0, 0,     // 1 high bits
-    [0, ZERO_CASE]  // 1-1=0 (special case)
-  ],
-  DifferenceOfOneAndTwo: [
-    0, 0, 0,  // 1 = 000
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // 1-2: borrow, result "7"
-  ],
-  DifferenceOfOneAndThree: [
-    0, 0, 0,  // 1 = 000
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // 1-3: borrow, result "6"
-  ],
-  DifferenceOfOneAndFour: [
-    0, 0, 0,  // 1 = 000
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // 1-4: borrow, result "5"
-  ],
-  DifferenceOfOneAndFive: [
-    0, 0, 0,  // 1 = 000
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([0, 1, 1]), new Uint8Array([0, 0, 0])]  // 1-5: borrow, result "4"
-  ],
-  DifferenceOfOneAndSix: [
-    0, 0, 0,  // 1 = 000
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([0, 1, 0]), new Uint8Array([0, 0, 0])]  // 1-6: borrow, result "3"
-  ],
-  DifferenceOfOneAndSeven: [
-    0, 0, 0,  // 1 = 000
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([0, 0, 1]), new Uint8Array([0, 0, 0])]  // 1-7: borrow, result "2"
-  ],
-  DifferenceOfOneAndEight: [
-    0, 0, 0,  // 1 = 000
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // 1-8: borrow, result "1"
-  ],
+  // Display 1 - N (N = 1-8)
+  DifferenceOfOneAndOne: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(1);
+    const result = getRegularBitRotation(1);  // 1-1=0 → Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfOneAndTwo: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(2);
+    const result = getRegularBitRotation(8);  // 1-2=-1 → wraps to 8 (111)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfOneAndThree: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(3);
+    const result = getRegularBitRotation(7);  // 1-3=-2 → wraps to 7 (110)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfOneAndFour: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(4);
+    const result = getRegularBitRotation(6);  // 1-4=-3 → wraps to 6 (101)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfOneAndFive: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(5);
+    const result = getRegularBitRotation(5);  // 1-5=-4 → wraps to 5 (100)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfOneAndSix: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(6);
+    const result = getRegularBitRotation(4);  // 1-6=-5 → wraps to 4 (011)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfOneAndSeven: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(7);
+    const result = getRegularBitRotation(3);  // 1-7=-6 → wraps to 3 (010)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfOneAndEight: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(8);
+    const result = getRegularBitRotation(2);  // 1-8=-7 → wraps to 2 (001)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
-  // 2 - N (N = 1-8)
-  DifferenceOfTwoAndOne: [
-    0, 0, 1,  // 2 = 001
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([0, 0, 0])]  // 2-1=1 (000)
-  ],
-  DifferenceOfTwoAndTwo: [
-    0, 0, 1,  // 2 = 001
-    0, 0,     // 2 high bits
-    [1, ZERO_CASE]  // 2-2=0
-  ],
-  DifferenceOfTwoAndThree: [
-    0, 0, 1,  // 2 = 001
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // 2-3: borrow, result "7"
-  ],
-  DifferenceOfTwoAndFour: [
-    0, 0, 1,  // 2 = 001
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // 2-4: borrow, result "6"
-  ],
-  DifferenceOfTwoAndFive: [
-    0, 0, 1,  // 2 = 001
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // 2-5: borrow, result "5"
-  ],
-  DifferenceOfTwoAndSix: [
-    0, 0, 1,  // 2 = 001
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([0, 1, 1]), new Uint8Array([0, 0, 0])]  // 2-6: borrow, result "4"
-  ],
-  DifferenceOfTwoAndSeven: [
-    0, 0, 1,  // 2 = 001
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([0, 1, 0]), new Uint8Array([0, 0, 0])]  // 2-7: borrow, result "3"
-  ],
-  DifferenceOfTwoAndEight: [
-    0, 0, 1,  // 2 = 001
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([0, 0, 1]), new Uint8Array([0, 0, 0])]  // 2-8: borrow, result "2"
-  ],
+  // Display 2 - N (N = 1-8)
+  DifferenceOfTwoAndOne: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(1);
+    const result = getRegularBitRotation(2);  // 2-1=1 → Display 2 (001)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfTwoAndTwo: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(2);
+    const result = getRegularBitRotation(1);  // 2-2=0 → Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfTwoAndThree: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(3);
+    const result = getRegularBitRotation(8);  // 2-3=-1 → wraps to 8 (111)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfTwoAndFour: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(4);
+    const result = getRegularBitRotation(7);  // 2-4=-2 → wraps to 7 (110)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfTwoAndFive: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(5);
+    const result = getRegularBitRotation(6);  // 2-5=-3 → wraps to 6 (101)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfTwoAndSix: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(6);
+    const result = getRegularBitRotation(5);  // 2-6=-4 → wraps to 5 (100)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfTwoAndSeven: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(7);
+    const result = getRegularBitRotation(4);  // 2-7=-5 → wraps to 4 (011)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfTwoAndEight: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(8);
+    const result = getRegularBitRotation(3);  // 2-8=-6 → wraps to 3 (010)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
-  // 3 - N (N = 1-8)
-  DifferenceOfThreeAndOne: [
-    0, 1, 0,  // 3 = 010
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([0, 0, 1])]  // 3-1=2 (001)
-  ],
-  DifferenceOfThreeAndTwo: [
-    0, 1, 0,  // 3 = 010
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([0, 0, 0])]  // 3-2=1 (000)
-  ],
-  DifferenceOfThreeAndThree: [
-    0, 1, 0,  // 3 = 010
-    0, 1,     // 3 high bits
-    [0, ZERO_CASE]  // 3-3=0
-  ],
-  DifferenceOfThreeAndFour: [
-    0, 1, 0,  // 3 = 010
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // 3-4: borrow, result "7"
-  ],
-  DifferenceOfThreeAndFive: [
-    0, 1, 0,  // 3 = 010
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // 3-5: borrow, result "6"
-  ],
-  DifferenceOfThreeAndSix: [
-    0, 1, 0,  // 3 = 010
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // 3-6: borrow, result "5"
-  ],
-  DifferenceOfThreeAndSeven: [
-    0, 1, 0,  // 3 = 010
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([0, 1, 1]), new Uint8Array([0, 0, 0])]  // 3-7: borrow, result "4"
-  ],
-  DifferenceOfThreeAndEight: [
-    0, 1, 0,  // 3 = 010
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([0, 1, 0]), new Uint8Array([0, 0, 0])]  // 3-8: borrow, result "3"
-  ],
+  // Display 3 - N (N = 1-8)
+  DifferenceOfThreeAndOne: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(1);
+    const result = getRegularBitRotation(3);  // 3-1=2 → Display 3 (010)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfThreeAndTwo: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(2);
+    const result = getRegularBitRotation(2);  // 3-2=1 → Display 2 (001)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfThreeAndThree: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(3);
+    const result = getRegularBitRotation(1);  // 3-3=0 → Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfThreeAndFour: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(4);
+    const result = getRegularBitRotation(8);  // 3-4=-1 → wraps to 8 (111)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfThreeAndFive: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(5);
+    const result = getRegularBitRotation(7);  // 3-5=-2 → wraps to 7 (110)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfThreeAndSix: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(6);
+    const result = getRegularBitRotation(6);  // 3-6=-3 → wraps to 6 (101)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfThreeAndSeven: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(7);
+    const result = getRegularBitRotation(5);  // 3-7=-4 → wraps to 5 (100)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfThreeAndEight: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(8);
+    const result = getRegularBitRotation(4);  // 3-8=-5 → wraps to 4 (011)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
-  // 4 - N (N = 1-8)
-  DifferenceOfFourAndOne: [
-    0, 1, 1,  // 4 = 011
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([0, 1, 0])]  // 4-1=3 (010)
-  ],
-  DifferenceOfFourAndTwo: [
-    0, 1, 1,  // 4 = 011
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([0, 0, 1])]  // 4-2=2 (001)
-  ],
-  DifferenceOfFourAndThree: [
-    0, 1, 1,  // 4 = 011
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([0, 0, 0])]  // 4-3=1 (000)
-  ],
-  DifferenceOfFourAndFour: [
-    0, 1, 1,  // 4 = 011
-    0, 1,     // 4 high bits
-    [1, ZERO_CASE]  // 4-4=0
-  ],
-  DifferenceOfFourAndFive: [
-    0, 1, 1,  // 4 = 011
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // 4-5: borrow, result "7"
-  ],
-  DifferenceOfFourAndSix: [
-    0, 1, 1,  // 4 = 011
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // 4-6: borrow, result "6"
-  ],
-  DifferenceOfFourAndSeven: [
-    0, 1, 1,  // 4 = 011
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // 4-7: borrow, result "5"
-  ],
-  DifferenceOfFourAndEight: [
-    0, 1, 1,  // 4 = 011
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([0, 1, 1]), new Uint8Array([0, 0, 0])]  // 4-8: borrow, result "4"
-  ],
+  // Display 4 - N (N = 1-8)
+  DifferenceOfFourAndOne: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(1);
+    const result = getRegularBitRotation(4);  // 4-1=3 → Display 4 (011)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfFourAndTwo: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(2);
+    const result = getRegularBitRotation(3);  // 4-2=2 → Display 3 (010)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfFourAndThree: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(3);
+    const result = getRegularBitRotation(2);  // 4-3=1 → Display 2 (001)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfFourAndFour: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(4);
+    const result = getRegularBitRotation(1);  // 4-4=0 → Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfFourAndFive: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(5);
+    const result = getRegularBitRotation(8);  // 4-5=-1 → wraps to 8 (111)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfFourAndSix: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(6);
+    const result = getRegularBitRotation(7);  // 4-6=-2 → wraps to 7 (110)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfFourAndSeven: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(7);
+    const result = getRegularBitRotation(6);  // 4-7=-3 → wraps to 6 (101)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfFourAndEight: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(8);
+    const result = getRegularBitRotation(5);  // 4-8=-4 → wraps to 5 (100)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
-  // 5 - N (N = 1-8)
-  DifferenceOfFiveAndOne: [
-    1, 0, 0,  // 5 = 100
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([0, 1, 1])]  // 5-1=4 (011)
-  ],
-  DifferenceOfFiveAndTwo: [
-    1, 0, 0,  // 5 = 100
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([0, 1, 0])]  // 5-2=3 (010)
-  ],
-  DifferenceOfFiveAndThree: [
-    1, 0, 0,  // 5 = 100
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([0, 0, 1])]  // 5-3=2 (001)
-  ],
-  DifferenceOfFiveAndFour: [
-    1, 0, 0,  // 5 = 100
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([0, 0, 0])]  // 5-4=1 (000)
-  ],
-  DifferenceOfFiveAndFive: [
-    1, 0, 0,  // 5 = 100
-    1, 0,     // 5 high bits
-    [0, ZERO_CASE]  // 5-5=0
-  ],
-  DifferenceOfFiveAndSix: [
-    1, 0, 0,  // 5 = 100
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // 5-6: borrow, result "7"
-  ],
-  DifferenceOfFiveAndSeven: [
-    1, 0, 0,  // 5 = 100
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // 5-7: borrow, result "6"
-  ],
-  DifferenceOfFiveAndEight: [
-    1, 0, 0,  // 5 = 100
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // 5-8: borrow, result "5"
-  ],
+  // Display 5 - N (N = 1-8)
+  DifferenceOfFiveAndOne: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(1);
+    const result = getRegularBitRotation(5);  // 5-1=4 → Display 5 (100)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfFiveAndTwo: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(2);
+    const result = getRegularBitRotation(4);  // 5-2=3 → Display 4 (011)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfFiveAndThree: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(3);
+    const result = getRegularBitRotation(3);  // 5-3=2 → Display 3 (010)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfFiveAndFour: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(4);
+    const result = getRegularBitRotation(2);  // 5-4=1 → Display 2 (001)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfFiveAndFive: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(5);
+    const result = getRegularBitRotation(1);  // 5-5=0 → Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfFiveAndSix: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(6);
+    const result = getRegularBitRotation(8);  // 5-6=-1 → wraps to 8 (111)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfFiveAndSeven: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(7);
+    const result = getRegularBitRotation(7);  // 5-7=-2 → wraps to 7 (110)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfFiveAndEight: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(8);
+    const result = getRegularBitRotation(6);  // 5-8=-3 → wraps to 6 (101)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
-  // 6 - N (N = 1-8)
-  DifferenceOfSixAndOne: [
-    1, 0, 1,  // 6 = 101
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([1, 0, 0])]  // 6-1=5 (100)
-  ],
-  DifferenceOfSixAndTwo: [
-    1, 0, 1,  // 6 = 101
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([0, 1, 1])]  // 6-2=4 (011)
-  ],
-  DifferenceOfSixAndThree: [
-    1, 0, 1,  // 6 = 101
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([0, 1, 0])]  // 6-3=3 (010)
-  ],
-  DifferenceOfSixAndFour: [
-    1, 0, 1,  // 6 = 101
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([0, 0, 1])]  // 6-4=2 (001)
-  ],
-  DifferenceOfSixAndFive: [
-    1, 0, 1,  // 6 = 101
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([0, 0, 0])]  // 6-5=1 (000)
-  ],
-  DifferenceOfSixAndSix: [
-    1, 0, 1,  // 6 = 101
-    1, 0,     // 6 high bits
-    [1, ZERO_CASE]  // 6-6=0
-  ],
-  DifferenceOfSixAndSeven: [
-    1, 0, 1,  // 6 = 101
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // 6-7: borrow, result "7"
-  ],
-  DifferenceOfSixAndEight: [
-    1, 0, 1,  // 6 = 101
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // 6-8: borrow, result "6"
-  ],
+  // Display 6 - N (N = 1-8)
+  DifferenceOfSixAndOne: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(1);
+    const result = getRegularBitRotation(6);  // 6-1=5 → Display 6 (101)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSixAndTwo: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(2);
+    const result = getRegularBitRotation(5);  // 6-2=4 → Display 5 (100)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSixAndThree: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(3);
+    const result = getRegularBitRotation(4);  // 6-3=3 → Display 4 (011)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSixAndFour: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(4);
+    const result = getRegularBitRotation(3);  // 6-4=2 → Display 3 (010)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSixAndFive: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(5);
+    const result = getRegularBitRotation(2);  // 6-5=1 → Display 2 (001)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSixAndSix: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(6);
+    const result = getRegularBitRotation(1);  // 6-6=0 → Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSixAndSeven: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(7);
+    const result = getRegularBitRotation(8);  // 6-7=-1 → wraps to 8 (111)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+  DifferenceOfSixAndEight: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(8);
+    const result = getRegularBitRotation(7);  // 6-8=-2 → wraps to 7 (110)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
-  // 7 - N (N = 1-8)
-  DifferenceOfSevenAndOne: [
-    1, 1, 0,  // 7 = 110
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([1, 0, 1])]  // 7-1=6 (101)
-  ],
-  DifferenceOfSevenAndTwo: [
-    1, 1, 0,  // 7 = 110
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([1, 0, 0])]  // 7-2=5 (100)
-  ],
-  DifferenceOfSevenAndThree: [
-    1, 1, 0,  // 7 = 110
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([0, 1, 1])]  // 7-3=4 (011)
-  ],
-  DifferenceOfSevenAndFour: [
-    1, 1, 0,  // 7 = 110
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([0, 1, 0])]  // 7-4=3 (010)
-  ],
-  DifferenceOfSevenAndFive: [
-    1, 1, 0,  // 7 = 110
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([0, 0, 1])]  // 7-5=2 (001)
-  ],
-  DifferenceOfSevenAndSix: [
-    1, 1, 0,  // 7 = 110
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([0, 0, 0])]  // 7-6=1 (000)
-  ],
-  DifferenceOfSevenAndSeven: [
-    1, 1, 0,  // 7 = 110
-    1, 1,     // 7 high bits
-    [0, ZERO_CASE]  // 7-7=0
-  ],
-  DifferenceOfSevenAndEight: [
-    1, 1, 0,  // 7 = 110
-    1, 1,     // 8 high bits
-    [1, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // 7-8: borrow, result "7"
-  ],
+  // Display 7 - N (N = 1-8)
+  DifferenceOfSevenAndOne: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(1);
+    const result = getRegularBitRotation(7);  // 7-1=6 → Display 7 (110)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSevenAndTwo: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(2);
+    const result = getRegularBitRotation(6);  // 7-2=5 → Display 6 (101)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSevenAndThree: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(3);
+    const result = getRegularBitRotation(5);  // 7-3=4 → Display 5 (100)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSevenAndFour: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(4);
+    const result = getRegularBitRotation(4);  // 7-4=3 → Display 4 (011)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSevenAndFive: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(5);
+    const result = getRegularBitRotation(3);  // 7-5=2 → Display 3 (010)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSevenAndSix: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(6);
+    const result = getRegularBitRotation(2);  // 7-6=1 → Display 2 (001)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSevenAndSeven: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(7);
+    const result = getRegularBitRotation(1);  // 7-7=0 → Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfSevenAndEight: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(8);
+    const result = getRegularBitRotation(8);  // 7-8=-1 → wraps to 8 (111)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
-  // 8 - N (N = 1-8)
-  DifferenceOfEightAndOne: [
-    1, 1, 1,  // 8 = 111
-    0, 0,     // 1 high bits
-    [0, new Uint8Array([1, 1, 0])]  // 8-1=7 (110)
-  ],
-  DifferenceOfEightAndTwo: [
-    1, 1, 1,  // 8 = 111
-    0, 0,     // 2 high bits
-    [1, new Uint8Array([1, 0, 1])]  // 8-2=6 (101)
-  ],
-  DifferenceOfEightAndThree: [
-    1, 1, 1,  // 8 = 111
-    0, 1,     // 3 high bits
-    [0, new Uint8Array([1, 0, 0])]  // 8-3=5 (100)
-  ],
-  DifferenceOfEightAndFour: [
-    1, 1, 1,  // 8 = 111
-    0, 1,     // 4 high bits
-    [1, new Uint8Array([0, 1, 1])]  // 8-4=4 (011)
-  ],
-  DifferenceOfEightAndFive: [
-    1, 1, 1,  // 8 = 111
-    1, 0,     // 5 high bits
-    [0, new Uint8Array([0, 1, 0])]  // 8-5=3 (010)
-  ],
-  DifferenceOfEightAndSix: [
-    1, 1, 1,  // 8 = 111
-    1, 0,     // 6 high bits
-    [1, new Uint8Array([0, 0, 1])]  // 8-6=2 (001)
-  ],
-  DifferenceOfEightAndSeven: [
-    1, 1, 1,  // 8 = 111
-    1, 1,     // 7 high bits
-    [0, new Uint8Array([0, 0, 0])]  // 8-7=1 (000)
-  ],
-  DifferenceOfEightAndEight: [
-    1, 1, 1,  // 8 = 111
-    1, 1,     // 8 high bits
-    [1, ZERO_CASE]  // 8-8=0
-  ],
+  // Display 8 - N (N = 1-8)
+  DifferenceOfEightAndOne: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(1);
+    const result = getRegularBitRotation(8);  // 8-1=7 → Display 8 (111)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfEightAndTwo: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(2);
+    const result = getRegularBitRotation(7);  // 8-2=6 → Display 7 (110)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfEightAndThree: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(3);
+    const result = getRegularBitRotation(6);  // 8-3=5 → Display 6 (101)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfEightAndFour: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(4);
+    const result = getRegularBitRotation(5);  // 8-4=4 → Display 5 (100)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfEightAndFive: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(5);
+    const result = getRegularBitRotation(4);  // 8-5=3 → Display 4 (011)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfEightAndSix: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(6);
+    const result = getRegularBitRotation(3);  // 8-6=2 → Display 3 (010)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfEightAndSeven: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(7);
+    const result = getRegularBitRotation(2);  // 8-7=1 → Display 2 (001)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })(),
+  DifferenceOfEightAndEight: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(8);
+    const result = getRegularBitRotation(1);  // 8-8=0 → Display 1 (000)
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];  // No borrow
+  })()
 };

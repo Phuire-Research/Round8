@@ -31,380 +31,497 @@
  *
  * Pattern: ShiftedDifferenceOfXAndY represents X - Y in Column 0 manifold
  * Array structure: [bit2_X, bit1_X, bit0_X, bit2_Y, bit1_Y, [bit0_Y, result, borrow?]]
+ *
+ * 7D MANIFOLD TOPOLOGY:
+ * The tuple's first index is the final bit for 6D array inference,
+ * with the tuple itself creating the 7th dimension.
+ * This prevents Shor factorization attacks during multiplication.
  */
 
-type SomeSeries = Record<string, ((Uint8Array<ArrayBuffer> | number)[] | number)[]>;
+import { getShiftedBitRotation, getRound8Case, Round8Cases } from './Round8.terminology';
 
-// NEGATIVE_TWIST_CASE - Final Twist underflow boundary marker
-// Sign 0 (negative), Column 0: [0,0,0], All others (1-20): [1,1,1]
-const NEGATIVE_TWIST_CASE = Uint8Array.from([
-  0,  // Sign bit 0 = negative
-  0, 0, 0, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1,
-  1, 1, 1,
-]);
-
-// ZERO_CASE - Absolute Zero result
-const ZERO_CASE = Uint8Array.from([
-  0,  // Sign bit for absolute zero
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0,
-  0, 0, 0,
-]);
+type SomeSeries = Record<string, ((number)[] | number)[]>;
 
 export const ShiftedDifferenceSeries: SomeSeries = {
   // EXTERNAL CARRY OPERAND A CASES: [0,0,0] arriving from column 1
   // [0,0,0] = External carry from column 1 (position 7 in 7-position system)
 
   // Carry (000) - N cases
-  ShiftedDifferenceOfCarryAndCarry: [
-    0, 0, 0,  // External carry = 000 (position 7)
-    0, 0,     // External carry high bits
-    [0, ZERO_CASE]  // Carry - Carry = Absolute Zero
-  ],
-  ShiftedDifferenceOfCarryAndMarquee: [
-    0, 0, 0,  // External carry = 000 (position 7)
-    0, 0,     // Marquee high bits [001]
-    [1, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // Borrow, result Display 5 [110]
-  ],
-  ShiftedDifferenceOfCarryAndOne: [
-    0, 0, 0,  // External carry = 000 (position 7)
-    0, 1,     // Display 1 high bits [010]
-    [0, new Uint8Array([1, 1, 1])]  // Carry - 1 = Display 6 [111]
-  ],
-  ShiftedDifferenceOfCarryAndTwo: [
-    0, 0, 0,  // External carry = 000 (position 7)
-    0, 1,     // Display 2 high bits [011]
-    [1, new Uint8Array([1, 0, 0])]  // Borrow, result Display 3 [100]
-  ],
-  ShiftedDifferenceOfCarryAndThree: [
-    0, 0, 0,  // External carry = 000 (position 7)
-    1, 0,     // Display 3 high bits [100]
-    [0, new Uint8Array([0, 1, 1])]  // Carry - 3 = Display 2 [011]
-  ],
-  ShiftedDifferenceOfCarryAndFour: [
-    0, 0, 0,  // External carry = 000 (position 7)
-    1, 0,     // Display 4 high bits [101]
-    [1, new Uint8Array([0, 1, 0])]  // Borrow, result Display 1 [010]
-  ],
-  ShiftedDifferenceOfCarryAndFive: [
-    0, 0, 0,  // External carry = 000 (position 7)
-    1, 1,     // Display 5 high bits [110]
-    [0, new Uint8Array([0, 0, 1])]  // Carry - 5 = Marquee [001]
-  ],
-  ShiftedDifferenceOfCarryAndSix: [
-    0, 0, 0,  // External carry = 000 (position 7)
-    1, 1,     // Display 6 high bits [111]
-    [1, NEGATIVE_TWIST_CASE]  // Underflow: Carry - 6 crosses boundary
-  ],
+  ShiftedDifferenceOfCarryAndCarry: (() => {
+    const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Carry - Carry = Absolute Zero
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
 
+  ShiftedDifferenceOfCarryAndMarquee: (() => {
+    const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const y = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const result = getShiftedBitRotation(5);  // Result: Display 5 [110]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfCarryAndOne: (() => {
+    const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const result = getShiftedBitRotation(6);  // Carry - 1 = Display 6 [111]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfCarryAndTwo: (() => {
+    const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const result = getShiftedBitRotation(3);  // Result: Display 3 [100]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfCarryAndThree: (() => {
+    const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const result = getShiftedBitRotation(2);  // Carry - 3 = Display 2 [011]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfCarryAndFour: (() => {
+    const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const result = getShiftedBitRotation(1);  // Carry - 4 = Display 1 [010]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfCarryAndFive: (() => {
+    const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const result = getShiftedBitRotation(0);  // Carry - 5 = Marquee [001]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfCarryAndSix: (() => {
+    const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const result = getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);  // Underflow twist-off
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  // MARQUEE OPERAND A CASES: [0,0,1] delimiter/reset point
   // Marquee (001) - N cases
-  ShiftedDifferenceOfMarqueeAndCarry: [
-    0, 0, 1,  // Marquee = 001 (position 0)
-    0, 0,     // External carry high bits
-    [0, NEGATIVE_TWIST_CASE]  // Underflow: Marquee - Carry crosses boundary
-  ],
-  ShiftedDifferenceOfMarqueeAndMarquee: [
-    0, 0, 1,  // Marquee = 001 (position 0)
-    0, 0,     // Marquee high bits [001]
-    [1, ZERO_CASE]  // Marquee - Marquee = Absolute Zero
-  ],
-  ShiftedDifferenceOfMarqueeAndOne: [
-    0, 0, 1,  // Marquee = 001 (position 0)
-    0, 1,     // Display 1 high bits [010]
-    [0, new Uint8Array([0, 0, 0])]  // Marquee - 1 = Carry [000] (retreat to position 7)
-  ],
-  ShiftedDifferenceOfMarqueeAndTwo: [
-    0, 0, 1,  // Marquee = 001 (position 0)
-    0, 1,     // Display 2 high bits [011]
-    [1, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // Borrow, result Display 5 [110]
-  ],
-  ShiftedDifferenceOfMarqueeAndThree: [
-    0, 0, 1,  // Marquee = 001 (position 0)
-    1, 0,     // Display 3 high bits [100]
-    [0, new Uint8Array([1, 0, 1])]  // Marquee - 3 = Display 4 [101]
-  ],
-  ShiftedDifferenceOfMarqueeAndFour: [
-    0, 0, 1,  // Marquee = 001 (position 0)
-    1, 0,     // Display 4 high bits [101]
-    [1, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // Borrow, result Display 3 [100]
-  ],
-  ShiftedDifferenceOfMarqueeAndFive: [
-    0, 0, 1,  // Marquee = 001 (position 0)
-    1, 1,     // Display 5 high bits [110]
-    [0, new Uint8Array([0, 1, 1])]  // Marquee - 5 = Display 2 [011]
-  ],
-  ShiftedDifferenceOfMarqueeAndSix: [
-    0, 0, 1,  // Marquee = 001 (position 0)
-    1, 1,     // Display 6 high bits [111]
-    [1, new Uint8Array([0, 1, 0]), new Uint8Array([0, 0, 0])]  // Borrow, result Display 1 [010]
-  ],
+  ShiftedDifferenceOfMarqueeAndCarry: (() => {
+    const x = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const result = getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);  // Marquee - Carry = Underflow
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAndMarquee: (() => {
+    const x = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const y = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Marquee - Marquee = Absolute Zero
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAndOne: (() => {
+    const x = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const result = getShiftedBitRotation(6);  // Result: Display 6 [111]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAndTwo: (() => {
+    const x = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const result = getShiftedBitRotation(5);  // Result: Display 5 [110]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAndThree: (() => {
+    const x = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const result = getShiftedBitRotation(4);  // Result: Display 4 [101]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAndFour: (() => {
+    const x = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const result = getShiftedBitRotation(3);  // Result: Display 3 [100]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAndFive: (() => {
+    const x = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const result = getShiftedBitRotation(2);  // Result: Display 2 [011]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAndSix: (() => {
+    const x = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const result = getShiftedBitRotation(1);  // Result: Display 1 [010]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
   // Display 1 (010) - N cases
-  ShiftedDifferenceOfOneAndCarry: [
-    0, 1, 0,  // Display 1 = 010 (position 1)
-    0, 0,     // External carry high bits
-    [0, new Uint8Array([0, 0, 1])]  // Display 1 - Carry = Marquee [001]
-  ],
-  ShiftedDifferenceOfOneAndMarquee: [
-    0, 1, 0,  // Display 1 = 010 (position 1)
-    0, 0,     // Marquee high bits [001]
-    [1, new Uint8Array([0, 0, 0])]  // Display 1 - Marquee = Carry [000]
-  ],
-  ShiftedDifferenceOfOneAndOne: [
-    0, 1, 0,  // Display 1 = 010 (position 1)
-    0, 1,     // Display 1 high bits [010]
-    [0, ZERO_CASE]  // Display 1 - Display 1 = Absolute Zero
-  ],
-  ShiftedDifferenceOfOneAndTwo: [
-    0, 1, 0,  // Display 1 = 010 (position 1)
-    0, 1,     // Display 2 high bits [011]
-    [1, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // Borrow, result Carry [000]
-  ],
-  ShiftedDifferenceOfOneAndThree: [
-    0, 1, 0,  // Display 1 = 010 (position 1)
-    1, 0,     // Display 3 high bits [100]
-    [0, new Uint8Array([1, 1, 0])]  // Display 1 - 3 = Display 5 [110]
-  ],
-  ShiftedDifferenceOfOneAndFour: [
-    0, 1, 0,  // Display 1 = 010 (position 1)
-    1, 0,     // Display 4 high bits [101]
-    [1, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // Borrow, result Display 4 [101]
-  ],
-  ShiftedDifferenceOfOneAndFive: [
-    0, 1, 0,  // Display 1 = 010 (position 1)
-    1, 1,     // Display 5 high bits [110]
-    [0, new Uint8Array([1, 0, 0])]  // Display 1 - 5 = Display 3 [100]
-  ],
-  ShiftedDifferenceOfOneAndSix: [
-    0, 1, 0,  // Display 1 = 010 (position 1)
-    1, 1,     // Display 6 high bits [111]
-    [1, new Uint8Array([0, 1, 1]), new Uint8Array([0, 0, 0])]  // Borrow, result Display 2 [011]
-  ],
+  ShiftedDifferenceOfOneAndCarry: (() => {
+    const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const result = getShiftedBitRotation(0);  // Display 1 - Carry = Marquee [001]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfOneAndMarquee: (() => {
+    const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const y = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const result = getShiftedBitRotation(7);  // Display 1 - Marquee = Carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfOneAndOne: (() => {
+    const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 1 - Display 1 = Absolute Zero
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfOneAndTwo: (() => {
+    const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const result = getShiftedBitRotation(6);  // Result: Display 6 [111]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfOneAndThree: (() => {
+    const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const result = getShiftedBitRotation(5);  // Result: Display 5 [110]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfOneAndFour: (() => {
+    const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const result = getShiftedBitRotation(4);  // Result: Display 4 [101]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfOneAndFive: (() => {
+    const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const result = getShiftedBitRotation(3);  // Result: Display 3 [100]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfOneAndSix: (() => {
+    const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const result = getShiftedBitRotation(2);  // Result: Display 2 [011]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
   // Display 2 (011) - N cases
-  ShiftedDifferenceOfTwoAndCarry: [
-    0, 1, 1,  // Display 2 = 011 (position 2)
-    0, 0,     // External carry high bits
-    [0, new Uint8Array([0, 1, 0])]  // Display 2 - Carry = Display 1 [010]
-  ],
-  ShiftedDifferenceOfTwoAndMarquee: [
-    0, 1, 1,  // Display 2 = 011 (position 2)
-    0, 0,     // Marquee high bits [001]
-    [1, new Uint8Array([0, 0, 1])]  // Display 2 - Marquee = Marquee [001]
-  ],
-  ShiftedDifferenceOfTwoAndOne: [
-    0, 1, 1,  // Display 2 = 011 (position 2)
-    0, 1,     // Display 1 high bits [010]
-    [0, new Uint8Array([0, 0, 0])]  // Display 2 - 1 = Carry [000]
-  ],
-  ShiftedDifferenceOfTwoAndTwo: [
-    0, 1, 1,  // Display 2 = 011 (position 2)
-    0, 1,     // Display 2 high bits [011]
-    [1, ZERO_CASE]  // Display 2 - Display 2 = Absolute Zero
-  ],
-  ShiftedDifferenceOfTwoAndThree: [
-    0, 1, 1,  // Display 2 = 011 (position 2)
-    1, 0,     // Display 3 high bits [100]
-    [0, new Uint8Array([0, 0, 0])]  // Display 2 - 3 = Carry [000] (with borrow)
-  ],
-  ShiftedDifferenceOfTwoAndFour: [
-    0, 1, 1,  // Display 2 = 011 (position 2)
-    1, 0,     // Display 4 high bits [101]
-    [1, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // Borrow, result Display 5 [110]
-  ],
-  ShiftedDifferenceOfTwoAndFive: [
-    0, 1, 1,  // Display 2 = 011 (position 2)
-    1, 1,     // Display 5 high bits [110]
-    [0, new Uint8Array([1, 0, 1])]  // Display 2 - 5 = Display 4 [101]
-  ],
-  ShiftedDifferenceOfTwoAndSix: [
-    0, 1, 1,  // Display 2 = 011 (position 2)
-    1, 1,     // Display 6 high bits [111]
-    [1, new Uint8Array([1, 0, 0]), new Uint8Array([0, 0, 0])]  // Borrow, result Display 3 [100]
-  ],
+  ShiftedDifferenceOfTwoAndCarry: (() => {
+    const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const result = getShiftedBitRotation(1);  // Display 2 - Carry = Display 1 [010]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfTwoAndMarquee: (() => {
+    const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const y = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const result = getShiftedBitRotation(0);  // Display 2 - Marquee = Marquee [001]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfTwoAndOne: (() => {
+    const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const result = getShiftedBitRotation(7);  // Display 2 - 1 = Carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfTwoAndTwo: (() => {
+    const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 2 - Display 2 = Absolute Zero
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfTwoAndThree: (() => {
+    const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const result = getShiftedBitRotation(7);  // Display 2 - 3 = Carry [000] (with borrow)
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfTwoAndFour: (() => {
+    const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const result = getShiftedBitRotation(5);  // Result: Display 5 [110]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfTwoAndFive: (() => {
+    const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const result = getShiftedBitRotation(4);  // Display 2 - 5 = Display 4 [101]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfTwoAndSix: (() => {
+    const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const result = getShiftedBitRotation(3);  // Result: Display 3 [100]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
   // Display 3 (100) - N cases
-  ShiftedDifferenceOfThreeAndCarry: [
-    1, 0, 0,  // Display 3 = 100 (position 3)
-    0, 0,     // External carry high bits
-    [0, new Uint8Array([0, 1, 1])]  // Display 3 - Carry = Display 2 [011]
-  ],
-  ShiftedDifferenceOfThreeAndMarquee: [
-    1, 0, 0,  // Display 3 = 100 (position 3)
-    0, 0,     // Marquee high bits [001]
-    [1, new Uint8Array([0, 1, 0])]  // Display 3 - Marquee = Display 1 [010]
-  ],
-  ShiftedDifferenceOfThreeAndOne: [
-    1, 0, 0,  // Display 3 = 100 (position 3)
-    0, 1,     // Display 1 high bits [010]
-    [0, new Uint8Array([0, 0, 1])]  // Display 3 - 1 = Marquee [001]
-  ],
-  ShiftedDifferenceOfThreeAndTwo: [
-    1, 0, 0,  // Display 3 = 100 (position 3)
-    0, 1,     // Display 2 high bits [011]
-    [1, new Uint8Array([0, 0, 0])]  // Display 3 - 2 = Carry [000]
-  ],
-  ShiftedDifferenceOfThreeAndThree: [
-    1, 0, 0,  // Display 3 = 100 (position 3)
-    1, 0,     // Display 3 high bits [100]
-    [0, ZERO_CASE]  // Display 3 - Display 3 = Absolute Zero
-  ],
-  ShiftedDifferenceOfThreeAndFour: [
-    1, 0, 0,  // Display 3 = 100 (position 3)
-    1, 0,     // Display 4 high bits [101]
-    [1, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // Borrow, result Carry [000]
-  ],
-  ShiftedDifferenceOfThreeAndFive: [
-    1, 0, 0,  // Display 3 = 100 (position 3)
-    1, 1,     // Display 5 high bits [110]
-    [0, new Uint8Array([1, 1, 0])]  // Display 3 - 5 = Display 5 [110] (with borrow)
-  ],
-  ShiftedDifferenceOfThreeAndSix: [
-    1, 0, 0,  // Display 3 = 100 (position 3)
-    1, 1,     // Display 6 high bits [111]
-    [1, new Uint8Array([1, 0, 1]), new Uint8Array([0, 0, 0])]  // Borrow, result Display 4 [101]
-  ],
+  ShiftedDifferenceOfThreeAndCarry: (() => {
+    const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const result = getShiftedBitRotation(2);  // Display 3 - Carry = Display 2 [011]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfThreeAndMarquee: (() => {
+    const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const y = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const result = getShiftedBitRotation(1);  // Display 3 - Marquee = Display 1 [010]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfThreeAndOne: (() => {
+    const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const result = getShiftedBitRotation(0);  // Display 3 - 1 = Marquee [001]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfThreeAndTwo: (() => {
+    const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const result = getShiftedBitRotation(7);  // Display 3 - 2 = Carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfThreeAndThree: (() => {
+    const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 3 - Display 3 = Absolute Zero
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfThreeAndFour: (() => {
+    const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const result = getShiftedBitRotation(6);  // Result: Display 6 [111]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfThreeAndFive: (() => {
+    const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const result = getShiftedBitRotation(5);  // Display 3 - 5 = Display 5 [110]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfThreeAndSix: (() => {
+    const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const result = getShiftedBitRotation(4);  // Result: Display 4 [101]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
   // Display 4 (101) - N cases
-  ShiftedDifferenceOfFourAndCarry: [
-    1, 0, 1,  // Display 4 = 101 (position 4)
-    0, 0,     // External carry high bits
-    [0, new Uint8Array([1, 0, 0])]  // Display 4 - Carry = Display 3 [100]
-  ],
-  ShiftedDifferenceOfFourAndMarquee: [
-    1, 0, 1,  // Display 4 = 101 (position 4)
-    0, 0,     // Marquee high bits [001]
-    [1, new Uint8Array([0, 1, 1])]  // Display 4 - Marquee = Display 2 [011]
-  ],
-  ShiftedDifferenceOfFourAndOne: [
-    1, 0, 1,  // Display 4 = 101 (position 4)
-    0, 1,     // Display 1 high bits [010]
-    [0, new Uint8Array([0, 1, 0])]  // Display 4 - 1 = Display 1 [010]
-  ],
-  ShiftedDifferenceOfFourAndTwo: [
-    1, 0, 1,  // Display 4 = 101 (position 4)
-    0, 1,     // Display 2 high bits [011]
-    [1, new Uint8Array([0, 0, 1])]  // Display 4 - 2 = Marquee [001]
-  ],
-  ShiftedDifferenceOfFourAndThree: [
-    1, 0, 1,  // Display 4 = 101 (position 4)
-    1, 0,     // Display 3 high bits [100]
-    [0, new Uint8Array([0, 0, 0])]  // Display 4 - 3 = Carry [000]
-  ],
-  ShiftedDifferenceOfFourAndFour: [
-    1, 0, 1,  // Display 4 = 101 (position 4)
-    1, 0,     // Display 4 high bits [101]
-    [1, ZERO_CASE]  // Display 4 - Display 4 = Absolute Zero
-  ],
-  ShiftedDifferenceOfFourAndFive: [
-    1, 0, 1,  // Display 4 = 101 (position 4)
-    1, 1,     // Display 5 high bits [110]
-    [0, new Uint8Array([0, 0, 0])]  // Display 4 - 5 = Carry [000] (with borrow)
-  ],
-  ShiftedDifferenceOfFourAndSix: [
-    1, 0, 1,  // Display 4 = 101 (position 4)
-    1, 1,     // Display 6 high bits [111]
-    [1, new Uint8Array([1, 1, 0]), new Uint8Array([0, 0, 0])]  // Borrow, result Display 5 [110]
-  ],
+  ShiftedDifferenceOfFourAndCarry: (() => {
+    const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const result = getShiftedBitRotation(3);  // Display 4 - Carry = Display 3 [100]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFourAndMarquee: (() => {
+    const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const y = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const result = getShiftedBitRotation(2);  // Display 4 - Marquee = Display 2 [011]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFourAndOne: (() => {
+    const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const result = getShiftedBitRotation(1);  // Display 4 - 1 = Display 1 [010]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFourAndTwo: (() => {
+    const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const result = getShiftedBitRotation(0);  // Display 4 - 2 = Marquee [001]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFourAndThree: (() => {
+    const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const result = getShiftedBitRotation(7);  // Display 4 - 3 = Carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFourAndFour: (() => {
+    const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 4 - Display 4 = Absolute Zero
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFourAndFive: (() => {
+    const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const result = getShiftedBitRotation(6);  // Result: Display 6 [111]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfFourAndSix: (() => {
+    const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const result = getShiftedBitRotation(5);  // Result: Display 5 [110]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
   // Display 5 (110) - N cases
-  ShiftedDifferenceOfFiveAndCarry: [
-    1, 1, 0,  // Display 5 = 110 (position 5)
-    0, 0,     // External carry high bits
-    [0, new Uint8Array([1, 0, 1])]  // Display 5 - Carry = Display 4 [101]
-  ],
-  ShiftedDifferenceOfFiveAndMarquee: [
-    1, 1, 0,  // Display 5 = 110 (position 5)
-    0, 0,     // Marquee high bits [001]
-    [1, new Uint8Array([1, 0, 0])]  // Display 5 - Marquee = Display 3 [100]
-  ],
-  ShiftedDifferenceOfFiveAndOne: [
-    1, 1, 0,  // Display 5 = 110 (position 5)
-    0, 1,     // Display 1 high bits [010]
-    [0, new Uint8Array([0, 1, 1])]  // Display 5 - 1 = Display 2 [011]
-  ],
-  ShiftedDifferenceOfFiveAndTwo: [
-    1, 1, 0,  // Display 5 = 110 (position 5)
-    0, 1,     // Display 2 high bits [011]
-    [1, new Uint8Array([0, 1, 0])]  // Display 5 - 2 = Display 1 [010]
-  ],
-  ShiftedDifferenceOfFiveAndThree: [
-    1, 1, 0,  // Display 5 = 110 (position 5)
-    1, 0,     // Display 3 high bits [100]
-    [0, new Uint8Array([0, 1, 1])]  // Display 5 - 3 = Display 2 [011]
-  ],
-  ShiftedDifferenceOfFiveAndFour: [
-    1, 1, 0,  // Display 5 = 110 (position 5)
-    1, 0,     // Display 4 high bits [101]
-    [1, new Uint8Array([0, 0, 0])]  // Display 5 - 4 = Carry [000]
-  ],
-  ShiftedDifferenceOfFiveAndFive: [
-    1, 1, 0,  // Display 5 = 110 (position 5)
-    1, 1,     // Display 5 high bits [110]
-    [0, ZERO_CASE]  // Display 5 - Display 5 = Absolute Zero
-  ],
-  ShiftedDifferenceOfFiveAndSix: [
-    1, 1, 0,  // Display 5 = 110 (position 5)
-    1, 1,     // Display 6 high bits [111]
-    [1, new Uint8Array([0, 0, 0]), new Uint8Array([0, 0, 0])]  // Borrow, result Carry [000]
-  ],
+  ShiftedDifferenceOfFiveAndCarry: (() => {
+    const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const result = getShiftedBitRotation(4);  // Display 5 - Carry = Display 4 [101]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFiveAndMarquee: (() => {
+    const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const y = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const result = getShiftedBitRotation(3);  // Display 5 - Marquee = Display 3 [100]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFiveAndOne: (() => {
+    const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const result = getShiftedBitRotation(2);  // Display 5 - 1 = Display 2 [011]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFiveAndTwo: (() => {
+    const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const result = getShiftedBitRotation(1);  // Display 5 - 2 = Display 1 [010]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFiveAndThree: (() => {
+    const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const result = getShiftedBitRotation(0);  // Display 5 - 3 = Marquee [001]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFiveAndFour: (() => {
+    const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const result = getShiftedBitRotation(7);  // Display 5 - 4 = Carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFiveAndFive: (() => {
+    const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 5 - Display 5 = Absolute Zero
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfFiveAndSix: (() => {
+    const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const result = getShiftedBitRotation(6);  // Result: Display 6 [111]
+    const borrow = getShiftedBitRotation(7);  // Borrow: External carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
 
   // Display 6 (111) - N cases
-  ShiftedDifferenceOfSixAndCarry: [
-    1, 1, 1,  // Display 6 = 111 (position 6, maximum)
-    0, 0,     // External carry high bits
-    [0, new Uint8Array([1, 1, 0])]  // Display 6 - Carry = Display 5 [110]
-  ],
-  ShiftedDifferenceOfSixAndMarquee: [
-    1, 1, 1,  // Display 6 = 111 (position 6, maximum)
-    0, 0,     // Marquee high bits [001]
-    [1, new Uint8Array([1, 0, 1])]  // Display 6 - Marquee = Display 4 [101]
-  ],
-  ShiftedDifferenceOfSixAndOne: [
-    1, 1, 1,  // Display 6 = 111 (position 6, maximum)
-    0, 1,     // Display 1 high bits [010]
-    [0, new Uint8Array([1, 0, 0])]  // Display 6 - 1 = Display 3 [100]
-  ],
-  ShiftedDifferenceOfSixAndTwo: [
-    1, 1, 1,  // Display 6 = 111 (position 6, maximum)
-    0, 1,     // Display 2 high bits [011]
-    [1, new Uint8Array([0, 1, 1])]  // Display 6 - 2 = Display 2 [011]
-  ],
-  ShiftedDifferenceOfSixAndThree: [
-    1, 1, 1,  // Display 6 = 111 (position 6, maximum)
-    1, 0,     // Display 3 high bits [100]
-    [0, new Uint8Array([0, 1, 0])]  // Display 6 - 3 = Display 1 [010]
-  ],
-  ShiftedDifferenceOfSixAndFour: [
-    1, 1, 1,  // Display 6 = 111 (position 6, maximum)
-    1, 0,     // Display 4 high bits [101]
-    [1, new Uint8Array([0, 1, 1])]  // Display 6 - 4 = Display 2 [011]
-  ],
-  ShiftedDifferenceOfSixAndFive: [
-    1, 1, 1,  // Display 6 = 111 (position 6, maximum)
-    1, 1,     // Display 5 high bits [110]
-    [0, new Uint8Array([0, 0, 0])]  // Display 6 - 5 = Carry [000]
-  ],
-  ShiftedDifferenceOfSixAndSix: [
-    1, 1, 1,  // Display 6 = 111 (position 6, maximum)
-    1, 1,     // Display 6 high bits [111]
-    [1, ZERO_CASE]  // Display 6 - Display 6 = Absolute Zero
-  ],
+  ShiftedDifferenceOfSixAndCarry: (() => {
+    const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
+    const result = getShiftedBitRotation(5);  // Display 6 - Carry = Display 5 [110]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfSixAndMarquee: (() => {
+    const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const y = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
+    const result = getShiftedBitRotation(4);  // Display 6 - Marquee = Display 4 [101]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfSixAndOne: (() => {
+    const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
+    const result = getShiftedBitRotation(3);  // Display 6 - 1 = Display 3 [100]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfSixAndTwo: (() => {
+    const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
+    const result = getShiftedBitRotation(2);  // Display 6 - 2 = Display 2 [011]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfSixAndThree: (() => {
+    const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
+    const result = getShiftedBitRotation(1);  // Display 6 - 3 = Display 1 [010]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfSixAndFour: (() => {
+    const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
+    const result = getShiftedBitRotation(0);  // Display 6 - 4 = Marquee [001]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfSixAndFive: (() => {
+    const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
+    const result = getShiftedBitRotation(7);  // Display 6 - 5 = Carry [000]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfSixAndSix: (() => {
+    const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
+    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 6 - Display 6 = Absolute Zero
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
 };

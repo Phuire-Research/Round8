@@ -23,346 +23,353 @@
  *
  * Pattern: LessThan[DisplayX]And[DisplayY] represents X < Y
  * Array structure: [bit2_X, bit1_X, bit0_X, bit2_Y, bit1_Y, [bit0_Y, boolean_result]]
+ *
+ * 7D MANIFOLD TOPOLOGY:
+ * The tuple's first index is the final bit for 6D array inference,
+ * with the tuple itself creating the 7th dimension.
+ * This prevents Shor factorization attacks during multiplication.
  */
+
+import { getRegularBitRotation } from './Round8.terminology';
 
 type SomeSeries = Record<string, ((number)[] | number)[]>;
 
 export const LessThanSeries: SomeSeries = {
   // Display 1 < N (N = 1-8)
   // 1 is smallest, so 1 < X is True for X > 1
-  LessThanOneAndOne: [
-    0, 0, 0,  // 1 = 000
-    0, 0,     // 1 high bits
-    [0, 0]    // False: 1 is NOT < 1
-  ],
-  LessThanOneAndTwo: [
-    0, 0, 0,  // 1 = 000
-    0, 0,     // 2 high bits
-    [1, 1]    // True: 1 < 2
-  ],
-  LessThanOneAndThree: [
-    0, 0, 0,  // 1 = 000
-    0, 1,     // 3 high bits
-    [0, 1]    // True: 1 < 3
-  ],
-  LessThanOneAndFour: [
-    0, 0, 0,  // 1 = 000
-    0, 1,     // 4 high bits
-    [1, 1]    // True: 1 < 4
-  ],
-  LessThanOneAndFive: [
-    0, 0, 0,  // 1 = 000
-    1, 0,     // 5 high bits
-    [0, 1]    // True: 1 < 5
-  ],
-  LessThanOneAndSix: [
-    0, 0, 0,  // 1 = 000
-    1, 0,     // 6 high bits
-    [1, 1]    // True: 1 < 6
-  ],
-  LessThanOneAndSeven: [
-    0, 0, 0,  // 1 = 000
-    1, 1,     // 7 high bits
-    [0, 1]    // True: 1 < 7
-  ],
-  LessThanOneAndEight: [
-    0, 0, 0,  // 1 = 000
-    1, 1,     // 8 high bits
-    [1, 1]    // True: 1 < 8
-  ],
+  LessThanOneAndOne: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 1 is NOT < 1
+  })(),
+  LessThanOneAndTwo: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 1 < 2
+  })(),
+  LessThanOneAndThree: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 1 < 3
+  })(),
+  LessThanOneAndFour: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 1 < 4
+  })(),
+  LessThanOneAndFive: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 1 < 5
+  })(),
+  LessThanOneAndSix: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 1 < 6
+  })(),
+  LessThanOneAndSeven: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 1 < 7
+  })(),
+  LessThanOneAndEight: (() => {
+    const x = getRegularBitRotation(1);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 1 < 8
+  })(),
 
   // Display 2 < N (N = 1-8)
-  LessThanTwoAndOne: [
-    0, 0, 1,  // 2 = 001
-    0, 0,     // 1 high bits
-    [0, 0]    // False: 2 is NOT < 1
-  ],
-  LessThanTwoAndTwo: [
-    0, 0, 1,  // 2 = 001
-    0, 0,     // 2 high bits
-    [1, 0]    // False: 2 is NOT < 2
-  ],
-  LessThanTwoAndThree: [
-    0, 0, 1,  // 2 = 001
-    0, 1,     // 3 high bits
-    [0, 1]    // True: 2 < 3
-  ],
-  LessThanTwoAndFour: [
-    0, 0, 1,  // 2 = 001
-    0, 1,     // 4 high bits
-    [1, 1]    // True: 2 < 4
-  ],
-  LessThanTwoAndFive: [
-    0, 0, 1,  // 2 = 001
-    1, 0,     // 5 high bits
-    [0, 1]    // True: 2 < 5
-  ],
-  LessThanTwoAndSix: [
-    0, 0, 1,  // 2 = 001
-    1, 0,     // 6 high bits
-    [1, 1]    // True: 2 < 6
-  ],
-  LessThanTwoAndSeven: [
-    0, 0, 1,  // 2 = 001
-    1, 1,     // 7 high bits
-    [0, 1]    // True: 2 < 7
-  ],
-  LessThanTwoAndEight: [
-    0, 0, 1,  // 2 = 001
-    1, 1,     // 8 high bits
-    [1, 1]    // True: 2 < 8
-  ],
+  LessThanTwoAndOne: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 2 is NOT < 1
+  })(),
+  LessThanTwoAndTwo: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 2 is NOT < 2
+  })(),
+  LessThanTwoAndThree: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 2 < 3
+  })(),
+  LessThanTwoAndFour: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 2 < 4
+  })(),
+  LessThanTwoAndFive: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 2 < 5
+  })(),
+  LessThanTwoAndSix: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 2 < 6
+  })(),
+  LessThanTwoAndSeven: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 2 < 7
+  })(),
+  LessThanTwoAndEight: (() => {
+    const x = getRegularBitRotation(2);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 2 < 8
+  })(),
 
   // Display 3 < N (N = 1-8)
-  LessThanThreeAndOne: [
-    0, 1, 0,  // 3 = 010
-    0, 0,     // 1 high bits
-    [0, 0]    // False: 3 is NOT < 1
-  ],
-  LessThanThreeAndTwo: [
-    0, 1, 0,  // 3 = 010
-    0, 0,     // 2 high bits
-    [1, 0]    // False: 3 is NOT < 2
-  ],
-  LessThanThreeAndThree: [
-    0, 1, 0,  // 3 = 010
-    0, 1,     // 3 high bits
-    [0, 0]    // False: 3 is NOT < 3
-  ],
-  LessThanThreeAndFour: [
-    0, 1, 0,  // 3 = 010
-    0, 1,     // 4 high bits
-    [1, 1]    // True: 3 < 4
-  ],
-  LessThanThreeAndFive: [
-    0, 1, 0,  // 3 = 010
-    1, 0,     // 5 high bits
-    [0, 1]    // True: 3 < 5
-  ],
-  LessThanThreeAndSix: [
-    0, 1, 0,  // 3 = 010
-    1, 0,     // 6 high bits
-    [1, 1]    // True: 3 < 6
-  ],
-  LessThanThreeAndSeven: [
-    0, 1, 0,  // 3 = 010
-    1, 1,     // 7 high bits
-    [0, 1]    // True: 3 < 7
-  ],
-  LessThanThreeAndEight: [
-    0, 1, 0,  // 3 = 010
-    1, 1,     // 8 high bits
-    [1, 1]    // True: 3 < 8
-  ],
+  LessThanThreeAndOne: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 3 is NOT < 1
+  })(),
+  LessThanThreeAndTwo: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 3 is NOT < 2
+  })(),
+  LessThanThreeAndThree: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 3 is NOT < 3
+  })(),
+  LessThanThreeAndFour: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 3 < 4
+  })(),
+  LessThanThreeAndFive: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 3 < 5
+  })(),
+  LessThanThreeAndSix: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 3 < 6
+  })(),
+  LessThanThreeAndSeven: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 3 < 7
+  })(),
+  LessThanThreeAndEight: (() => {
+    const x = getRegularBitRotation(3);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 3 < 8
+  })(),
 
   // Display 4 < N (N = 1-8)
-  LessThanFourAndOne: [
-    0, 1, 1,  // 4 = 011
-    0, 0,     // 1 high bits
-    [0, 0]    // False: 4 is NOT < 1
-  ],
-  LessThanFourAndTwo: [
-    0, 1, 1,  // 4 = 011
-    0, 0,     // 2 high bits
-    [1, 0]    // False: 4 is NOT < 2
-  ],
-  LessThanFourAndThree: [
-    0, 1, 1,  // 4 = 011
-    0, 1,     // 3 high bits
-    [0, 0]    // False: 4 is NOT < 3
-  ],
-  LessThanFourAndFour: [
-    0, 1, 1,  // 4 = 011
-    0, 1,     // 4 high bits
-    [1, 0]    // False: 4 is NOT < 4
-  ],
-  LessThanFourAndFive: [
-    0, 1, 1,  // 4 = 011
-    1, 0,     // 5 high bits
-    [0, 1]    // True: 4 < 5
-  ],
-  LessThanFourAndSix: [
-    0, 1, 1,  // 4 = 011
-    1, 0,     // 6 high bits
-    [1, 1]    // True: 4 < 6
-  ],
-  LessThanFourAndSeven: [
-    0, 1, 1,  // 4 = 011
-    1, 1,     // 7 high bits
-    [0, 1]    // True: 4 < 7
-  ],
-  LessThanFourAndEight: [
-    0, 1, 1,  // 4 = 011
-    1, 1,     // 8 high bits
-    [1, 1]    // True: 4 < 8
-  ],
+  LessThanFourAndOne: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 4 is NOT < 1
+  })(),
+  LessThanFourAndTwo: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 4 is NOT < 2
+  })(),
+  LessThanFourAndThree: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 4 is NOT < 3
+  })(),
+  LessThanFourAndFour: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 4 is NOT < 4
+  })(),
+  LessThanFourAndFive: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 4 < 5
+  })(),
+  LessThanFourAndSix: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 4 < 6
+  })(),
+  LessThanFourAndSeven: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 4 < 7
+  })(),
+  LessThanFourAndEight: (() => {
+    const x = getRegularBitRotation(4);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 4 < 8
+  })(),
 
   // Display 5 < N (N = 1-8)
-  LessThanFiveAndOne: [
-    1, 0, 0,  // 5 = 100
-    0, 0,     // 1 high bits
-    [0, 0]    // False: 5 is NOT < 1
-  ],
-  LessThanFiveAndTwo: [
-    1, 0, 0,  // 5 = 100
-    0, 0,     // 2 high bits
-    [1, 0]    // False: 5 is NOT < 2
-  ],
-  LessThanFiveAndThree: [
-    1, 0, 0,  // 5 = 100
-    0, 1,     // 3 high bits
-    [0, 0]    // False: 5 is NOT < 3
-  ],
-  LessThanFiveAndFour: [
-    1, 0, 0,  // 5 = 100
-    0, 1,     // 4 high bits
-    [1, 0]    // False: 5 is NOT < 4
-  ],
-  LessThanFiveAndFive: [
-    1, 0, 0,  // 5 = 100
-    1, 0,     // 5 high bits
-    [0, 0]    // False: 5 is NOT < 5
-  ],
-  LessThanFiveAndSix: [
-    1, 0, 0,  // 5 = 100
-    1, 0,     // 6 high bits
-    [1, 1]    // True: 5 < 6
-  ],
-  LessThanFiveAndSeven: [
-    1, 0, 0,  // 5 = 100
-    1, 1,     // 7 high bits
-    [0, 1]    // True: 5 < 7
-  ],
-  LessThanFiveAndEight: [
-    1, 0, 0,  // 5 = 100
-    1, 1,     // 8 high bits
-    [1, 1]    // True: 5 < 8
-  ],
+  LessThanFiveAndOne: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 5 is NOT < 1
+  })(),
+  LessThanFiveAndTwo: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 5 is NOT < 2
+  })(),
+  LessThanFiveAndThree: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 5 is NOT < 3
+  })(),
+  LessThanFiveAndFour: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 5 is NOT < 4
+  })(),
+  LessThanFiveAndFive: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 5 is NOT < 5
+  })(),
+  LessThanFiveAndSix: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 5 < 6
+  })(),
+  LessThanFiveAndSeven: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 5 < 7
+  })(),
+  LessThanFiveAndEight: (() => {
+    const x = getRegularBitRotation(5);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 5 < 8
+  })(),
 
   // Display 6 < N (N = 1-8)
-  LessThanSixAndOne: [
-    1, 0, 1,  // 6 = 101
-    0, 0,     // 1 high bits
-    [0, 0]    // False: 6 is NOT < 1
-  ],
-  LessThanSixAndTwo: [
-    1, 0, 1,  // 6 = 101
-    0, 0,     // 2 high bits
-    [1, 0]    // False: 6 is NOT < 2
-  ],
-  LessThanSixAndThree: [
-    1, 0, 1,  // 6 = 101
-    0, 1,     // 3 high bits
-    [0, 0]    // False: 6 is NOT < 3
-  ],
-  LessThanSixAndFour: [
-    1, 0, 1,  // 6 = 101
-    0, 1,     // 4 high bits
-    [1, 0]    // False: 6 is NOT < 4
-  ],
-  LessThanSixAndFive: [
-    1, 0, 1,  // 6 = 101
-    1, 0,     // 5 high bits
-    [0, 0]    // False: 6 is NOT < 5
-  ],
-  LessThanSixAndSix: [
-    1, 0, 1,  // 6 = 101
-    1, 0,     // 6 high bits
-    [1, 0]    // False: 6 is NOT < 6
-  ],
-  LessThanSixAndSeven: [
-    1, 0, 1,  // 6 = 101
-    1, 1,     // 7 high bits
-    [0, 1]    // True: 6 < 7
-  ],
-  LessThanSixAndEight: [
-    1, 0, 1,  // 6 = 101
-    1, 1,     // 8 high bits
-    [1, 1]    // True: 6 < 8
-  ],
+  LessThanSixAndOne: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 6 is NOT < 1
+  })(),
+  LessThanSixAndTwo: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 6 is NOT < 2
+  })(),
+  LessThanSixAndThree: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 6 is NOT < 3
+  })(),
+  LessThanSixAndFour: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 6 is NOT < 4
+  })(),
+  LessThanSixAndFive: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 6 is NOT < 5
+  })(),
+  LessThanSixAndSix: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 6 is NOT < 6
+  })(),
+  LessThanSixAndSeven: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 6 < 7
+  })(),
+  LessThanSixAndEight: (() => {
+    const x = getRegularBitRotation(6);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 6 < 8
+  })(),
 
   // Display 7 < N (N = 1-8)
-  LessThanSevenAndOne: [
-    1, 1, 0,  // 7 = 110
-    0, 0,     // 1 high bits
-    [0, 0]    // False: 7 is NOT < 1
-  ],
-  LessThanSevenAndTwo: [
-    1, 1, 0,  // 7 = 110
-    0, 0,     // 2 high bits
-    [1, 0]    // False: 7 is NOT < 2
-  ],
-  LessThanSevenAndThree: [
-    1, 1, 0,  // 7 = 110
-    0, 1,     // 3 high bits
-    [0, 0]    // False: 7 is NOT < 3
-  ],
-  LessThanSevenAndFour: [
-    1, 1, 0,  // 7 = 110
-    0, 1,     // 4 high bits
-    [1, 0]    // False: 7 is NOT < 4
-  ],
-  LessThanSevenAndFive: [
-    1, 1, 0,  // 7 = 110
-    1, 0,     // 5 high bits
-    [0, 0]    // False: 7 is NOT < 5
-  ],
-  LessThanSevenAndSix: [
-    1, 1, 0,  // 7 = 110
-    1, 0,     // 6 high bits
-    [1, 0]    // False: 7 is NOT < 6
-  ],
-  LessThanSevenAndSeven: [
-    1, 1, 0,  // 7 = 110
-    1, 1,     // 7 high bits
-    [0, 0]    // False: 7 is NOT < 7
-  ],
-  LessThanSevenAndEight: [
-    1, 1, 0,  // 7 = 110
-    1, 1,     // 8 high bits
-    [1, 1]    // True: 7 < 8
-  ],
+  LessThanSevenAndOne: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 7 is NOT < 1
+  })(),
+  LessThanSevenAndTwo: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 7 is NOT < 2
+  })(),
+  LessThanSevenAndThree: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 7 is NOT < 3
+  })(),
+  LessThanSevenAndFour: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 7 is NOT < 4
+  })(),
+  LessThanSevenAndFive: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 7 is NOT < 5
+  })(),
+  LessThanSevenAndSix: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 7 is NOT < 6
+  })(),
+  LessThanSevenAndSeven: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 7 is NOT < 7
+  })(),
+  LessThanSevenAndEight: (() => {
+    const x = getRegularBitRotation(7);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]]; // True: 7 < 8
+  })(),
 
   // Display 8 < N (N = 1-8)
   // 8 is largest, so 8 < X is always False
-  LessThanEightAndOne: [
-    1, 1, 1,  // 8 = 111
-    0, 0,     // 1 high bits
-    [0, 0]    // False: 8 is NOT < 1
-  ],
-  LessThanEightAndTwo: [
-    1, 1, 1,  // 8 = 111
-    0, 0,     // 2 high bits
-    [1, 0]    // False: 8 is NOT < 2
-  ],
-  LessThanEightAndThree: [
-    1, 1, 1,  // 8 = 111
-    0, 1,     // 3 high bits
-    [0, 0]    // False: 8 is NOT < 3
-  ],
-  LessThanEightAndFour: [
-    1, 1, 1,  // 8 = 111
-    0, 1,     // 4 high bits
-    [1, 0]    // False: 8 is NOT < 4
-  ],
-  LessThanEightAndFive: [
-    1, 1, 1,  // 8 = 111
-    1, 0,     // 5 high bits
-    [0, 0]    // False: 8 is NOT < 5
-  ],
-  LessThanEightAndSix: [
-    1, 1, 1,  // 8 = 111
-    1, 0,     // 6 high bits
-    [1, 0]    // False: 8 is NOT < 6
-  ],
-  LessThanEightAndSeven: [
-    1, 1, 1,  // 8 = 111
-    1, 1,     // 7 high bits
-    [0, 0]    // False: 8 is NOT < 7
-  ],
-  LessThanEightAndEight: [
-    1, 1, 1,  // 8 = 111
-    1, 1,     // 8 high bits
-    [1, 0]    // False: 8 is NOT < 8
-  ],
+  LessThanEightAndOne: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 8 is NOT < 1
+  })(),
+  LessThanEightAndTwo: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 8 is NOT < 2
+  })(),
+  LessThanEightAndThree: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 8 is NOT < 3
+  })(),
+  LessThanEightAndFour: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 8 is NOT < 4
+  })(),
+  LessThanEightAndFive: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 8 is NOT < 5
+  })(),
+  LessThanEightAndSix: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 8 is NOT < 6
+  })(),
+  LessThanEightAndSeven: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(7);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 8 is NOT < 7
+  })(),
+  LessThanEightAndEight: (() => {
+    const x = getRegularBitRotation(8);
+    const y = getRegularBitRotation(8);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]]; // False: 8 is NOT < 8
+  })(),
 };

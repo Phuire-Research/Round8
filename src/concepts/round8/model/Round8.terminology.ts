@@ -1,10 +1,17 @@
 // Position 0 is Pruned and is our Signed Single Bit
+
 // Each Position is 3 Bits as a Rotation
+
 export type Positions = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21;
+
+export type SomeSeries = Record<string, ((bigint | number | string)[] | number)[]>;
+
+export type SpooledWrung = bigint[][][][][][][];
 
 /**
  * Round8 Special Cases Enum
  */
+
 // eslint-disable-next-line no-shadow
 export enum Round8Cases {
   ZERO_CASE = 0,
@@ -20,6 +27,7 @@ export enum Round8Cases {
  * @param buffer - 64-bit BigInt buffer
  * @returns The signed bit (0 or 1) at bit 63 (MSB)
  */
+
 export const getSignedBit = (buffer: bigint): 0 | 1 => {
   // Position 0: The signed bit at bit 63 (MSB)
   // 0x7FFF... has MSB=0 (negative)
@@ -32,6 +40,7 @@ export const getSignedBit = (buffer: bigint): 0 | 1 => {
  * @param buffer - 64-bit BigInt buffer
  * @returns Buffer with flipped signed bit, handling special cases
  */
+
 export const flipSignedBit = (buffer: bigint): bigint => {
   // Special Case 1: POSITIVE_1_CASE (0x8000000000000000) → NEGATIVE_1_CASE (0x7FFFFFFFFFFFFFFF)
   if (buffer === 0x8000000000000000n) {
@@ -42,7 +51,6 @@ export const flipSignedBit = (buffer: bigint): bigint => {
   if (buffer === 0x7FFFFFFFFFFFFFFFn) {
     return 0x8000000000000000n;
   }
-
   // Standard case: Just flip the MSB (bit 63)
   return buffer ^ (1n << 63n);
 };
@@ -53,6 +61,7 @@ export const flipSignedBit = (buffer: bigint): bigint => {
  * @param position - Rotation position (1-21)
  * @returns [startBit, endBit) for the 3-bit rotation
  */
+
 export const getRotationRange = (position: Positions): [number, number] => {
   // Position 1 starts at bit 60, position 2 at bit 57, etc.
   // Formula: startBit = 63 - (position * 3)
@@ -69,6 +78,7 @@ export const getRotationRange = (position: Positions): [number, number] => {
  * @param position - Rotation position (1-21)
  * @returns 3-bit BigInt value for the rotation
  */
+
 export const getRotationByPosition = (buffer: bigint, position: Positions): bigint =>  {
   const range = getRotationRange(position);
   // Extract the 3-bit rotation
@@ -108,7 +118,9 @@ export const mask64Bit = (buffer: bigint): bigint => {
 export const getBinaryRotationRange = (position: Positions): [number, number] => {
   // Position 1 starts at bit 61 (bits 61, 62, 63 = highest 3 bits)
   // Position 2 starts at bit 58, etc.
+
   const startBit = 64 - (position * 3) - 1;
+
   return [startBit, startBit + 3];
 };
 
@@ -123,6 +135,7 @@ export const getBinaryRotationRange = (position: Positions): [number, number] =>
 export const setBinaryRotation = (buffer: bigint, position: Positions, bits: bigint): bigint => {
   const [startBit] = getBinaryRotationRange(position);
   // Clear the 3 bits at position
+
   const clearMask = ~(0b111n << BigInt(startBit));
   const clearedBuffer = buffer & clearMask;
 
@@ -222,6 +235,7 @@ const Round8CaseStore = ((): bigint => {
  * @param caseType - Which special case to retrieve
  * @returns 64-bit BigInt of the requested case
  */
+
 export const getRound8Case = (caseType: Round8Cases): bigint => {
   // Calculate bit offset (each case is 64 bits)
   const offset = BigInt(caseType) * 64n;
@@ -232,6 +246,7 @@ export const getRound8Case = (caseType: Round8Cases): bigint => {
 
 // Position constraints
 export type RegularPosition = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
 export type ShiftedPosition = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 /**
@@ -261,6 +276,7 @@ export const getRegularBitRotation = (position: RegularPosition): [0 | 1, 0 | 1,
  * @param position - Display position 0-7
  * @returns 3-bit tuple representing the display pattern
  */
+
 export const getShiftedBitRotation = (position: ShiftedPosition): [0 | 1, 0 | 1, 0 | 1] => {
   // Get the display store from unified memory
   const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
@@ -282,10 +298,10 @@ export const getShiftedBitRotation = (position: ShiftedPosition): [0 | 1, 0 | 1,
  * getMarqueeDisplay - Get the marquee bit pattern
  * @returns 3-bit tuple [0,0,1] representing the marquee pattern
  */
+
 export const getMarqueeBitRotation = (): [0 | 1, 0 | 1, 0 | 1] => {
   // Get the display store from unified memory
   const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
-
   // Extract marquee bits at position 13-15
   const threeBits = Number((displayStore >> 13n) & 0b111n);
 
@@ -301,11 +317,13 @@ export const getMarqueeBitRotation = (): [0 | 1, 0 | 1, 0 | 1] => {
  * @param position - Display position 1-8
  * @returns 3-bit BigInt value (0n-7n)
  */
+
 export const getRegularRotation = (position: RegularPosition): bigint => {
   // Get the display store from unified memory
   const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
 
   // Calculate bit position: position 1 starts at bit 61, position 8 at bit 40
+
   const startBit = 64 - 3 - ((position - 1) * 3);
 
   // Extract and return masked 3 bits
@@ -332,6 +350,7 @@ export const getShiftedRotation = (position: ShiftedPosition): bigint => {
  * MarqueeRotation - Get is the 3 bit Marquee Value
  * @returns 3-bit BigInt value (should be 0b001n)
  */
+
 export const MarqueeRotation = ((): bigint => {
   // Get the display store from unified memory
   const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
@@ -339,3 +358,74 @@ export const MarqueeRotation = ((): bigint => {
   // Extract and return marquee bits at position 13-15
   return (displayStore >> 13n) & 0b111n;
 })();
+
+/**
+ * ScanCallback - Callback function type for position scanning
+ * @param buffer - The 64-bit bigint buffer being scanned
+ * @param position - Current position (1-21)
+ * @returns true to continue scanning, false to stop
+ */
+
+export type ScanCallback = (buffer: bigint, position: Positions) => boolean;
+
+/**
+ * scanForward - Recursively scan positions from front to back (1 → 21)
+ * Stops when callback returns false or reaches end
+ *
+ * @param buffer - 64-bit bigint buffer to scan
+ * @param callback - Function to call for each position
+ * @param position - Current position (defaults to 1 to start)
+ * @returns The position where scanning stopped, or 0 if completed all positions
+ */
+export const scanForward = (
+  buffer: bigint,
+  callback: ScanCallback,
+  position: Positions = 1
+): Positions | 0 => {
+  // Execute callback for current position
+  const shouldContinue = callback(buffer, position);
+
+  // If callback returns false, stop and return current position
+  if (!shouldContinue) {
+    return position;
+  }
+
+  // If we've reached the last position, return 0 (completed)
+  if (position === 21) {
+    return 0;
+  }
+
+  // Recursively continue to next position
+  return scanForward(buffer, callback, (position + 1) as Positions);
+};
+
+/**
+ * scanBackward - Recursively scan positions from back to front (21 → 1)
+ * Stops when callback returns false or reaches beginning
+ *
+ * @param buffer - 64-bit bigint buffer to scan
+ * @param callback - Function to call for each position
+ * @param position - Current position (defaults to 21 to start)
+ * @returns The position where scanning stopped, or 0 if completed all positions
+ */
+export const scanBackward = (
+  buffer: bigint,
+  callback: ScanCallback,
+  position: Positions = 21
+): Positions | 0 => {
+  // Execute callback for current position
+  const shouldContinue = callback(buffer, position);
+
+  // If callback returns false, stop and return current position
+  if (!shouldContinue) {
+    return position;
+  }
+
+  // If we've reached the first position, return 0 (completed)
+  if (position === 1) {
+    return 0;
+  }
+
+  // Recursively continue to previous position
+  return scanBackward(buffer, callback, (position - 1) as Positions);
+};
