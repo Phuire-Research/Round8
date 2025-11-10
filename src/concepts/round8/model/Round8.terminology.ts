@@ -605,6 +605,31 @@ spool(NumeralSeries, Numerals, spooledNumerals);
 spool(NumeralSeries, StringNumerals, spooledStingNumerals);
 
 /**
+ * getRegularBitRotation - Get the bit tuple for regular positions 1-8
+ * Returns the tuple from NumeralSeries, offset by 1 for indexing
+ * This provides the raw 3-bit tuple representation for regular display positions
+ * @param position - Display position 1-8
+ * @returns The 3-bit tuple [0|1, 0|1, 0|1] for the position
+ */
+export const getRegularBitRotation = (position: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): [0 | 1, 0 | 1, 0 | 1] => {
+  // Offset by 1: position 1 → index 0, position 2 → index 1, etc.
+  return NumeralSeries[position - 1];
+};
+
+/**
+ * getRegularRotation - Get the byte value for regular positions 1-8
+ * Returns the value from Round8Numerals, offset by 1 for indexing
+ * This provides the raw byte value used with applyNumeralRotation
+ * @param position - Display position 1-8
+ * @returns The byte value (0-7) for the position
+ */
+export const getRegularRotation = (position: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): number => {
+  // Offset by 1 and get from Round8Numerals
+  // Position 1 → Round8Numerals[1] = 0, Position 2 → Round8Numerals[2] = 1, etc.
+  return Round8Numerals[position];
+};
+
+/**
  * getRotationValue - Unified accessor for rotation values at any position
  * Zero-allocation: returns number using pre-spooled lookup
  * Two-layer separation: raw bits → interpreted value via spool
