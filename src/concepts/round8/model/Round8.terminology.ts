@@ -19,7 +19,6 @@ export enum Round8Cases {
   POSITIVE_TWIST_CASE = 2,
   NEGATIVE_TWIST_CASE = 3,
   NEGATIVE_1_CASE = 4,
-  DISPLAY_STORE = 5,
 }
 
 export const Round8CasesArray = [
@@ -182,8 +181,8 @@ export const WorkingBigIntBucket = { content: 0n };
  * @returns 64-bit BigInt of the requested case
  */
 export const getRound8Case = (caseType: Round8Cases): bigint => {
-  // Calculate bit offset (each case is 64 bits)
-  const offset = Round8CasesArray[caseType] * 64n;
+  // Get pre-computed bit offset from Round8CasesArray (already in bits, not case numbers)
+  const offset = Round8CasesArray[caseType];
   // Shift and mask to extract the 64-bit case
   return (Round8CaseStore >> offset) & ((1n << 64n) - 1n);
 };
@@ -628,6 +627,48 @@ export const getRegularRotation = (position: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): num
   // Position 1 → Round8Numerals[1] = 0, Position 2 → Round8Numerals[2] = 1, etc.
   return Round8Numerals[position];
 };
+
+/**
+ * getShiftedBitRotation - Get the bit tuple for shifted positions 0-7
+ * Returns the tuple from NumeralSeries with shifted mapping
+ * @param position - Display position 0-7
+ * @returns The 3-bit tuple [0|1, 0|1, 0|1] for the shifted position
+ */
+export const getShiftedBitRotation = (position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7): [0 | 1, 0 | 1, 0 | 1] => {
+  // Shifted mapping: position 7 wraps to index 0, others shift by +1
+  const index = position === 7 ? 0 : position + 1;
+  return NumeralSeries[index];
+};
+
+/**
+ * getShiftedRotation - Get the byte value for shifted positions 0-7
+ * Returns the value from Round8Numerals with shifted mapping
+ * @param position - Display position 0-7
+ * @returns The byte value (0-7) for the shifted position
+ */
+export const getShiftedRotation = (position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7): number => {
+  // Shifted mapping: position 7 → Round8Numerals[1], others → Round8Numerals[position + 2]
+  const index = position === 7 ? 1 : position + 2;
+  return Round8Numerals[index];
+};
+
+/**
+ * getMarqueeBitRotation - Get the bit tuple for the marquee
+ * Returns the marquee tuple from NumeralSeries
+ * @returns The 3-bit tuple [0|1, 0|1, 0|1] for marquee (always [1,0,0])
+ */
+export const getMarqueeBitRotation = (): [0 | 1, 0 | 1, 0 | 1] => {
+  // Marquee is always the value 1, which is at Round8Numerals[0]
+  // This maps to binary 001 → tuple [1,0,0]
+  return extractValueTuple(NumeralStore.Two); // Binary 1n → [1,0,0]
+};
+
+/**
+ * MarqueeRotation - The marquee byte value
+ * Returns the marquee value from Round8Numerals[0]
+ * @returns The marquee value (always 1)
+ */
+export const MarqueeRotation = Round8Numerals[0]; // Always 1
 
 /**
  * getRotationValue - Unified accessor for rotation values at any position
