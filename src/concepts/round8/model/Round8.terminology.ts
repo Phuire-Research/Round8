@@ -22,6 +22,14 @@ export enum Round8Cases {
   DISPLAY_STORE = 5,
 }
 
+export const Round8CasesArray = [
+  BigInt(0) * 64n,
+  BigInt(1) * 64n,
+  BigInt(2) * 64n,
+  BigInt(3) * 64n,
+  BigInt(4) * 64n,
+];
+
 // PRUNED: getSignedBit, flipSignedBit
 // These MSB-based sign functions are replaced by Sign-at-Origin architecture:
 // - Sign bit now at bit 0 (Origin Anchor) instead of bit 63
@@ -99,51 +107,40 @@ export const createTrue64BitBuffer = (): bigint => {
 // - MaskStore/BitOffsetStore (replaces getBinaryRotationRange with pre-computed values)
 
 /**
- * Round8CaseStore - 384-bit BigInt storing all 6 slices
+ * Round8CaseStore - 384-bit BigInt storing all 6 slices (Sign-at-Origin)
  * Each slice occupies 64 bits:
  * - Bits 0-63: ZERO_CASE (all zeros)
- * - Bits 64-127: POSITIVE_1_CASE (first bit 1, rest 0)
- * - Bits 128-191: POSITIVE_TWIST_CASE (first bit 1, next 60 bits 1, last 3 bits 0)
- * - Bits 192-255: NEGATIVE_TWIST_CASE (first bit 0, next 60 bits 1, last 3 bits 0)
- * - Bits 256-319: NEGATIVE_1_CASE (first bit 0, rest 1s)
+ * - Bits 64-127: POSITIVE_1_CASE (sign bit at origin = 1, all position bits = 0)
+ * - Bits 128-191: POSITIVE_TWIST_CASE (sign = 1, positions 1-20 = all 111, position 21 = 000)
+ * - Bits 192-255: NEGATIVE_TWIST_CASE (sign = 0, all positions = 000)
+ * - Bits 256-319: NEGATIVE_1_CASE (sign bit at origin = 0, all position bits = 1)
  * - Bits 320-383: DISPLAY_STORE (display mappings + marquee)
  */
 const Round8CaseStore = ((): bigint => {
   let store = 0n;
+
+  // SIGN-AT-ORIGIN SPECIAL CASES
+  // Sign bit is at bit 0 (origin), positions extend upward
+
   // ZERO_CASE at bits 0-63: all zeros
   const zeroCase = 0n;
-  // POSITIVE_1_CASE at bits 64-127: MSB=1, rest 0
-  const positive1Case = 0x8000000000000000n;
-  // POSITIVE_TWIST_CASE at bits 128-191: MSB=1, next 60 bits=1, last 3 bits=0
-  const positiveTwistCase = 0xfffffffffffffff8n;
-  // NEGATIVE_TWIST_CASE at bits 192-255: MSB=0, next 60 bits=1, last 3 bits=0
-  const negativeTwistCase = 0x7ffffffffffffff8n;
-  // NEGATIVE_1_CASE at bits 256-319: MSB=0, rest all 1s
-  const negative1Case = 0x7fffffffffffffffn;
+
+  // POSITIVE_1_CASE at bits 64-127: Sign bit (bit 0) = 1, all position bits = 0
+  const positive1Case = 0x1n;  // Just the sign bit set at origin
+
+  // POSITIVE_TWIST_CASE at bits 128-191:
+  // Sign bit = 1, P21 (bits 61-63) = 000, P1-P20 (bits 1-60) = all 111
+  const positiveTwistCase = 0x1fffffffffffffffn;  // Sign=1, positions 1-20 all 1s, position 21 = 000
+
+  // NEGATIVE_TWIST_CASE at bits 192-255:
+  // Sign bit = 0, P21 = 000, all other positions = 000
+  const negativeTwistCase = 0x0n;  // All zeros (sign=0, all positions=000)
+
+  // NEGATIVE_1_CASE at bits 256-319:
+  // Sign bit (bit 0) = 0, all position bits = 1
+  const negative1Case = 0xfffffffffffffffen;  // All 1s except bit 0
+
   // DISPLAY_STORE at bits 320-383: display mappings + marquee
-  let displayStore = 0n;
-
-  // Regular Display mappings (positions 1-8) at bits 40-63 of this 64-bit slice
-  displayStore |= 0b000n << 61n; // Position 1 → '0,0,0'
-  displayStore |= 0b001n << 58n; // Position 2 → '0,0,1'
-  displayStore |= 0b010n << 55n; // Position 3 → '0,1,0'
-  displayStore |= 0b011n << 52n; // Position 4 → '0,1,1'
-  displayStore |= 0b100n << 49n; // Position 5 → '1,0,0'
-  displayStore |= 0b101n << 46n; // Position 6 → '1,0,1'
-  displayStore |= 0b110n << 43n; // Position 7 → '1,1,0'
-  displayStore |= 0b111n << 40n; // Position 8 → '1,1,1'
-  // Shifted Display mappings (positions 0-7) at bits 16-39
-  displayStore |= 0b001n << 37n; // Position 0 → '0,0,1'
-  displayStore |= 0b010n << 34n; // Position 1 → '0,1,0'
-  displayStore |= 0b011n << 31n; // Position 2 → '0,1,1'
-  displayStore |= 0b100n << 28n; // Position 3 → '1,0,0'
-  displayStore |= 0b101n << 25n; // Position 4 → '1,0,1'
-  displayStore |= 0b110n << 22n; // Position 5 → '1,1,0'
-  displayStore |= 0b111n << 19n; // Position 6 → '1,1,1'
-  displayStore |= 0b000n << 16n; // Position 7 → '0,0,0'
-
-  // Marquee bit pattern at bits 13-15: '001'
-  displayStore |= 0b001n << 13n;
 
   // Stack them into the 384-bit store
   store |= zeroCase; // Bits 0-63
@@ -151,7 +148,6 @@ const Round8CaseStore = ((): bigint => {
   store |= positiveTwistCase << 128n; // Bits 128-191
   store |= negativeTwistCase << 192n; // Bits 192-255
   store |= negative1Case << 256n; // Bits 256-319
-  store |= displayStore << 320n; // Bits 320-383
 
   return store;
 })();
@@ -187,7 +183,7 @@ export const WorkingBigIntBucket = { content: 0n };
  */
 export const getRound8Case = (caseType: Round8Cases): bigint => {
   // Calculate bit offset (each case is 64 bits)
-  const offset = BigInt(caseType) * 64n;
+  const offset = Round8CasesArray[caseType] * 64n;
   // Shift and mask to extract the 64-bit case
   return (Round8CaseStore >> offset) & ((1n << 64n) - 1n);
 };
