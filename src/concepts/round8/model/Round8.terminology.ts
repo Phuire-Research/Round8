@@ -11,6 +11,7 @@ export type SpooledWrung = bigint[][][][][][][];
 /**
  * Round8 Special Cases Enum
  */
+
 // eslint-disable-next-line no-shadow
 export enum Round8Cases {
   ZERO_CASE = 0,
@@ -21,60 +22,60 @@ export enum Round8Cases {
   DISPLAY_STORE = 5,
 }
 
+// PRUNED: getSignedBit, flipSignedBit
+// These MSB-based sign functions are replaced by Sign-at-Origin architecture:
+// - Sign bit now at bit 0 (Origin Anchor) instead of bit 63
+// - Use MaskStore.SIGN for sign operations
+// - See getSignBit, clearSignBit, setSignBit for new implementation
+
 /**
- * getSignedBit - Get the signed bit (position 0) from a 64-bit buffer
- * @param buffer - 64-bit BigInt buffer
- * @returns The signed bit (0 or 1) at bit 63 (MSB)
+ * getSignBit - Get the sign bit from position 0 (Origin Anchor)
+ * Zero-allocation: uses pre-computed MaskStore.SIGN
+ * @param buffer - BigInt buffer
+ * @returns The sign bit (0 or 1) at bit 0
  */
-export const getSignedBit = (buffer: bigint): 0 | 1 => {
-  // Position 0: The signed bit at bit 63 (MSB)
-  // 0x7FFF... has MSB=0 (negative)
-  // 0xFFFF... has MSB=1 (positive)
-  return ((buffer >> 63n) & 1n) === 1n ? 1 : 0;
+
+export const getSignBit = (buffer: bigint): 0 | 1 => {
+  // Sign at Origin (bit 0) - the eternal anchor
+  return (buffer & MaskStore.SIGN) === 1n ? 1 : 0;
 };
 
 /**
- * flipSignedBit - Flip the signed bit with special case handling
- * @param buffer - 64-bit BigInt buffer
- * @returns Buffer with flipped signed bit, handling special cases
+ * clearSignBit - Clear the sign bit at position 0
+ * Zero-allocation: uses pre-computed ClearMaskStore.SIGN
+ * @param buffer - BigInt buffer
+ * @returns Buffer with sign bit cleared (set to 0)
  */
-export const flipSignedBit = (buffer: bigint): bigint => {
-  // Special Case 1: POSITIVE_1_CASE (0x8000000000000000) → NEGATIVE_1_CASE (0x7FFFFFFFFFFFFFFF)
-  if (buffer === 0x8000000000000000n) {
-    return 0x7fffffffffffffffn;
-  }
-  // Special Case 2: NEGATIVE_1_CASE (0x7FFFFFFFFFFFFFFF) → POSITIVE_1_CASE (0x8000000000000000)
-  if (buffer === 0x7fffffffffffffffn) {
-    return 0x8000000000000000n;
-  }
-  // Standard case: Just flip the MSB (bit 63)
-  return buffer ^ (1n << 63n);
+export const clearSignBit = (buffer: bigint): bigint => {
+  return buffer & ClearMaskStore.SIGN;
 };
 
 /**
- * getRotationRange - Get bit position range for 3-bit rotations (positions 1-21)
- * Position 0 (signed bit) is pruned and handled by getSignedBit
- * @param position - Rotation position (1-21)
- * @returns [startBit, endBit) for the 3-bit rotation
+ * setSignBit - Set the sign bit at position 0
+ * Zero-allocation: uses pre-computed MaskStore.SIGN
+ * @param buffer - BigInt buffer
+ * @returns Buffer with sign bit set (set to 1)
  */
-export const getRotationRange = (position: Positions): [number, number] => {
-  // Position 1 starts at bit 60, position 2 at bit 57, etc.
-  // Formula: startBit = 63 - (position * 3)
-  const startBit = 63 - position * 3;
-  return [startBit, startBit + 3];
+export const setSignBit = (buffer: bigint): bigint => {
+  return buffer | MaskStore.SIGN;
 };
 
 /**
- * getRotationByPosition - Get rotation bits from a 64-bit buffer
- * @param buffer - 64-bit BigInt buffer
- * @param position - Rotation position (1-21)
- * @returns 3-bit BigInt value for the rotation
+ * flipSignBit - Flip the sign bit at position 0
+ * Zero-allocation: uses XOR with pre-computed MaskStore.SIGN
+ * @param buffer - BigInt buffer
+ * @returns Buffer with sign bit flipped
  */
-export const getRotationByPosition = (buffer: bigint, position: Positions): bigint => {
-  const range = getRotationRange(position);
-  // Extract the 3-bit rotation
-  return (buffer >> BigInt(range[0])) & 0b111n;
+
+export const flipSignBit = (buffer: bigint): bigint => {
+  return buffer ^ MaskStore.SIGN;
 };
+
+// PRUNED: getRotationRange, getRotationByPosition
+// These runtime calculation functions are replaced by pre-computed stores:
+// - BitOffsetStore contains pre-computed bit offsets
+// - MaskStore contains pre-computed position masks
+// - extractBitTuple provides unified position access
 
 /**
  * True64BitBuffer - Creates actual 64-bit binary storage using BigInt
@@ -85,61 +86,17 @@ export const createTrue64BitBuffer = (): bigint => {
   return 0n;
 };
 
-/**
- * Mask64Bit - Returns only the lower 64 bits from any BigInt buffer
- * Ensures binary operations stay within 64-bit boundary
- * @param buffer - BigInt of any size
- * @returns BigInt masked to 64 bits
- */
-export const mask64Bit = (buffer: bigint): bigint => {
-  // 64 bits of all 1s: 0xFFFFFFFFFFFFFFFF
-  const MASK_64 = (1n << 64n) - 1n;
-  return buffer & MASK_64;
-};
+// PRUNED: mask64Bit
+// This runtime mask creation is replaced by pre-computed masks:
+// - MaskStore contains all position masks
+// - ClearMaskStore contains inverted masks
+// - No need for runtime mask generation
 
-/**
- * getBinaryRotationRange - Get bit position range for a rotation
- * Position 1 = signed bit (bit 63), then 20 rotations of 3 bits each
- * @param position - Rotation position (1-21)
- * @returns [startBit, endBit] for the rotation
- */
-export const getBinaryRotationRange = (position: Positions): [number, number] => {
-  // Position 1 starts at bit 61 (bits 61, 62, 63 = highest 3 bits)
-  // Position 2 starts at bit 58, etc.
-  const startBit = 64 - position * 3 - 1;
-  return [startBit, startBit + 3];
-};
-
-/**
- * setBinaryRotation - Set 3 bits at a specific rotation position
- * @param buffer - 64-bit BigInt buffer
- * @param position - Rotation position (1-21)
- * @param bits - 3-bit BigInt value (e.g. 0b111n)
- * @returns Updated 64-bit buffer
- */
-export const setBinaryRotation = (buffer: bigint, position: Positions, bits: bigint): bigint => {
-  const [startBit] = getBinaryRotationRange(position);
-  // Clear the 3 bits at position
-  const clearMask = ~(0b111n << BigInt(startBit));
-  const clearedBuffer = buffer & clearMask;
-  // Set the new 3 bits (mask input to ensure only 3 bits)
-  const setBits = (bits & 0b111n) << BigInt(startBit);
-  return mask64Bit(clearedBuffer | setBits);
-};
-
-/**
- * getBinaryRotation - Get 3 bits from a specific rotation position as tuple
- * @param buffer - 64-bit BigInt buffer
- * @param position - Rotation position (1-21)
- * @returns Tuple of 3 individual bits [bit0, bit1, bit2]
- */
-export const getBinaryRotation = (buffer: bigint, position: Positions): [0 | 1, 0 | 1, 0 | 1] => {
-  const [startBit] = getBinaryRotationRange(position);
-  // Extract the 3 bits
-  const threeBits = Number((buffer >> BigInt(startBit)) & 0b111n);
-  // Return as tuple of individual bits
-  return [(threeBits & 0b001) as 0 | 1, ((threeBits >> 1) & 0b001) as 0 | 1, ((threeBits >> 2) & 0b001) as 0 | 1];
-};
+// PRUNED: getBinaryRotationRange, setBinaryRotation, getBinaryRotation
+// These functions were replaced by Sign-at-Origin architecture:
+// - extractBitTuple (replaces getBinaryRotation with zero-allocation)
+// - applyNumeralRotation (replaces setBinaryRotation with Clear/Set pattern)
+// - MaskStore/BitOffsetStore (replaces getBinaryRotationRange with pre-computed values)
 
 /**
  * Round8CaseStore - 384-bit BigInt storing all 6 slices
@@ -165,6 +122,7 @@ const Round8CaseStore = ((): bigint => {
   const negative1Case = 0x7fffffffffffffffn;
   // DISPLAY_STORE at bits 320-383: display mappings + marquee
   let displayStore = 0n;
+
   // Regular Display mappings (positions 1-8) at bits 40-63 of this 64-bit slice
   displayStore |= 0b000n << 61n; // Position 1 → '0,0,0'
   displayStore |= 0b001n << 58n; // Position 2 → '0,0,1'
@@ -183,8 +141,10 @@ const Round8CaseStore = ((): bigint => {
   displayStore |= 0b110n << 22n; // Position 5 → '1,1,0'
   displayStore |= 0b111n << 19n; // Position 6 → '1,1,1'
   displayStore |= 0b000n << 16n; // Position 7 → '0,0,0'
+
   // Marquee bit pattern at bits 13-15: '001'
   displayStore |= 0b001n << 13n;
+
   // Stack them into the 384-bit store
   store |= zeroCase; // Bits 0-63
   store |= positive1Case << 64n; // Bits 64-127
@@ -192,6 +152,7 @@ const Round8CaseStore = ((): bigint => {
   store |= negativeTwistCase << 192n; // Bits 192-255
   store |= negative1Case << 256n; // Bits 256-319
   store |= displayStore << 320n; // Bits 320-383
+
   return store;
 })();
 
@@ -199,6 +160,7 @@ const Round8CaseStore = ((): bigint => {
  * Round8Numerals - Singleton Uint8Array for memory-optimized value storage
  * Total: 9 bytes for all numeral values
  */
+
 export const Round8Numerals = Uint8Array.from([
   1, // [0] Marquee: Displays as 1
   0, // [1] Round8 1: Regular value 0
@@ -215,6 +177,7 @@ export const Round8Numerals = Uint8Array.from([
  * WorkingBigIntBucket - Singleton BigInt container for operations
  * NO CLEARING NEEDED: Shift-and-mask ensures isolation
  */
+
 export const WorkingBigIntBucket = { content: 0n };
 
 /**
@@ -231,94 +194,27 @@ export const getRound8Case = (caseType: Round8Cases): bigint => {
 
 // Position constraints
 export type RegularPosition = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
 export type ShiftedPosition = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
-/**
- * getRegularDisplay - Get 3-bit display pattern for regular position (1-8)
- * @param position - Display position 1-8
- * @returns 3-bit tuple representing the display pattern
- */
-export const getRegularBitRotation = (position: RegularPosition): [0 | 1, 0 | 1, 0 | 1] => {
-  // Get the display store from unified memory
-  const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
-  // Calculate bit position: position 1 starts at bit 61, position 8 at bit 40
-  const startBit = 64 - 3 - (position - 1) * 3;
-  // Extract 3 bits
-  const threeBits = Number((displayStore >> BigInt(startBit)) & 0b111n);
-  return [(threeBits & 0b001) as 0 | 1, ((threeBits >> 1) & 0b001) as 0 | 1, ((threeBits >> 2) & 0b001) as 0 | 1];
-};
+// PRUNED: getRegularBitRotation, getShiftedBitRotation, getMarqueeBitRotation
+// These display-specific functions are replaced by unified access:
+// - extractBitTuple provides raw bit extraction for any position
+// - Round8Numerals provides value interpretation
+// - Two-layer separation: raw bits (Layer 1) vs interpreted values (Layer 2)
 
-/**
- * getShiftedDisplay - Get 3-bit display pattern for shifted position (0-7)
- * @param position - Display position 0-7
- * @returns 3-bit tuple representing the display pattern
- */
-export const getShiftedBitRotation = (position: ShiftedPosition): [0 | 1, 0 | 1, 0 | 1] => {
-  // Get the display store from unified memory
-  const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
-  // Calculate bit position: position 0 starts at bit 37, position 7 at bit 16
-  const startBit = 40 - 3 - position * 3;
-  // Extract 3 bits
-  const threeBits = Number((displayStore >> BigInt(startBit)) & 0b111n);
-  return [(threeBits & 0b001) as 0 | 1, ((threeBits >> 1) & 0b001) as 0 | 1, ((threeBits >> 2) & 0b001) as 0 | 1];
-};
-
-/**
- * getMarqueeDisplay - Get the marquee bit pattern
- * @returns 3-bit tuple [0,0,1] representing the marquee pattern
- */
-export const getMarqueeBitRotation = (): [0 | 1, 0 | 1, 0 | 1] => {
-  // Get the display store from unified memory
-  const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
-  // Extract marquee bits at position 13-15
-  const threeBits = Number((displayStore >> 13n) & 0b111n);
-  return [(threeBits & 0b001) as 0 | 1, ((threeBits >> 1) & 0b001) as 0 | 1, ((threeBits >> 2) & 0b001) as 0 | 1];
-};
-
-/**
- * getRegularRotation - Get masked 3-bit value for regular position (1-8)
- * @param position - Display position 1-8
- * @returns 3-bit BigInt value (0n-7n)
- */
-export const getRegularRotation = (position: RegularPosition): bigint => {
-  // Get the display store from unified memory
-  const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
-  // Calculate bit position: position 1 starts at bit 61, position 8 at bit 40
-  const startBit = 64 - 3 - (position - 1) * 3;
-  // Extract and return masked 3 bits
-  return (displayStore >> BigInt(startBit)) & 0b111n;
-};
-
-/**
- * getShiftedRotation - Get masked 3-bit value for shifted position (0-7)
- * @param position - Display position 0-7
- * @returns 3-bit BigInt value (0n-7n)
- */
-export const getShiftedRotation = (position: ShiftedPosition): bigint => {
-  // Get the display store from unified memory
-  const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
-  // Calculate bit position: position 0 starts at bit 37, position 7 at bit 16
-  const startBit = 40 - 3 - position * 3;
-  // Extract and return masked 3 bits
-  return (displayStore >> BigInt(startBit)) & 0b111n;
-};
-
-/**
- * MarqueeRotation - Get is the 3 bit Marquee Value
- * @returns 3-bit BigInt value (should be 0b001n)
- */
-export const MarqueeRotation = ((): bigint => {
-  // Get the display store from unified memory
-  const displayStore = getRound8Case(Round8Cases.DISPLAY_STORE);
-  // Extract and return marquee bits at position 13-15
-  return (displayStore >> 13n) & 0b111n;
-})();
+// PRUNED: getRegularRotation, getShiftedRotation, MarqueeRotation
+// These BigInt-returning functions are replaced by zero-allocation pattern:
+// - extractBitTuple returns raw bits without BigInt allocation
+// - getRotationValue provides unified access returning numbers
+// - Round8Numerals[0] contains the Marquee value (1)
 
 /**
  * MaskStore - Round8 Clear/Set Architecture
  * Sign bit FIXED at bit 0 (Origin Anchor)
  * Positions expand UPWARD without repositioning
  */
+
 export const MaskStore = {
   SIGN: 1n << 0n, // Sign bit: bit 0 (ORIGIN ANCHOR - NEVER MOVES)
   P1: 0b111n << 1n, // Position 1: bits 1-3
@@ -408,6 +304,7 @@ export const BitOffsetStore = {
  * @param position - Position 1-21
  * @returns BigInt offset from BitOffsetStore (no runtime creation!)
  */
+
 // eslint-disable-next-line complexity
 export const getBitOffsetForPosition = (position: Positions): bigint => {
   switch (position) {
@@ -463,6 +360,7 @@ export const getBitOffsetForPosition = (position: Positions): bigint => {
  * @param position - Position 1-21
  * @returns 3-bit mask at correct position from MaskStore
  */
+
 // eslint-disable-next-line complexity
 export const getBitWiseMaskForPosition = (position: Positions): bigint => {
   // Use verbose position lookup
@@ -523,12 +421,16 @@ export const getBitWiseMaskForPosition = (position: Positions): bigint => {
  * @param position - Position (1-21) to extract bits from
  * @returns Tuple of three RAW bits (not Round8 interpreted values)
  */
+
 export const extractBitTuple = (buffer: bigint, position: Positions): [0 | 1, 0 | 1, 0 | 1] => {
   // Get pre-computed mask and offset (no runtime BigInt creation!)
   const mask = getBitWiseMaskForPosition(position);
+
   const bitOffset = getBitOffsetForPosition(position);
+
   // Extract the 3 bits using mask and shift back to origin
   const threeBits = Number((buffer & mask) >> bitOffset);
+
   // Return as tuple of RAW bits (Layer 1: positional bits)
   // Layer 2 (Round8Numerals) or Layer 3 (ScrambleMap) handle interpretation
   return [
@@ -543,6 +445,7 @@ export const extractBitTuple = (buffer: bigint, position: Positions): [0 | 1, 0 
  * @param position - Position 1-21
  * @returns Clear mask from ClearMaskStore (inverted position mask)
  */
+
 // eslint-disable-next-line complexity
 export const getClearMaskForPosition = (position: Positions): bigint => {
   switch (position) {
@@ -593,16 +496,149 @@ export const getClearMaskForPosition = (position: Positions): bigint => {
   }
 };
 
+/**
+ * setNumeralProperty - Maps Round8 display values (1-8) to binary values (0-7)
+ * This enables the relative mapping: Round8 "1" = binary 0, Round8 "8" = binary 7
+ * @param number - Round8 display value (1-8)
+ * @returns BigInt binary value (0n-7n)
+ */
+const setNumeralProperty = (number: number): bigint => {
+  // Round8 display values are shifted by 1 from binary
+  // Round8 "1" (display) = 0 (binary value 0)
+  // Round8 "2" (display) = 1 (binary value 1)
+  // ... through Round8 "8" (display) = 7 (binary value 7)
+  switch (number) {
+  case 0: return 0n;
+  case 1: return 1n;
+  case 2: return 2n;
+  case 3: return 3n;
+  case 4: return 4n;
+  case 5: return 5n;
+  case 6: return 6n;
+  case 7: return 7n;
+  default: {
+    throw 'CRITICAL RANGE SET NUMBER ERROR';
+  }
+  }
+};
+
+/**
+ * extractValueTuple - Extract 3-bit tuple from a value itself (not from buffer position)
+ * This enables spool creation from standalone BigInt values
+ * @param value - BigInt value (0n-7n) to convert to tuple
+ * @returns Tuple of three bits representing the value
+ */
+const extractValueTuple = (value: bigint): [0 | 1, 0 | 1, 0 | 1] => {
+  // Direct extraction from value (no position needed)
+  const bits = Number(value & 0b111n);
+  return [
+    (bits & 0b001) as 0 | 1,        // Bit 0 (LSB)
+    ((bits >> 1) & 0b001) as 0 | 1, // Bit 1
+    ((bits >> 2) & 0b001) as 0 | 1  // Bit 2 (MSB)
+  ];
+};
+
 export const NumeralStore = {
-  One: 0n,
-  Two: 1n,
-  Three: 2n,
-  Four: 3n,
-  Five: 4n,
-  Six: 5n,
-  Seven: 6n,
-  Eight: 7n,
+  One: setNumeralProperty(Round8Numerals[1]),
+  Two: setNumeralProperty(Round8Numerals[2]),
+  Three: setNumeralProperty(Round8Numerals[3]),
+  Four: setNumeralProperty(Round8Numerals[4]),
+  Five: setNumeralProperty(Round8Numerals[5]),
+  Six: setNumeralProperty(Round8Numerals[6]),
+  Seven: setNumeralProperty(Round8Numerals[7]),
+  Eight: setNumeralProperty(Round8Numerals[8]),
 } as const;
+
+const NumeralSeries = [
+  extractValueTuple(NumeralStore.One),   // Binary 0n → [0,0,0]
+  extractValueTuple(NumeralStore.Two),   // Binary 1n → [1,0,0]
+  extractValueTuple(NumeralStore.Three), // Binary 2n → [0,1,0]
+  extractValueTuple(NumeralStore.Four),  // Binary 3n → [1,1,0]
+  extractValueTuple(NumeralStore.Five),  // Binary 4n → [0,0,1]
+  extractValueTuple(NumeralStore.Six),   // Binary 5n → [1,0,1]
+  extractValueTuple(NumeralStore.Seven), // Binary 6n → [0,1,1]
+  extractValueTuple(NumeralStore.Eight), // Binary 7n → [1,1,1]
+];
+const Numerals = [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8
+];
+
+const StringNumerals = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8'
+];
+
+export const initializeSpooledWrung = <T extends number | string>() => {
+  const arr:  T[][][] = [];
+  for (let i = 0; i < 2; i++) {
+    arr[i] = [];
+    for (let j = 0; j < 2; j++) {
+      arr[i][j] = [];
+    }
+  }
+  return arr;
+};
+
+const spooledNumerals = initializeSpooledWrung<number>();
+const spooledStingNumerals = initializeSpooledWrung<string>();
+
+const spool = <T>(informativeSeries: [0 | 1, 0 | 1, 0 | 1][], baseSeries: T[], spooled: T[][][]) => {
+  informativeSeries.forEach((informative, i) => {
+    const one = informative[0];
+    const two = informative[1];
+    const three = informative[2];
+    const value = baseSeries[i];
+    spooled[one][two][three] = value;
+  });
+};
+
+spool(NumeralSeries, Numerals, spooledNumerals);
+spool(NumeralSeries, StringNumerals, spooledStingNumerals);
+
+/**
+ * getRotationValue - Unified accessor for rotation values at any position
+ * Zero-allocation: returns number using pre-spooled lookup
+ * Two-layer separation: raw bits → interpreted value via spool
+ * @param buffer - BigInt buffer to read from
+ * @param position - Position (1-21) to extract value from
+ * @returns Number value (1-8) from spooled Round8 interpretation
+ */
+export const getRotationValue = (buffer: bigint, position: Positions): number => {
+  // Layer 1: Extract raw bits
+  const [b0, b1, b2] = extractBitTuple(buffer, position);
+
+  // Layer 2: Direct spool lookup (zero allocation!)
+  // The 3-bit tuple directly indexes into our 3D spool
+  return spooledNumerals[b0][b1][b2];
+};
+
+/**
+ * getRotationString - Unified accessor for string rotation values
+ * Zero-allocation: returns string using pre-spooled lookup
+ * @param buffer - BigInt buffer to read from
+ * @param position - Position (1-21) to extract value from
+ * @returns String value ('1'-'8') from spooled Round8 interpretation
+ */
+export const getRotationString = (buffer: bigint, position: Positions): string => {
+  // Layer 1: Extract raw bits
+  const [b0, b1, b2] = extractBitTuple(buffer, position);
+
+  // Layer 2: Direct spool lookup for strings
+  return spooledStingNumerals[b0][b1][b2];
+};
 
 /**
  * applyNumeralRotation - Clear and Set function for applying numeral values
@@ -656,10 +692,13 @@ export const applyNumeralRotation = (value: number, buffer: bigint, position: Po
     throw 'CRITICAL';
   }
   }
+
   WorkingBigIntBucket.content = finalValue;
+
   // Get pre-computed clear mask and bit offset (no runtime BigInt!)
   const clearMask = getClearMaskForPosition(position);
   const bitOffset = getBitOffsetForPosition(position);
+
   // Shift value to position using pre-computed offset
   WorkingBigIntBucket.content <<= bitOffset;
   // Clear position bits, then apply new value (Clear and Set operation)
@@ -672,6 +711,7 @@ export const applyNumeralRotation = (value: number, buffer: bigint, position: Po
  * @param position - Current position (1-21)
  * @returns true to continue scanning, false to stop
  */
+
 export type ScanCallback = (buffer: bigint, position: Positions) => boolean;
 
 /**
@@ -682,6 +722,7 @@ export type ScanCallback = (buffer: bigint, position: Positions) => boolean;
  * @param position - Current position (defaults to 1 to start)
  * @returns The position where scanning stopped, or 0 if completed all positions
  */
+
 export const scanForward = (
   buffer: bigint,
   callback: ScanCallback,
@@ -693,10 +734,12 @@ export const scanForward = (
   if (!shouldContinue) {
     return position;
   }
+
   // If we've reached the last position, return 0 (completed)
   if (position === 21) {
     return 0;
   }
+
   // Recursively continue to next position
   return scanForward(buffer, callback, (position + 1) as Positions);
 };
@@ -709,6 +752,7 @@ export const scanForward = (
  * @param position - Current position (defaults to 21 to start)
  * @returns The position where scanning stopped, or 0 if completed all positions
  */
+
 export const scanBackward = (
   buffer: bigint,
   callback: ScanCallback,
@@ -720,10 +764,12 @@ export const scanBackward = (
   if (!shouldContinue) {
     return position;
   }
+
   // If we've reached the first position, return 0 (completed)
   if (position === 1) {
     return 0;
   }
+
   // Recursively continue to previous position
   return scanBackward(buffer, callback, (position - 1) as Positions);
 };
