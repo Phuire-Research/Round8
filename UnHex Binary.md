@@ -11,23 +11,31 @@
 6,88,88: Count of 29256 Decimal
 7,88,88: Count of 33352 Decimal
 8,88,88: Count of 37448 Decimal - Total Length of 32768 Decimal
-1,88,88: Count of 70216 <- Round8 Surpasses Hex Binary
+1,88,88: Count of 70216 <- Round8 Surpasses Hex Binary ~7%
 
-Round8
-111 , 111 111 , 111 111 15 Bits @ 37448 Decimal
+How does Round8 Beat Hex at 16bits?
+Keep in frame our Columnar Marquee System:
+```
+Round8 UnHex Binary
+0 000 000 000 001 111 = 8
+0 000 000 001 111 111 = 88
+0 000 001 111 111 111 = 8,88
+0 001 111 111 111 111 = 8,88,88
+1 111 111 001 111 111 = 18,88,88 | Count of 70216
+```
 
-1, 111 , 111 111 , 111 111 16<N>15 Bits @ 70216 Decimal
-
-Using 3 bits to represent 8 Counts (1-8, not 0-7), each Round8 Bit is 2.67~ Digits. Where at 16<N>15 bits Round8 breaks 70216 where N is 1,88,88 Round8. We are still under the 16bit digit representation of Hex within the Same Range.
+Why is the 16bit so important? Every internet pack would carry 7% More Data. Every 16bit operation would be 7% more efficient.
 
 Thus within this Framing. We have enough room to Call Victor to Round8 for any Information Equal to or Greater than 16bits. Where we begin at the floor with a Ridiculous 7% More Digits Represented in Binary than Hex.
-
+```
 Hexed Binary
 1111 1111 , 1111 1111 16 bits @ 65,536
 1111 , 1111 1111 , 1111 1111 20bits @ 1,048,576
 1111 1111 , 1111 1111 , 1111 1111 24bits @ 16,777,216
+```
+Then note the Major Success that Stratimux brings to the Table via the Study of Abstractions and their Underlying Manifolds. Enables the creation of "Bidirectional Higher Ordered Look Up Tables," or simply Manifold Spools enable the Relative Position of Bits for Increased Combinations. And Immunity from Shor's Factorization Attack on Binary Operands. So Counter Intuitively, where people would actually Fail to Understand this Paradigm Shift. Is the Exact Point this Paradigm shift is Quantum Proof by a Measure of Current Techniques.
 
-Then note the Major Success that Stratimux brings to the Table via the Study of Abstractions and their Underlying Manifolds. Enables the creation of "Bidirectional Higher Ordered Look Up Tables" enabling the Relative Position of Bits for Increased Combinations. And Immunity from Shor's Factorization Attack on Binary Operands. So Counter Intuitively, where people would Fail to Understand this Paradigm Shift. Is where this Paradigm shift is Quantum Proof by a Measure of Current Techniques.
+The Issue Here. Is that Prior to 16bits the System is not as Efficient as Hexed Binary, but after **16bits...**
 
 What was Once in Civilization, a **Y2K** is at our doorstep *Once Again.*
 

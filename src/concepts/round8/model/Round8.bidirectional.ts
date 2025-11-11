@@ -1,481 +1,443 @@
 /**
- * Round8 Bidirectional Conference - Marquee Position Validity Detection
+ * Round8 Bidirectional Conference - Zero-Allocation Marquee Detection
  *
- * Determines the first valid counting position and Marquee state for Round8 buffers.
- * Implements the Bidirectional Marquee Approach with position holding logic.
+ * Renewed architecture using Sign-at-Origin with bigint buffers.
+ * Determines first valid counting position and Marquee state for Round8 buffers.
+ * Implements Bidirectional Marquee Approach with provable halting recursion.
+ *
+ * Key Innovations:
+ * - Zero-allocation: Uses extractBitTuple and scanDownward composition
+ * - Sign-at-Origin: Sign bit at bit 0, positions extend upward
+ * - Strike-through sweep: Optimized detection with configurable array
+ * - Tuple returns: Single sign check, dual information
  */
 
+import {
+  extractBitTuple,
+  getSignBit,
+  scanDownward,
+  getRotationValue,
+  type Positions,
+  MARQUEE_TUPLE
+} from './Round8.terminology';
+
+/**
+ * MarqueeState - Result of BidirectionalConference Marquee detection
+ */
 export type MarqueeState = {
-  /** First valid column for counting (0-20), or -1 for absolute zero */
+  /** First valid position for counting (1-21), or -1 for absolute zero */
   firstValidRotation?: number;
-
-  /** Whether column 0 is in shifted holding state (001) */
+  /** Rotation value at Marquee position */
   marqueeRotation?: number;
-
-  /** Whether column 0 is the final twist case (000 with all others 111) */
+  /** Whether Position 21 is Final Twist (000 with all others 111) */
   isFinalTwist?: boolean;
-
-  /** Whether this buffer represents absolute zero (all positions 000) */
+  /** Whether buffer represents absolute zero (all positions 000) */
   isAbsoluteZero?: boolean;
-
-  /** Whether this buffer represents negative one (maximum negative magnitude - all columns [1,1,1]) */
+  /** Whether buffer represents negative one (all positions 111, sign 0) */
   isNegativeOne?: boolean;
-};
-
-
-/**
- * findFirstNonZeroRotation - Scan forward to find first non-zero rotation
- * Example utility function using scanForward
- *
- * @param buffer - 64-bit bigint buffer to scan
- * @returns Position of first non-zero rotation, or 0 if all zeros
- */
-export const findFirstNonZeroRotation = (buffer: bigint): Positions | 0 => {
-  return scanForward(buffer, (buf, pos) => {
-    const rotation = getRotationByPosition(buf, pos);
-    // Return false (stop) if non-zero found
-    return rotation === 0n;
-  });
+  isNegative?: boolean;
 };
 
 /**
- * findLastNonZeroRotation - Scan backward to find last non-zero rotation
- * Example utility function using scanBackward
+ * NEGATIVE_ONE_STRIKE_SWEEP - Optimized position order for detecting any 0 bit
  *
- * @param buffer - 64-bit bigint buffer to scan
- * @returns Position of last non-zero rotation, or 0 if all zeros
+ * Strike pattern finds most likely variance points first:
+ * - Position 21: Expansion bound, highest complexity, most variation
+ * - Position 1: Near origin, lowest counting position
+ * - Position 11: Middle bisection
+ * - Remaining: Alternating outward from middle (12,10,13,9,14,8...)
+ *
+ * Configurable array allows future optimization without logic rewrite.
+ * Can be tuned based on real-world data to minimize average-case strikes.
+ *
+ * Average Case: 1-3 strikes (positions 21, 1, or 11 most likely to differ)
+ * Worst Case: 21 strikes (all positions must be checked for all-111 confirmation)
  */
-export const findLastNonZeroRotation = (buffer: bigint): Positions | 0 => {
-  return scanBackward(buffer, (buf, pos) => {
-    const rotation = getRotationByPosition(buf, pos);
-    // Return false (stop) if non-zero found
-    return rotation === 0n;
-  });
-};
+const NEGATIVE_ONE_STRIKE_SWEEP: Positions[] = [
+  21, // Strike 1: Highest position (expansion bound, most variation)
+  1,  // Strike 2: Lowest position (near origin)
+  11, // Strike 3: Middle bisection
+  12, 10, // Strikes 4-5: Alternating outward from middle
+  13, 9,  // Strikes 6-7
+  14, 8,  // Strikes 8-9
+  15, 7,  // Strikes 10-11
+  16, 6,  // Strikes 12-13
+  17, 5,  // Strikes 14-15
+  18, 4,  // Strikes 16-17
+  19, 3,  // Strikes 18-19
+  20, 2,  // Strikes 20-21
+];
 
 /**
- * findMarqueePosition - Scan for the Marquee pattern (Display 1)
- * Uses either forward or backward scanning based on preference
+ * detectNegativeOne - Detect maximum negative magnitude with strike-through sweep
  *
- * @param buffer - 64-bit bigint buffer to scan
- * @param fromBack - If true, scan from back; if false, scan from front
- * @returns Position where Marquee found, or 0 if not found
+ * Returns tuple to avoid redundant sign checks in caller:
+ * - [false, false]: Positive sign (not negative)
+ * - [true, false]: Negative sign but has at least one 0 bit (not Negative One)
+ * - [true, true]: Negative sign AND all positions 111 (IS Negative One)
+ *
+ * Uses configurable strike-through sweep for early termination.
+ * Stops immediately when any 0 bit found (average-case optimization).
+ *
+ * Zero-allocation: Uses extractBitTuple with pre-computed masks/offsets.
+ * Compositional: Builds on validated extraction terminology.
+ *
+ * @param buffer - BigInt buffer to check (Sign-at-Origin architecture)
+ * @returns [isNegative, isNegativeOne] tuple
  */
-export const findMarqueePosition = (buffer: bigint, fromBack: boolean = false): Positions | 0 => {
-  const scanFunction = fromBack ? scanBackward : scanForward;
+export const detectNegativeOne = (buffer: bigint): [boolean | undefined, boolean] => {
+  // Single sign check (Sign-at-Origin, bit 0)
+  const signBit = getSignBit(buffer);
 
-  return scanFunction(buffer, (buf, pos) => {
-    const rotation = getRotationByPosition(buf, pos);
-    // Check if this is the Marquee pattern (Display 1 = 0n in regular mapping)
-    if (rotation === getRegularRotation(1)) {
-      return false; // Stop scanning, found it
+  // If positive sign, cannot be negative or Negative One
+  if (signBit === 1) {
+    return [undefined, false];
+  }
+
+  // Sign is negative (0) - now check if ALL positions are 111
+  let foundZeroBit = false;
+
+  // Strike-through sweep: Early termination when any 0 found
+  NEGATIVE_ONE_STRIKE_SWEEP.forEach((position) => {
+    if (foundZeroBit) {return;} // Early exit from forEach (no further checks)
+
+    // Zero-allocation: Use extractBitTuple
+    const [b0, b1, b2] = extractBitTuple(buffer, position);
+
+    // Check if any bit is 0
+    if (b0 === 0 || b1 === 0 || b2 === 0) {
+      foundZeroBit = true;
+      // eslint-disable-next-line consistent-return
+      return; // Early termination (exit current iteration)
     }
-    return true; // Continue scanning
   });
+
+  // If we found any 0 bit: Negative but not Negative One
+  if (foundZeroBit) {
+    return [true, false]; // isNegative=true, isNegativeOne=false
+  }
+
+  // All positions are 111 with negative sign: IS Negative One
+  return [true, true]; // isNegative=true, isNegativeOne=true
 };
 
 /**
- * BidirectionalConference - Determines Marquee validity for a Round8 buffer
+ * detectAbsoluteZero - Detect if all positions are 000
  *
- * Rules for Column 0 (leftmost after sign):
- * 1. If 001: Valid as shifted holding position, count starts here
- * 2. If 000 AND all columns 1-20 are 111: Valid as final twist (maximum boundary)
- * 3. If 000 AND any column 1-20 is NOT 111: Invalid placeholder, skip to next column
- * 4. If 010-111: Valid, count starts here
+ * Uses scanDownward for compositional building on validated terminology.
+ * Early termination when any non-zero bit found.
  *
- * Rules for Columns 1-20:
- * - First non-000 column found (scanning left→right) is the Marquee
- * - All columns from Marquee rightward are valid counting positions
- * - All columns before Marquee are invalid placeholders
+ * Zero-allocation: Uses extractBitTuple and scanDownward recursion.
+ * Provable halting: Scan terminates at Position 1 or when non-zero found.
+ *
+ * @param buffer - BigInt buffer to check (Sign-at-Origin architecture)
+ * @returns true if all 21 positions are 000, false otherwise
+ */
+export const detectAbsoluteZero = (buffer: bigint): boolean => {
+  let allZeros = true;
+
+  // Compositional: Build on validated scanDownward (provable halting recursion)
+  scanDownward(buffer, (buf, pos) => {
+    // Zero-allocation: Use extractBitTuple
+    const [b0, b1, b2] = extractBitTuple(buf, pos);
+
+    // If any bit is non-zero, not absolute zero
+    if (b0 !== 0 || b1 !== 0 || b2 !== 0) {
+      allZeros = false;
+      return false; // Stop scanning (early termination)
+    }
+
+    return true; // Continue scanning downward
+  });
+
+  return allZeros;
+};
+
+/**
+ * BidirectionalConference - Determines Marquee validity for Round8 buffer
+ *
+ * Renewed architecture using zero-allocation with Sign-at-Origin.
+ * Scans downward from Position 21 (expansion bound) toward Position 1 (near origin).
+ *
+ * Marquee Detection Rules:
+ * 1. Position 21 (expansion bound) special handling:
+ *    - 000: Valid ONLY if all other positions 111 (Final Twist case)
+ *    - 001: Valid as Shifted Holding (Marquee delimiter)
+ *    - 010-111: Valid counting position (regular value)
+ *
+ * 2. Positions 1-20: First non-000 found (scanning downward) is Marquee
+ *    - All positions from Marquee downward to Position 1 are valid content
+ *    - All positions above Marquee are invalid placeholders (000 holding states)
+ *
+ * Special Cases:
+ * - Absolute Zero: All positions 000 (firstValidRotation: -1)
+ * - Negative One: All positions 111, sign 0 (firstValidRotation: 1, all valid)
+ * - Final Twist: Position 21 = 000, all others 111 (maximum boundary marker)
  *
  * Position Count Limitation:
  * - We miss ONE positional count to enable this Bidirectional Marquee Approach
- * - Column 0 at 000 is ONLY valid when ALL other columns are 111 (final twist)
- * - Otherwise, column 0 must be 001 or greater to be valid
+ * - Position 21 at 000 is ONLY valid when ALL other positions are 111 (Final Twist)
+ * - Otherwise, Position 21 must be 001 or greater to be valid
  *
- * @param buffer - 64-position Uint8Array (sign + 21 columns × 3 bits)
+ * @param buffer - BigInt buffer (Sign-at-Origin architecture)
  * @returns MarqueeState describing validity and counting boundaries
  */
-// [x] When we Scan from the Front and Sign = 1. The only Possible Valid 000 in First Position is if the Remained are All
-//  1 for our Final Twist Case (Noting we have an early return while iterating through the array and if a 0 is found at
-//  any time we break and it's not the Twist Case). From there if Such is 001 it is the Marquee Position for the Rest
-// of the Count. Otherwise if it is not the Final Twist Case while being 000, it is Invalid. If there is Any Count in
-// 1st Position we Mark it as Valid and Each Remaining Position.
-
-// [x] While still Scanning for Sign at 1, After 1st Position the Rules are Simplier. 000 it is Invalid, if 001 it is a
-// Marquee Case and is the Bounding Position for the Rest of the Count. With the rest of the Rows Valid. Noting that
-// our Marquees at this Point are a Two Step Validation. Once we find our Marquee we have our Delimiter.
-
-// [x] Our Final Case when Iterating through the Array and do not Find a Marquee, is our Last Position that would be
-// Counted Valid Regardless. As our Sign = 1 Marks a 000 as Valid in Last Position. So be Default we will Always be
-// Inferring the Last Positions Spool, so long as the Sign = 1.
-
-const GetColumns = {
-  sign: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(0, 1),
-  first: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(1, 4),
-  second: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(4, 7),
-  third: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(7, 10),
-  fourth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(10, 13),
-  fifth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(13, 16),
-  sixth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(16, 19),
-  seventh: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(19, 22),
-  eighth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(22, 25),
-  ninth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(25, 28),
-  tenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(28, 31),
-  eleventh: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(31, 34),
-  twelfth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(34, 37),
-  thirteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(37, 40),
-  fourteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(40, 43),
-  fifteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(43, 46),
-  sixteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(46, 49),
-  seventeenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(49, 52),
-  eighteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(52, 55),
-  nineteenth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(55, 58),
-  twentieth: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(58, 61),
-  twentyFirst: (buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => buffer.slice(61, 64),
-};
-
-const IterativeGetColumns = [
-  GetColumns.second,
-  GetColumns.third,
-  GetColumns.fourth,
-  GetColumns.fifth,
-  GetColumns.sixth,
-  GetColumns.seventh,
-  GetColumns.eighth,
-  GetColumns.ninth,
-  GetColumns.tenth,
-  GetColumns.eleventh,
-  GetColumns.twelfth,
-  GetColumns.thirteenth,
-  GetColumns.fourteenth,
-  GetColumns.fifteenth,
-  GetColumns.sixteenth,
-  GetColumns.seventeenth,
-  GetColumns.eighteenth,
-  GetColumns.nineteenth,
-  GetColumns.twentieth,
-  GetColumns.twentyFirst,
-];
-
-const countZeroFirstColumn = (buffer: Uint8Array<ArrayBuffer>) => {
-  // Count zeros in column 0 (positions 1, 2, 3)
-  let zeros = 0;
-  if (buffer[1] === 0) {
-    zeros += 1;
-  }
-  if (buffer[2] === 0) {
-    zeros += 1;
-  }
-  if (buffer[3] === 0) {
-    zeros += 1;
-  }
-  return zeros;
-};
-
-const firstColumStringProspection = (str: string): MarqueeState => {
-  console.log('HITTING SINGLE ROTATION CHECK');
-  let base = str;
-  if (str.length >= 21) {
-    if (str.startsWith('-')) {
-      base = str.slice(1);
-    } else if (str.length >= 22) {
-      return {isFinalTwist: true};
-    }
-    if (base.startsWith('7')) {
-      let isFinalTwist = false;
-      const informative = base.slice(1);
-      for (let char of [
-        '1',
-        '2',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7'
-      ]) {
-        if (informative.includes(char)) {
-          isFinalTwist = false;
-          break;
-        }
-      }
-      if (isFinalTwist) {
-        return {isFinalTwist};
-      }
-      return {
-        firstValidRotation: 0
-      };
-    }
-  }
-  return {};
-};
-
-const firstColumnSignedProspection = (buffer: Uint8Array<ArrayBuffer>): MarqueeState => {
-  console.log('CHECK', buffer, buffer[63], buffer[62], buffer[61]);
-  if (
-    // 000 Case 1st Position, Check Next Index for 1
-    buffer[63] === 0 &&
-    buffer[62] === 0 &&
-    buffer[61] === 0
-    && buffer.length >= 4 ) {
-    if (buffer[60] === 1) {
-      for (let i = 60; i > -1; i--) {
-        if (buffer[i] !== 1) {
-          return {
-            firstValidRotation: 0
-          };
-        }
-      }
-      return {
-        isFinalTwist: true
-      };
-    } else {
-      return {};
-    }
-    // Noting why this should be valid is that 000 should only ever exist as valid if there is a 1 next to such not a 001
-  } else if (
-    buffer[1] === 0 &&
-    buffer[2] === 0 &&
-    buffer[3] === 1
-  ) {
-    return {
-      firstValidRotation: 1,
-      marqueeRotation: 0
-    };
-  } else if (
-    countZeroFirstColumn(buffer) !== 3
-  ) {
-    return {
-      firstValidRotation: 0
-    };
-  } else {
-    return {};
-  }
-};
-// eslint-disable-next-line complexity
-// Note this is only Handling our Positive Sign
-export const BidirectionalConference = (buffer: Uint8Array<ArrayBuffer>): MarqueeState => {
-  // FIRST: Check for negative one (maximum negative magnitude)
-  const signedPositive = buffer[0] === 1;
-  if (!signedPositive) {
-    if (detectNegativeOne(buffer)) {
-      return { isNegativeOne: true };
-    }
-  }
-
-  // SECOND: Check for absolute zero (all positions 1-63 are 000)
-  let isAbsoluteZero = true;
-  if (!signedPositive) {
-    for (let i = 1; i < 64; i++) {
-      if (buffer[i] !== 0) {
-        isAbsoluteZero = false;
-        break;
-      }
-    }
-  } else {
-    isAbsoluteZero = false;
-  }
-  if (isAbsoluteZero) {
+export const BidirectionalConference = (buffer: bigint): MarqueeState => {
+  const [m0, m1, m2] = MARQUEE_TUPLE;
+  // Special case: Absolute Zero (all positions 000)
+  if (detectAbsoluteZero(buffer)) {
     return {
       isAbsoluteZero: true,
+      firstValidRotation: 1
     };
   }
 
-  // Handle First Column
-  const firstCasing = firstColumnSignedProspection(buffer);
-
-  // If column 0 is 001: Valid shifted holding position
-  if (Object.keys(firstCasing).length > 0) {
-    return firstCasing;
+  // Special case: Negative One (all positions 111, sign 0)
+  // Uses optimized tuple return (single sign check)
+  const [isNegative, isNegativeOne] = detectNegativeOne(buffer);
+  if (isNegativeOne) {
+    return {
+      isNegativeOne: true,
+      // First Position is the Delimiter. No Additional Positions After.
+      // No Marquee due to our 2nd Column Activation Rule for our Marquee System.
+      firstValidRotation: 1,
+      isNegative
+    };
   }
-  for (const [i, getCol] of IterativeGetColumns.entries()) {
-    const col = getCol(buffer);
-    if (i !== 19) {
-      if (
-        col[0] === 0 &&
-        col[1] === 0 &&
-        col[2] === 1
-      ) {
-        return {
-          firstValidRotation: i + 2,
-          marqueeRotation: i + 1
-        };
+
+  // Normal case: Scan downward from Position 21 toward origin to find Marquee
+  let marqueePosition: number | undefined;
+  let firstValidPosition = -1;
+  let isFinalTwist = false;
+
+  scanDownward(buffer, (buf, pos) => {
+    const [b0, b1, b2] = extractBitTuple(buf, pos);
+
+    if (pos === 21) {
+      // Position 21 special handling (expansion bound)
+      if (b0 === 0 && b1 === 0 && b2 === 0) {
+        // 000 at Position 21: Check if Final Twist (all others 111)
+        let allOthersAre111 = true;
+
+        // Inner scan to verify all other positions are 111
+        scanDownward(buf, (innerBuf, innerPos) => {
+          if (innerPos === 21) {
+            return true; // Skip Position 21 itself
+          }
+
+          const [ib0, ib1, ib2] = extractBitTuple(innerBuf, innerPos);
+          if (!(ib0 === 1 && ib1 === 1 && ib2 === 1)) {
+            allOthersAre111 = false;
+            return false; // Stop inner scan (found non-111)
+          }
+          return true; // Continue inner scan
+        });
+
+        if (allOthersAre111) {
+          // Final Twist case: Position 21 = 000, all others = 111
+          isFinalTwist = true;
+          marqueePosition = 22;
+          firstValidPosition = 21;
+          return false; // Stop outer scan
+        } else {
+          return false; // Stop scanning (Position 21 is not a valid counting position)
+        }
+      } else if (b0 === m0 && b1 === m1 && b2 === m2) {
+        // 001 at Position 21: Shifted Holding (valid Marquee delimiter)
+        marqueePosition = 21;
+        firstValidPosition = 20;
+        return false; // Stop scanning (found Marquee)
+      } else {
+        // Position 21 has valid counting value (010-111)
+        marqueePosition = 22;
+        firstValidPosition = 21;
+        return false; // Stop scanning (found Marquee)
       }
     } else {
-      return {
-        firstValidRotation: 20
-      };
+      // Positions 1-20: Marquee detection with 2nd Column Activation Rule
+      if (!(b0 === 0 && b1 === 0 && b2 === 0)) {
+        // Found non-000 content (this is the first content position, Marquee is conceptually one position up)
+
+        if (pos === 1) {
+          // Position 1 only: No Marquee (single position counting)
+          marqueePosition = undefined;
+          firstValidPosition = 1;
+          return false; // Stop scanning
+        }
+
+        if (pos === 3 && b0 === m0 && b1 === m1 && b2 === m2) {
+          // Position 3 IS Marquee [1,0,0]: 2nd Column Activation Rule
+          // (Position 2 is ALWAYS valid when Position 3 is Marquee, including 000 as Round8 '1')
+          marqueePosition = 3;
+          firstValidPosition = 2;
+          return false; // Stop scanning
+        }
+
+        // All other positions (2-20): First non-000 found IS Marquee delimiter
+        marqueePosition = pos;
+        firstValidPosition = pos - 1;  // Everything below Marquee is valid content
+        return false; // Stop scanning
+      }
+      return true; // Continue scanning downward
     }
-  }
-  // Error State
-  return {};
-};
+  });
 
-export type ConferredMarqueeState = {
-  wrungAMarquee: MarqueeState;
-  wrungBMarquee: MarqueeState;
-  sharedValidColumn: number;
-  exactEven: boolean;
-};
-
-// eslint-disable-next-line complexity
-// Note this is only Handling our Positive Sign
-export const BidirectionalStringConference = (str: string): MarqueeState => {
-  // FIRST: Check for negative one (maximum negative magnitude)
-  const isNegative = str.startsWith('-');
-  if (!isNegative) {
-    if (str.length === 2 && str === '1') {
-      return { isNegativeOne: true };
-    }
-  }
-
-  if (!isNegative) {
-    if (str === '0') {
-      return {
-        isAbsoluteZero: true,
-      };
-    }
-  }
-
-  // Handle First Column
-  const firstCasing = firstColumStringProspection(str);
-
-  // If column 0 is 001: Valid shifted holding position
-  if (Object.keys(firstCasing).length > 0) {
-    return firstCasing;
-  }
-  if ((isNegative && str.length > 2) || (!isNegative && str.length > 1)) {
-    return {
-      marqueeRotation: str.length + 3,
-    };
-  }
-  return {};
+  return {
+    firstValidRotation: firstValidPosition,
+    marqueeRotation: marqueePosition,
+    isFinalTwist
+  };
 };
 
 /**
- * ConferBidirectionally - Conferences TWO buffers to find combined Marquee states
+ * ═══════════════════════════════════════════════════════════════════════════
+ * DUAL-BUFFER MARQUEE COORDINATION (ConferBidirectionally)
+ * ═══════════════════════════════════════════════════════════════════════════
  *
- * Returns both marquee positions separately to enable intelligent backward propagation:
+ * Zero-allocation renewal for dual-operand operations (SumWrung, B Series).
+ *
+ * Confers TWO buffers to determine combined Marquee states, enabling:
+ * - Shared valid rotation identification (rightmost Marquee boundary)
+ * - Alignment detection (exactEven for clean vs carry-only propagation)
+ * - Intelligent backward propagation in operations
+ *
+ * Renewed from Round8.bidirectional.prior.ts (lines 226-284):
+ * - Uint8Array → bigint (zero-allocation)
+ * - Column terminology → Rotation/Position terminology
+ * - Array-indexed (0-20) → Position-indexed (1-21)
+ * - Composes on renewed BidirectionalConference
+ */
+
+/**
+ * ConferredMarqueeState - Result of dual-buffer Marquee conference
+ *
+ * Enables intelligent backward propagation in dual-operand operations:
+ * - exactEven: true → Marquees aligned, clean summation to delimiter
+ * - exactEven: false → Marquees shifted, exclusive zones require carry-only
+ *
+ * Shared Valid Rotation:
+ * - Boundary position where both buffers have valid content
+ * - Determined by rightmost (maximum) firstValidRotation
+ * - Positions beyond this are exclusive to one operand
+ */
+export type ConferredMarqueeState = {
+  /** Marquee state for first operand (wrungA) */
+  wrungAMarquee: MarqueeState;
+  /** Marquee state for second operand (wrungB) */
+  wrungBMarquee: MarqueeState;
+  /**
+   * Shared valid rotation boundary (rightmost Marquee position)
+   * - Positions 1 to sharedValidRotation are valid in BOTH buffers
+   * - Positions beyond are exclusive to buffer with higher Marquee
+   * - Position-indexed: 1-21 (not array-indexed 0-20)
+   */
+  sharedValidRotation: number;
+  /**
+   * Whether Marquees are exactly aligned
+   * - true: firstValidRotation match → clean summation
+   * - false: Marquees shifted → carry-only propagation in exclusive zone
+   */
+  exactEven: boolean;
+};
+
+/**
+ * ConferBidirectionally - Conference TWO buffers to find combined Marquee states
+ *
+ * Zero-allocation renewal: Uses bigint buffers (Sign-at-Origin architecture).
+ *
+ * Returns both Marquee positions separately to enable intelligent operations:
  * - exactEven: true → Both marquees aligned, clean summation to delimiter
- * - exactEven: false → Marquees shifted, exclusive zones require carry-only propagation
+ * - exactEven: false → Marquees shifted, exclusive zones require carry-only
  *
- * @param wrungA - First operand buffer
- * @param wrungB - Second operand buffer
- * @returns ConferredMarqueeState with both marquees and shared valid zone
+ * Shared Valid Rotation Logic:
+ * - sharedValidRotation = Math.max(firstValidA, firstValidB)
+ * - Positions 1 to sharedValidRotation: Both buffers have valid content
+ * - Positions beyond: Exclusive to buffer with higher Marquee
+ *
+ * Special Cases:
+ * - Both Absolute Zero: sharedValidRotation = -1, exactEven = true
+ * - One Absolute Zero: sharedValidRotation = non-zero's firstValidRotation
+ * - Both non-zero: sharedValidRotation = max of both firstValidRotations
+ *
+ * Terminology Update (Prior → Renewed):
+ * - "Column" → "Rotation" (aligned with Position terminology)
+ * - Array-indexed 0-20 → Position-indexed 1-21
+ * - Default ?? 20 → Default ?? 21
+ *
+ * Application (B Series):
+ * - SumWrung: Determines where summation can occur vs carry-only
+ * - Dual-buffer operations: Identifies safe operation boundaries
+ *
+ * @param wrungA - First operand buffer (Sign-at-Origin bigint)
+ * @param wrungB - Second operand buffer (Sign-at-Origin bigint)
+ * @returns ConferredMarqueeState with both marquees and shared valid rotation
+ *
+ * @example
+ * // Buffer A: 5 positions, Buffer B: 8 positions
+ * const conferredState = ConferBidirectionally(bufferA, bufferB);
+ * // conferredState.sharedValidRotation = 8 (rightmost Marquee position)
+ * // conferredState.exactEven = false (5 ≠ 8, marquees shifted)
+ * // Positions 1-5: Both buffers valid (shared zone)
+ * // Positions 6-8: Only Buffer B valid (exclusive zone)
  */
 export const ConferBidirectionally = (
-  wrungA: Uint8Array<ArrayBuffer>,
-  wrungB: Uint8Array<ArrayBuffer>
+  wrungA: bigint,
+  wrungB: bigint
 ): ConferredMarqueeState => {
+  // Zero-allocation: Compose on renewed BidirectionalConference
   const wrungAMarquee = BidirectionalConference(wrungA);
   const wrungBMarquee = BidirectionalConference(wrungB);
 
-  // Handle absolute zero cases
+  // Special Case 1: Both Absolute Zero
   if (wrungAMarquee.isAbsoluteZero && wrungBMarquee.isAbsoluteZero) {
     return {
       wrungAMarquee,
       wrungBMarquee,
-      sharedValidColumn: -1,
-      exactEven: true,
+      sharedValidRotation: 1, // No valid content in either buffer
+      exactEven: true, // Both marquees identically positioned (both absent)
     };
   }
+
+  // Special Case 2: WrungA is Absolute Zero (only B has content)
   if (wrungAMarquee.isAbsoluteZero) {
     return {
       wrungAMarquee,
       wrungBMarquee,
-      sharedValidColumn: wrungBMarquee.firstValidRotation ?? 20,
-      exactEven: false,
+      // Shared valid rotation = B's entire valid range
+      // Position-indexed: 1-21 (default 21, not array-indexed 20)
+      sharedValidRotation: wrungBMarquee.firstValidRotation ?? 21,
+      exactEven: false, // Marquees not aligned (A = -1, B = some position)
     };
   }
+
+  // Special Case 3: WrungB is Absolute Zero (only A has content)
   if (wrungBMarquee.isAbsoluteZero) {
     return {
       wrungAMarquee,
       wrungBMarquee,
-      sharedValidColumn: wrungAMarquee.firstValidRotation ?? 20,
-      exactEven: false,
+      // Shared valid rotation = A's entire valid range
+      // Position-indexed: 1-21 (default 21, not array-indexed 20)
+      sharedValidRotation: wrungAMarquee.firstValidRotation ?? 21,
+      exactEven: false, // Marquees not aligned (A = some position, B = -1)
     };
   }
 
-  // Both non-zero: shared valid zone is the RIGHTMOST (maximum) firstValidRotation
-  const firstValidA = wrungAMarquee.firstValidRotation ?? 20;
-  const firstValidB = wrungBMarquee.firstValidRotation ?? 20;
-  const sharedValidColumn = Math.max(firstValidA, firstValidB);
+  // Normal Case: Both buffers have content
+  // Shared valid rotation = RIGHTMOST (maximum) firstValidRotation
+  // Position-indexed: 1-21 (default 21, not array-indexed 20)
+  const firstValidA = wrungAMarquee.firstValidRotation ?? 21;
+  const firstValidB = wrungBMarquee.firstValidRotation ?? 21;
+  const sharedValidRotation = Math.max(firstValidA, firstValidB);
 
-  // Marquees are exactEven if firstValidRotations match
+  // Marquees are exactEven if firstValidRotations match exactly
+  // - exactEven: true → Clean operation boundary (both end at same position)
+  // - exactEven: false → Shifted boundary (one extends beyond the other)
   const exactEven = wrungAMarquee.firstValidRotation === wrungBMarquee.firstValidRotation;
 
   return {
     wrungAMarquee,
     wrungBMarquee,
-    sharedValidColumn,
+    sharedValidRotation,
     exactEven,
   };
-};
-
-/**
- * detectNegativeOne - Detect maximum negative magnitude (all columns [1,1,1])
- *
- * Uses 21-strike column sweep for shortest path detection:
- * - Strike 1: Sign + Column 20 (rightmost - highest variation probability)
- * - Strike 2: Column 19 (absurdly large range check)
- * - Strike 3: Column 10 (middle bisection)
- * - Strikes 4-21: Outward sweep from middle (11, 9, 12, 8, 13, 7...)
- *
- * Returns true ONLY if ALL 21 columns are [1,1,1] with sign = 0 (negative)
- *
- * @param buffer - 64-position Uint8Array (sign + 21 columns × 3 bits)
- * @returns boolean - true if buffer represents Negative One (-1)
- */
-// eslint-disable-next-line complexity
-export const detectNegativeOne = (buffer: Uint8Array<ArrayBuffer>): boolean => {
-  // Strike 1: Initial validation (sign + Column 20)
-  if (buffer[0] !== 0) {return false;} // Sign must be negative
-  if (buffer[61] !== 1 || buffer[62] !== 1 || buffer[63] !== 1) {return false;}
-
-  // Strike 2: Absurdly large range (Column 19)
-  if (buffer[58] !== 1 || buffer[59] !== 1 || buffer[60] !== 1) {return false;}
-
-  // Strike 3: Middle column (Column 10)
-  if (buffer[31] !== 1 || buffer[32] !== 1 || buffer[33] !== 1) {return false;}
-
-  // Strikes 4-21: Outward sweep from middle (predetermined order)
-  // Column 11
-  if (buffer[34] !== 1 || buffer[35] !== 1 || buffer[36] !== 1) {return false;}
-  // Column 9
-  if (buffer[28] !== 1 || buffer[29] !== 1 || buffer[30] !== 1) {return false;}
-  // Column 12
-  if (buffer[37] !== 1 || buffer[38] !== 1 || buffer[39] !== 1) {return false;}
-  // Column 8
-  if (buffer[25] !== 1 || buffer[26] !== 1 || buffer[27] !== 1) {return false;}
-  // Column 13
-  if (buffer[40] !== 1 || buffer[41] !== 1 || buffer[42] !== 1) {return false;}
-  // Column 7
-  if (buffer[22] !== 1 || buffer[23] !== 1 || buffer[24] !== 1) {return false;}
-  // Column 14
-  if (buffer[43] !== 1 || buffer[44] !== 1 || buffer[45] !== 1) {return false;}
-  // Column 6
-  if (buffer[19] !== 1 || buffer[20] !== 1 || buffer[21] !== 1) {return false;}
-  // Column 15
-  if (buffer[46] !== 1 || buffer[47] !== 1 || buffer[48] !== 1) {return false;}
-  // Column 5
-  if (buffer[16] !== 1 || buffer[17] !== 1 || buffer[18] !== 1) {return false;}
-  // Column 16
-  if (buffer[49] !== 1 || buffer[50] !== 1 || buffer[51] !== 1) {return false;}
-  // Column 4
-  if (buffer[13] !== 1 || buffer[14] !== 1 || buffer[15] !== 1) {return false;}
-  // Column 17
-  if (buffer[52] !== 1 || buffer[53] !== 1 || buffer[54] !== 1) {return false;}
-  // Column 3
-  if (buffer[10] !== 1 || buffer[11] !== 1 || buffer[12] !== 1) {return false;}
-  // Column 18
-  if (buffer[55] !== 1 || buffer[56] !== 1 || buffer[57] !== 1) {return false;}
-  // Column 2
-  if (buffer[7] !== 1 || buffer[8] !== 1 || buffer[9] !== 1) {return false;}
-  // Column 1
-  if (buffer[4] !== 1 || buffer[5] !== 1 || buffer[6] !== 1) {return false;}
-  // Column 0 (shifted topology - final check)
-  if (buffer[1] !== 1 || buffer[2] !== 1 || buffer[3] !== 1) {return false;}
-
-  // All 21 columns are [1,1,1] → This is negative one
-  return true;
 };

@@ -1,0 +1,687 @@
+/**
+ * Round8 Conference Layer - Marquee-Aware Parsing Functions
+ *
+ * This layer coordinates between BidirectionalConference (Marquee detection)
+ * and Terminology (scan/extraction functions) to provide parsing with delimiter awareness.
+ *
+ * Key Principle: Marquee positions (000 holding states) are DELIMITERS, not content.
+ * - downwardScan (BidirectionalConference) establishes boundary
+ * - upwardScan respects that boundary for content extraction
+ *
+ * Functions moved from Round8.terminology.ts and renewed with Marquee awareness:
+ * - getWrungStringRepresentation: Parse buffer to string (excludes Marquee delimiters)
+ * - getWrungNumberRepresentation: Parse buffer to decimal number
+ * - getFormattedColumnarWrungRepresentation: Format buffer as columnar display
+ */
+
+import {
+  BidirectionalConference,
+  type MarqueeState
+} from './Round8.bidirectional';
+
+import {
+  scanUpward,
+  getRotationString,
+  type Positions,
+  NumeralStore,
+  ShiftedNumeralStore,
+  WorkingBigIntBucket,
+  getClearMaskForPosition,
+  getBitOffsetForPosition
+} from './Round8.terminology';
+
+/**
+ * applyMarqueeAtPosition - Directly apply Marquee value at specified position
+ *
+ * Uses NumeralStore.Marquee for regular positions, ShiftedNumeralStore.Marquee for Position 21.
+ * Zero-allocation: Uses pre-computed masks and Working BigIntBucket.
+ *
+ * @param buffer - BigInt buffer to modify
+ * @param position - Position to set Marquee (1-21)
+ * @param useShifted - Whether to use ShiftedNumeralStore (for Position 21 conceptual Marquee)
+ * @returns Modified buffer with Marquee set at position
+ */
+const applyMarqueeAtPosition = (
+  buffer: bigint,
+  position: Positions,
+  useShifted = false
+): bigint => {
+  // Get the Marquee value from appropriate store
+  const marqueeValue = useShifted
+    ? ShiftedNumeralStore.Marquee
+    : NumeralStore.Marquee;
+
+  // Use WorkingBigIntBucket for zero-allocation
+  WorkingBigIntBucket.content = marqueeValue;
+
+  // Get pre-computed clear mask and bit offset (no runtime BigInt!)
+  const clearMask = getClearMaskForPosition(position);
+  const bitOffset = getBitOffsetForPosition(position);
+
+  // Shift value to position using pre-computed offset
+  WorkingBigIntBucket.content <<= bitOffset;
+
+  // Clear position bits, then apply Marquee value (Clear and Set operation)
+  const result = (buffer & clearMask) | WorkingBigIntBucket.content;
+
+  // Reset bucket for next operation (zero-allocation pattern)
+  WorkingBigIntBucket.content = 0n;
+
+  return result;
+};
+
+/**
+ * getWrungStringRepresentation - Parse buffer to Round8 string representation
+ *
+ * Marquee-aware parsing: Uses BidirectionalConference to establish halting delimiter.
+ * Marquee positions (000 holding states) are excluded from output.
+ *
+ * Scans upward from Position 1 up to (but not including) Marquee delimiter.
+ * downwardScan (BidirectionalConference) establishes boundary.
+ * upwardScan respects that boundary for content extraction.
+ *
+ * Special Cases:
+ * - Absolute Zero: Returns "0"
+ * - Negative One: Returns representation based on 2nd Column Activation Rule
+ * - Final Twist: Returns maximum positive representation
+ *
+ * @param buffer - BigInt buffer to parse (Sign-at-Origin architecture)
+ * @returns String representation excluding Marquee holding positions
+ */
+export const getWrungStringRepresentation = (buffer: bigint): string => {
+  // Step 1: Determine Marquee delimiter via BidirectionalConference
+  const marqueeState = BidirectionalConference(buffer);
+
+  // Special case: Absolute Zero (all positions 000)
+  if (marqueeState.isAbsoluteZero) {
+    return '0';
+  }
+
+  // Special case: Negative One (all positions 111, sign 0)
+  // 2nd Column Activation Rule: No Marquee formed when firstValidRotation = 1
+  // First Position is the Delimiter. No Additional Positions After.
+  if (marqueeState.isNegativeOne) {
+    // PLACEHOLDER: Will be refined with 2nd Column Activation Rule expansion
+    // For now: Return single position representation
+    return '1'; // Represents the delimiter position itself
+  }
+
+  // Normal case: Scan from Position 1 up to Marquee delimiter
+  const firstValid = marqueeState.firstValidRotation ?? 1;
+  let result = '';
+
+  // Step 2: Scan upward from Position 1, halt at Marquee delimiter
+  scanUpward(buffer, (buf, pos) => {
+    // Halt at Marquee delimiter (don't include Marquee holding position)
+    if (pos > firstValid) {
+      return false; // Stop scanning
+    }
+
+    // Accumulate string representation for valid position
+    result += getRotationString(buf, pos);
+    return true; // Continue scanning
+  });
+
+  return result;
+};
+
+/**
+ * getWrungNumberRepresentation - Parse buffer to decimal number representation
+ *
+ * Composes on Marquee-aware getWrungStringRepresentation.
+ * Marquee awareness inherited through composition.
+ *
+ * Note: Decimal count differs from Round8 count due to base conversion.
+ * Structure reflects Round8 base even though decimal representation.
+ *
+ * @param buffer - BigInt buffer to parse
+ * @returns Decimal number representation
+ */
+export const getWrungNumberRepresentation = (buffer: bigint): number => {
+  // Compositional: Get Marquee-aware string representation
+  const stringRep = getWrungStringRepresentation(buffer);
+  // Convert to decimal number
+  return Number(stringRep);
+};
+
+/**
+ * getFormattedColumnarWrungRepresentation - Format buffer as columnar display
+ *
+ * Composes on Marquee-aware getWrungStringRepresentation.
+ * Marquee awareness inherited through composition.
+ *
+ * Groups rotations into columns (pairs) separated by commas.
+ * Visual metaphor: Reading left-to-right descends from expansion toward origin.
+ *
+ * Examples:
+ *   1 rotation:  "8"        (single rotation, no column)
+ *   2 rotations: "88"       (one column, no comma needed)
+ *   3 rotations: "8,88"     (newest rotation + column, 1 comma)
+ *   4 rotations: "88,88"    (two columns, 1 comma)
+ *   5 rotations: "8,88,88"  (newest rotation + two columns, 2 commas)
+ *  21 rotations: "8,88,88,88,88,88,88,88,88,88,88" (capstone + ten columns)
+ *
+ * @param buffer - BigInt buffer to format
+ * @returns Comma-separated columnar representation (expansion→origin, left→right)
+ */
+export const getFormattedColumnarWrungRepresentation = (buffer: bigint): string => {
+  // Compositional: Get Marquee-aware base string
+  const fullString = getWrungStringRepresentation(buffer);
+
+  // Handle special cases (empty or single character)
+  if (fullString.length === 0) {
+    return '0';
+  }
+  if (fullString.length === 1) {
+    return fullString;
+  }
+
+  // Group into pairs from left (positions 1-2, 3-4, etc.)
+  const columns: string[] = [];
+  for (let i = 0; i < fullString.length; i += 2) {
+    const column = fullString.slice(i, i + 2);
+    columns.push(column);
+  }
+
+  // Reverse to display expansion→origin (left→right in visual tower)
+  columns.reverse();
+
+  // Join with commas to separate columnar tiers
+  return columns.join(',');
+};
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * STRING-TO-ROUND8 CONVERSION FUNCTIONS (Bidirectional Transformation)
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Completes bidirectional transformation: buffer ↔ string
+ *
+ * Key Principles:
+ * - Special case early returns (switch statement routing)
+ * - Format normalization (columnar → linear, sign prefix handling)
+ * - Length-based Marquee placement
+ * - Binary Operand Bias: Symbol - 1 = Rotation Value (1→0, 2→1, ..., 8→7)
+ * - Position 21 shifted terminology (excludes 8 at boundary)
+ * - Round-trip validation: parseStringToRound8(getWrungStringRepresentation(x)) === x
+ *
+ * Error Handling Pattern:
+ * - Invalid inputs return undefined (not throw)
+ * - Comments document invalidated cases
+ * - Frontend guarding functions reserved for B Series
+ *
+ * Round8 Symbol Reality:
+ * - Valid counting numerals: 1-8 (not 0-7)
+ * - 0 ONLY valid as True Zero special case ("0" input)
+ * - 0 appearing in any position is INVALID (undefined return)
+ *
+ * Implementation informed by Suite 6 Amethyst Strategic Document:
+ * A.6.3 String-to-Round8 Conversion Strategy
+ */
+
+import {
+  applyNumeralRotation,
+  clearSignBit,
+  setSignBit,
+  getRound8Case,
+  Round8Cases
+} from './Round8.terminology';
+
+/**
+ * isValidRound8Numeral - Validate Round8 counting numeral (1-8)
+ *
+ * Round8 uses symbols 1-8 for counting positions.
+ * 0 is ONLY valid as special case "0" (True Zero), not in positions.
+ *
+ * Binary Operand Bias: Symbol - 1 = Rotation Value
+ * '1' → rotation 0, '2' → rotation 1, ..., '8' → rotation 7
+ *
+ * @param char - Character to validate
+ * @returns true if char is '1'-'8', false otherwise
+ */
+const isValidRound8Numeral = (char: string): boolean => {
+  return /^[1-8]$/.test(char);
+};
+
+/**
+ * round8NumeralToRotation - Map Round8 symbol to rotation value
+ *
+ * Applies Binary Operand Bias offset: symbol - 1 = rotation
+ * Valid symbols: '1'-'8' → rotation values: 0-7
+ *
+ * Returns undefined for invalid symbols (guarding pattern).
+ *
+ * @param numeral - Single character '1'-'8'
+ * @returns Rotation value 0-7, or undefined if invalid
+ */
+const round8NumeralToRotation = (numeral: string): number | undefined => {
+  const symbolValue = parseInt(numeral, 10);
+
+  // Invalid case: symbol out of range (1-8)
+  // Returns undefined to signal invalidated input
+  if (symbolValue < 1 || symbolValue > 8) {
+    return undefined;
+  }
+
+  // Apply Binary Operand Bias offset: symbol - 1 = rotation value
+  return symbolValue - 1;
+};
+
+/**
+ * round8NumeralToShiftedRotation - Position 21 shifted mapping
+ *
+ * Position 21 excludes '8' (Full Twist indicator at boundary).
+ * Valid symbols: '1'-'7' → rotation values: 0-6
+ *
+ * Note: '8' at front of 21-length string means Full Twist (special case).
+ * Returns undefined for invalid symbols (8 at Position 21, or out of range).
+ *
+ * @param numeral - Single character '1'-'7'
+ * @returns Rotation value 0-6, or undefined if invalid
+ */
+const round8NumeralToShiftedRotation = (numeral: string): number | undefined => {
+  const symbolValue = parseInt(numeral, 10);
+
+  // Invalid case: Position 21 cannot be 8 (boundary limitation)
+  // Invalid case: symbol out of range (1-7)
+  // Returns undefined to signal invalidated input
+  if (symbolValue < 1 || symbolValue > 7) {
+    return undefined;
+  }
+
+  // Apply offset: symbol - 1 = rotation value
+  return symbolValue - 1;
+};
+
+/**
+ * handleLengthOne - Single position, no Marquee activation
+ *
+ * Rule: Only Position 1 set, no Marquee.
+ * 2nd Column Activation Rule not yet engaged.
+ *
+ * Returns undefined if numeral invalid.
+ *
+ * @param preparedString - Unsigned numeral string (length 1)
+ * @param isNegative - Sign determination
+ * @returns Round8 bigint buffer, or undefined if invalid
+ */
+const handleLengthOne = (
+  preparedString: string,
+  isNegative: boolean
+): bigint | undefined => {
+  const numeral = preparedString[0];
+
+  // Invalid case: numeral not in valid range (1-8)
+  // Returns undefined
+  if (!isValidRound8Numeral(numeral)) {
+    return undefined;
+  }
+
+  // Start with clean buffer (all zeros)
+  let buffer = 0n;
+
+  // Set sign bit (Sign-at-Origin: bit 0)
+  // Negative = 0, Positive = 1
+  buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
+
+  // Apply rotation at Position 1 using terminology
+  const rotationValue = round8NumeralToRotation(numeral);
+
+  // Invalid case: rotation mapping failed
+  // Returns undefined
+  if (rotationValue === undefined) {
+    return undefined;
+  }
+
+  buffer = applyNumeralRotation(rotationValue, buffer, 1 as Positions);
+
+  return buffer;
+};
+
+/**
+ * handleLengthTwo - Activates 2nd Position, Marquee at 3rd
+ *
+ * Rule: Length 2 activates Positions 1-2, Marquee placement begins at Position 3.
+ * 2nd Column Activation Rule: Marquee implicitly at Position 3 (000 default).
+ *
+ * Returns undefined if any numeral invalid.
+ *
+ * @param preparedString - Unsigned numeral string (length 2)
+ * @param isNegative - Sign determination
+ * @returns Round8 bigint buffer, or undefined if invalid
+ */
+const handleLengthTwo = (
+  preparedString: string,
+  isNegative: boolean
+): bigint | undefined => {
+  let buffer = 0n;
+
+  // Set sign bit
+  buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
+
+  // Apply Position 1
+  const numeral1 = preparedString[0];
+
+  // Invalid case: numeral1 not valid Round8 symbol
+  // Returns undefined
+  if (!isValidRound8Numeral(numeral1)) {
+    return undefined;
+  }
+
+  const rotation1 = round8NumeralToRotation(numeral1);
+
+  // Invalid case: rotation mapping failed
+  // Returns undefined
+  if (rotation1 === undefined) {
+    return undefined;
+  }
+
+  buffer = applyNumeralRotation(rotation1, buffer, 1 as Positions);
+
+  // Apply Position 2
+  const numeral2 = preparedString[1];
+
+  // Invalid case: numeral2 not valid Round8 symbol
+  // Returns undefined
+  if (!isValidRound8Numeral(numeral2)) {
+    return undefined;
+  }
+
+  const rotation2 = round8NumeralToRotation(numeral2);
+
+  // Invalid case: rotation mapping failed
+  // Returns undefined
+  if (rotation2 === undefined) {
+    return undefined;
+  }
+
+  buffer = applyNumeralRotation(rotation2, buffer, 2 as Positions);
+
+  // EXPLICITLY set Marquee at Position 3 using NumeralStore.Marquee
+  // 2nd Column Activation Rule: Length 2 activates Position 3 as Marquee delimiter
+  buffer = applyMarqueeAtPosition(buffer, 3 as Positions);
+
+  return buffer;
+};
+
+/**
+ * handleLengthThreeToTwenty - Standard Marquee placement
+ *
+ * Rule: Marquee placed at next upward position (length + 1).
+ * Set each position's rotation value from string numerals.
+ *
+ * Returns undefined if any numeral invalid.
+ *
+ * @param preparedString - Unsigned numeral string (length 3-20)
+ * @param isNegative - Sign determination
+ * @returns Round8 bigint buffer, or undefined if invalid
+ */
+const handleLengthThreeToTwenty = (
+  preparedString: string,
+  isNegative: boolean
+): bigint | undefined => {
+  let buffer = 0n;
+  const length = preparedString.length;
+
+  // Set sign bit
+  buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
+
+  // Apply rotations for each position
+  for (let i = 0; i < length; i++) {
+    const numeral = preparedString[i];
+
+    // Invalid case: numeral not valid Round8 symbol (1-8)
+    // Returns undefined
+    if (!isValidRound8Numeral(numeral)) {
+      return undefined;
+    }
+
+    const rotation = round8NumeralToRotation(numeral);
+
+    // Invalid case: rotation mapping failed
+    // Returns undefined
+    if (rotation === undefined) {
+      return undefined;
+    }
+
+    const position = (i + 1) as Positions; // String index 0 = Position 1
+
+    buffer = applyNumeralRotation(rotation, buffer, position);
+  }
+
+  // EXPLICITLY set Marquee at Position (length + 1) using NumeralStore.Marquee
+  // Example: Length 5 → Positions 1-5 set, Marquee at Position 6
+  const marqueePosition = (length + 1) as Positions;
+  buffer = applyMarqueeAtPosition(buffer, marqueePosition);
+
+  return buffer;
+};
+
+/**
+ * handleLengthTwentyOne - Position 21 requires shifted terminology
+ *
+ * Rule: '8' excluded at Position 21 (cannot place Marquee at Position 22).
+ * Use Shifted terminology for Position 21 (1-7 valid, excludes 8).
+ *
+ * Returns undefined if any numeral invalid or Position 21 shows '8'.
+ *
+ * @param preparedString - Unsigned numeral string (length 21)
+ * @param isNegative - Sign determination
+ * @returns Round8 bigint buffer, or undefined if invalid
+ */
+const handleLengthTwentyOne = (
+  preparedString: string,
+  isNegative: boolean
+): bigint | undefined => {
+  let buffer = 0n;
+
+  // Set sign bit
+  buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
+
+  // Apply Positions 1-20 (standard terminology)
+  for (let i = 0; i < 20; i++) {
+    const numeral = preparedString[i];
+
+    // Invalid case: numeral not valid Round8 symbol
+    // Returns undefined
+    if (!isValidRound8Numeral(numeral)) {
+      return undefined;
+    }
+
+    const rotation = round8NumeralToRotation(numeral);
+
+    // Invalid case: rotation mapping failed
+    // Returns undefined
+    if (rotation === undefined) {
+      return undefined;
+    }
+
+    const position = (i + 1) as Positions;
+
+    buffer = applyNumeralRotation(rotation, buffer, position);
+  }
+
+  // Position 21: Special handling (shifted terminology)
+  const position21Numeral = preparedString[20]; // Index 20 = Position 21
+
+  // Invalid case: Position 21 shows '8'
+  // Should have been caught in Phase 3 as Full Twist case
+  // Returns undefined
+  if (position21Numeral === '8') {
+    return undefined;
+  }
+
+  // Apply shifted rotation at Position 21
+  const rotation21 = round8NumeralToShiftedRotation(position21Numeral);
+
+  // Invalid case: shifted rotation mapping failed (symbol out of range 1-7)
+  // Returns undefined
+  if (rotation21 === undefined) {
+    return undefined;
+  }
+
+  buffer = applyNumeralRotation(rotation21, buffer, 21 as Positions);
+
+  // No Marquee at Position 22 (system boundary)
+  return buffer;
+};
+
+/**
+ * parseStringToRound8 - Convert string representation to Round8 bigint buffer
+ *
+ * Implements bidirectional transformation completing Round8.conference layer.
+ *
+ * Algorithm Phases:
+ * 1. Special Case Early Returns (switch statement routing)
+ * 2. Format Normalization (columnar → linear, sign prefix)
+ * 3. Length-Based Routing (Marquee placement determination)
+ * 4. Position Assignment (apply rotations via terminology)
+ * 5. Position 21 Special Handling (shifted terminology)
+ *
+ * Special Cases:
+ * - "0" → ZERO_CASE (Absolute Zero - True Zero)
+ * - "-1" → NEGATIVE_1_CASE (Negative One)
+ * - Length 21 with '8' at front → POSITIVE_TWIST_CASE or NEGATIVE_TWIST_CASE
+ *
+ * Invalid Cases (returns undefined):
+ * - Empty string
+ * - '0' appearing in any position (only valid as standalone "0")
+ * - Any character not in range 1-8
+ * - Length > 21
+ * - Position 21 showing '8' (without Full Twist detection)
+ *
+ * Round8 Symbol Reality:
+ * - Valid counting numerals: 1-8 (Binary Operand Bias: symbol - 1 = rotation)
+ * - 0 ONLY valid as True Zero ("0" input), NOT in counting positions
+ *
+ * @param input - String representation (may include commas, sign prefix)
+ * @returns Round8 bigint buffer (Sign-at-Origin), or undefined if invalid
+ *
+ * @example
+ * parseStringToRound8("0") → ZERO_CASE
+ * parseStringToRound8("-1") → NEGATIVE_1_CASE
+ * parseStringToRound8("12345") → Buffer with Positions 1-5 set, Marquee at 6
+ * parseStringToRound8("8,88,88") → Same as "88888" (normalized)
+ * parseStringToRound8("102") → undefined (0 invalid in positions)
+ * parseStringToRound8("abc") → undefined (non-numeric characters)
+ */
+export const parseStringToRound8 = (input: string): bigint | undefined => {
+  // Phase 1: Special Case Early Returns (switch statement)
+
+  // Special Case 1: Absolute Zero (True Zero)
+  if (input === '0') {
+    return getRound8Case(Round8Cases.ZERO_CASE);
+  }
+
+  // Special Case 2: Negative One
+  if (input === '-1') {
+    return getRound8Case(Round8Cases.NEGATIVE_1_CASE);
+  }
+
+  // Phase 2: Format Normalization
+  let preparedString = input;
+  let isNegative = false;
+
+  // Step 2.1: Normalize columnar format (if commas present)
+  if (preparedString.includes(',')) {
+    // Split by comma
+    const parts = preparedString.split(',');
+
+    // Reverse parts (display format expansion→origin becomes origin→expansion)
+    parts.reverse();
+
+    // Rejoin without commas for processing
+    preparedString = parts.join('');
+  }
+
+  // Step 2.2: Check for negative sign prefix
+  if (preparedString.startsWith('-')) {
+    isNegative = true;
+    // Splice off '-' prefix
+    preparedString = preparedString.slice(1);
+  }
+
+  // Invalid case: empty string after normalization
+  // Returns undefined
+  if (preparedString.length === 0) {
+    return undefined;
+  }
+
+  // Validate that remaining string contains only valid numerals (1-8)
+  // Special guard: '0' is invalid in positions (only valid as True Zero "0")
+  for (let i = 0; i < preparedString.length; i++) {
+    const char = preparedString[i];
+
+    // Invalid case: '0' appearing in any position
+    // 0 is ONLY valid as True Zero special case ("0" input)
+    // Returns undefined
+    if (char === '0') {
+      return undefined;
+    }
+
+    // Invalid case: character not in valid Round8 numeral range (1-8)
+    // Returns undefined
+    if (!isValidRound8Numeral(char)) {
+      return undefined;
+    }
+  }
+
+  // Phase 3: Length-Based Routing
+  const length = preparedString.length;
+
+  // Special Case 3: Full Twist (Length 21 with '8' at front)
+  if (length === 21 && preparedString[0] === '8') {
+    // Full Twist case - early return based on sign
+    if (isNegative) {
+      return getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
+    } else {
+      return getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);
+    }
+  }
+
+  // Invalid case: length exceeds maximum (21 positions)
+  // Returns undefined
+  if (length > 21) {
+    return undefined;
+  }
+
+  // Route to length-specific handling
+  if (length === 1) {
+    return handleLengthOne(preparedString, isNegative);
+  } else if (length === 2) {
+    return handleLengthTwo(preparedString, isNegative);
+  } else if (length >= 3 && length <= 20) {
+    return handleLengthThreeToTwenty(preparedString, isNegative);
+  } else if (length === 21) {
+    return handleLengthTwentyOne(preparedString, isNegative);
+  }
+
+  // Fallback: should never reach here due to prior guards
+  // Returns undefined for safety
+  return undefined;
+};
+
+/**
+ * parseNumberToRound8 - Convert decimal number to Round8 bigint buffer
+ *
+ * Compositional: Builds on parseStringToRound8.
+ * Converts number → string → Round8 buffer.
+ *
+ * Note: Decimal representation differs from Round8 count.
+ * This function preserves the structural representation.
+ *
+ * Returns undefined if string representation contains invalid numerals.
+ *
+ * @param num - Decimal number to convert
+ * @returns Round8 bigint buffer, or undefined if invalid
+ *
+ * @example
+ * parseNumberToRound8(0) → ZERO_CASE
+ * parseNumberToRound8(-1) → NEGATIVE_1_CASE
+ * parseNumberToRound8(12345) → Same as parseStringToRound8("12345")
+ * parseNumberToRound8(102) → undefined (0 invalid in positions)
+ */
+export const parseNumberToRound8 = (num: number): bigint | undefined => {
+  // Compositional: Convert to string, then parse
+  return parseStringToRound8(String(num));
+};

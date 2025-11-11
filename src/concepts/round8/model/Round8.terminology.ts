@@ -533,7 +533,15 @@ const extractValueTuple = (value: bigint): [0 | 1, 0 | 1, 0 | 1] => {
   ];
 };
 
+/**
+ * MARQUEE_TUPLE - Bit pattern for Marquee delimiter detection
+ * Binary 001 = [1,0,0] (Round8 symbol '2' bit pattern)
+ * Used for detecting Marquee positions during BidirectionalConference
+ */
+export const MARQUEE_TUPLE: [0 | 1, 0 | 1, 0 | 1] = extractValueTuple(setNumeralProperty(2));
+
 export const NumeralStore = {
+  Marquee: setNumeralProperty(Round8Numerals[0]),
   One: setNumeralProperty(Round8Numerals[1]),
   Two: setNumeralProperty(Round8Numerals[2]),
   Three: setNumeralProperty(Round8Numerals[3]),
@@ -541,6 +549,19 @@ export const NumeralStore = {
   Five: setNumeralProperty(Round8Numerals[5]),
   Six: setNumeralProperty(Round8Numerals[6]),
   Seven: setNumeralProperty(Round8Numerals[7]),
+  Eight: setNumeralProperty(Round8Numerals[8]),
+} as const;
+
+export const ShiftedNumeralStore = {
+  Marquee: setNumeralProperty(Round8Numerals[0]),
+  One: setNumeralProperty(Round8Numerals[2]),
+  Two: setNumeralProperty(Round8Numerals[3]),
+  Three: setNumeralProperty(Round8Numerals[4]),
+  Four: setNumeralProperty(Round8Numerals[5]),
+  Five: setNumeralProperty(Round8Numerals[6]),
+  Six: setNumeralProperty(Round8Numerals[7]),
+  Seven: setNumeralProperty(Round8Numerals[8]),
+  // Should Invalidate to Full Twist in Shifted Position
   Eight: setNumeralProperty(Round8Numerals[8]),
 } as const;
 
@@ -554,6 +575,16 @@ const NumeralSeries = [
   extractValueTuple(NumeralStore.Seven), // Binary 6n → [0,1,1]
   extractValueTuple(NumeralStore.Eight), // Binary 7n → [1,1,1]
 ];
+const ShiftedNumeralSeries = [
+  extractValueTuple(NumeralStore.Three),
+  extractValueTuple(NumeralStore.Four),
+  extractValueTuple(NumeralStore.Five),
+  extractValueTuple(NumeralStore.Six),
+  extractValueTuple(NumeralStore.Seven),
+  extractValueTuple(NumeralStore.Eight),
+  extractValueTuple(NumeralStore.One),
+  extractValueTuple(NumeralStore.Marquee),
+];
 const Numerals = [
   1,
   2,
@@ -563,6 +594,16 @@ const Numerals = [
   6,
   7,
   8
+];
+const ShiftedNumerals = [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  0 // Marquee Position and Error as Logic Should Guard Against this Case
 ];
 
 const StringNumerals = [
@@ -574,6 +615,17 @@ const StringNumerals = [
   '6',
   '7',
   '8'
+];
+const ShiftedStringNumerals = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '0' // Marquee Position and Error as Logic Should Guard Against this Case
+
 ];
 
 export const initializeSpooledWrung = <T extends number | string>() => {
@@ -588,7 +640,9 @@ export const initializeSpooledWrung = <T extends number | string>() => {
 };
 
 const spooledNumerals = initializeSpooledWrung<number>();
-const spooledStingNumerals = initializeSpooledWrung<string>();
+const spooledShiftedNumerals = initializeSpooledWrung<number>();
+const spooledStringNumerals = initializeSpooledWrung<string>();
+const spooledShiftedStringNumerals = initializeSpooledWrung<string>();
 
 const spool = <T>(informativeSeries: [0 | 1, 0 | 1, 0 | 1][], baseSeries: T[], spooled: T[][][]) => {
   informativeSeries.forEach((informative, i) => {
@@ -601,7 +655,9 @@ const spool = <T>(informativeSeries: [0 | 1, 0 | 1, 0 | 1][], baseSeries: T[], s
 };
 
 spool(NumeralSeries, Numerals, spooledNumerals);
-spool(NumeralSeries, StringNumerals, spooledStingNumerals);
+spool(ShiftedNumeralSeries, ShiftedNumerals, spooledShiftedNumerals);
+spool(NumeralSeries, StringNumerals, spooledStringNumerals);
+spool(ShiftedNumeralSeries, ShiftedStringNumerals, spooledShiftedStringNumerals);
 
 /**
  * getRegularBitRotation - Get the bit tuple for regular positions 1-8
@@ -699,7 +755,7 @@ export const getRotationString = (buffer: bigint, position: Positions): string =
   const [b0, b1, b2] = extractBitTuple(buffer, position);
 
   // Layer 2: Direct spool lookup for strings
-  return spooledStingNumerals[b0][b1][b2];
+  return spooledStringNumerals[b0][b1][b2];
 };
 
 /**
@@ -777,15 +833,18 @@ export const applyNumeralRotation = (value: number, buffer: bigint, position: Po
 export type ScanCallback = (buffer: bigint, position: Positions) => boolean;
 
 /**
- * scanForward - Recursively scan positions from front to back (1 → 21)
+ * scanUpward - Recursively scan positions upward from origin toward expansion (1 → 21)
+ * Counter metaphor: Tick up increases count, moving toward higher complexity
+ * Inverted Pyramid: Origin (simplest) → Upward (expanding possibility space)
+ * Congruent with BigInt's upward expansion and Tier 0→1→2 increasing complexity
  * Stops when callback returns false or reaches end
  * @param buffer - 64-bit bigint buffer to scan
  * @param callback - Function to call for each position
- * @param position - Current position (defaults to 1 to start)
+ * @param position - Current position (defaults to 1 to start from near-origin)
  * @returns The position where scanning stopped, or 0 if completed all positions
  */
 
-export const scanForward = (
+export const scanUpward = (
   buffer: bigint,
   callback: ScanCallback,
   position: Positions = 1
@@ -797,25 +856,28 @@ export const scanForward = (
     return position;
   }
 
-  // If we've reached the last position, return 0 (completed)
+  // If we've reached the highest position, return 0 (completed)
   if (position === 21) {
     return 0;
   }
 
-  // Recursively continue to next position
-  return scanForward(buffer, callback, (position + 1) as Positions);
+  // Recursively continue to next higher position
+  return scanUpward(buffer, callback, (position + 1) as Positions);
 };
 
 /**
- * scanBackward - Recursively scan positions from back to front (21 → 1)
+ * scanDownward - Recursively scan positions downward from expansion toward origin (21 → 1)
+ * Counter metaphor: Tick down decreases count, moving toward simpler state
+ * Inverted Pyramid: Expansion (complex) → Downward (approaching origin simplicity)
+ * Moves against BigInt's upward expansion, validating from highest complexity first
  * Stops when callback returns false or reaches beginning
  * @param buffer - 64-bit bigint buffer to scan
  * @param callback - Function to call for each position
- * @param position - Current position (defaults to 21 to start)
+ * @param position - Current position (defaults to 21 to start from expansion bound)
  * @returns The position where scanning stopped, or 0 if completed all positions
  */
 
-export const scanBackward = (
+export const scanDownward = (
   buffer: bigint,
   callback: ScanCallback,
   position: Positions = 21
@@ -827,11 +889,81 @@ export const scanBackward = (
     return position;
   }
 
-  // If we've reached the first position, return 0 (completed)
+  // If we've reached the lowest position (near origin), return 0 (completed)
   if (position === 1) {
     return 0;
   }
 
-  // Recursively continue to previous position
-  return scanBackward(buffer, callback, (position - 1) as Positions);
+  // Recursively continue to next lower position
+  return scanDownward(buffer, callback, (position - 1) as Positions);
 };
+
+/**
+ * extractRotationsUpward - Extract all rotation values moving upward (1 → 21)
+ * Parsing infrastructure: Returns complete array of rotation values for string/number representation
+ * Counter metaphor: Tick up through all positions from near-origin toward expansion bound
+ * Uses scanUpward for provable halting recursion (compositional building)
+ * @param buffer - 64-bit bigint buffer to extract from
+ * @returns Array of rotation values [position 1, position 2, ..., position 21]
+ */
+export const extractRotationsUpward = (buffer: bigint): number[] => {
+  const rotations: number[] = [];
+
+  // Compositional: Build on validated scanUpward (provable halting recursion)
+  scanUpward(buffer, (buf, pos) => {
+    rotations.push(getRotationValue(buf, pos));
+    return true; // Continue scanning to completion
+  });
+
+  return rotations;
+};
+
+/**
+ * extractRotationsDownward - Extract all rotation values moving downward (21 → 1)
+ * Parsing infrastructure: Returns complete array for validation from expansion toward origin
+ * Counter metaphor: Tick down through all positions from expansion bound toward near-origin
+ * Uses scanDownward for provable halting recursion (compositional building)
+ * @param buffer - 64-bit bigint buffer to extract from
+ * @returns Array of rotation values [position 21, position 20, ..., position 1]
+ */
+export const extractRotationsDownward = (buffer: bigint): number[] => {
+  const rotations: number[] = [];
+
+  // Compositional: Build on validated scanDownward (provable halting recursion)
+  scanDownward(buffer, (buf, pos) => {
+    rotations.push(getRotationValue(buf, pos));
+    return true; // Continue scanning to completion
+  });
+
+  return rotations;
+};
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PARSING FUNCTIONS MOVED TO Round8.conference.ts
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * The following functions now reside in Round8.conference.ts for Marquee-aware parsing:
+ * - getWrungStringRepresentation(buffer: bigint): string
+ * - getWrungNumberRepresentation(buffer: bigint): number
+ * - getFormattedColumnarWrungRepresentation(buffer: bigint): string
+ *
+ * These functions use BidirectionalConference to establish halting delimiters.
+ * Marquee positions (000 holding states) are excluded from representations.
+ *
+ * Import from Round8.conference.ts instead:
+ * ```typescript
+ * import {
+ *   getWrungStringRepresentation,
+ *   getWrungNumberRepresentation,
+ *   getFormattedColumnarWrungRepresentation
+ * } from './Round8.conference';
+ * ```
+ *
+ * Rationale for Separation:
+ * - Dependency Management: Parsing depends on BidirectionalConference (avoid circular imports)
+ * - Conceptual Clarity: "Conference" = coordination between scan directions
+ * - Marquee Awareness: All parsing must respect delimiter halting
+ * - Layer Architecture: Terminology → Bidirectional → Conference (clear dependency stack)
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
