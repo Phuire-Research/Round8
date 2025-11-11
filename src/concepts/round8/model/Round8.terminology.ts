@@ -4,9 +4,9 @@
 
 export type Positions = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21;
 
-export type SomeSeries = Record<string, ((bigint | number | string)[] | number)[]>;
+export type SomeSeries = Record<string, (([0 | 1, 0 | 1, 0 | 1] | number | string)[] | number)[]>;
 
-export type SpooledWrung = bigint[][][][][][][];
+export type SpooledWrung = ([0 | 1, 0 | 1, 0 | 1] | number | string)[][][][][][][];
 
 /**
  * Round8 Special Cases Enum
@@ -559,6 +559,7 @@ const NumeralSeries = [
   extractValueTuple(NumeralStore.Eight), // Binary 7n → [1,1,1]
 ];
 const ShiftedNumeralSeries = [
+  extractValueTuple(NumeralStore.Marquee),
   extractValueTuple(NumeralStore.Three),
   extractValueTuple(NumeralStore.Four),
   extractValueTuple(NumeralStore.Five),
@@ -566,7 +567,6 @@ const ShiftedNumeralSeries = [
   extractValueTuple(NumeralStore.Seven),
   extractValueTuple(NumeralStore.Eight),
   extractValueTuple(NumeralStore.One),
-  extractValueTuple(NumeralStore.Marquee),
 ];
 const Numerals = [
   1,
@@ -579,6 +579,7 @@ const Numerals = [
   8
 ];
 const ShiftedNumerals = [
+  0,
   1,
   2,
   3,
@@ -673,10 +674,9 @@ export const getRegularRotation = (position: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): num
  * @param position - Display position 0-7
  * @returns The 3-bit tuple [0|1, 0|1, 0|1] for the shifted position
  */
-export const getShiftedBitRotation = (position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7): [0 | 1, 0 | 1, 0 | 1] => {
+export const getShiftedBitRotation = (position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): [0 | 1, 0 | 1, 0 | 1] => {
   // Shifted mapping: position 7 wraps to index 0, others shift by +1
-  const index = position === 7 ? 0 : position + 1;
-  return NumeralSeries[index];
+  return ShiftedNumeralSeries[position];
 };
 
 /**

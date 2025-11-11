@@ -49,9 +49,8 @@
  * This prevents Shor factorization attacks during multiplication.
  */
 
-import { getShiftedBitRotation, getRound8Case, Round8Cases } from './Round8.terminology';
+import { getShiftedBitRotation, getRound8Case, Round8Cases, SomeSeries } from '../Round8.terminology';
 
-type SomeSeries = Record<string, ((number)[] | number)[]>;
 
 export const ShiftedSumSeries: SomeSeries = {
   // EXTERNAL CARRY OPERAND A CASES: [0,0,0] arriving from column 1
@@ -113,8 +112,8 @@ export const ShiftedSumSeries: SomeSeries = {
   ShiftedSumOfCarryAndSix: (() => {
     const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
     const y = getShiftedBitRotation(6);  // Display 6 = 111
-    const result = getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);  // Carry + Display 6 = OVERFLOW → TWIST-OFF
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+    const result = getShiftedBitRotation(8);  // Carry + Display 6 = OVERFLOW → TWIST-OFF
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, result]];
   })(),
 
   // [0,0,1] as operand A - Marquee marker (N+1 rotation cases)
@@ -129,9 +128,8 @@ export const ShiftedSumSeries: SomeSeries = {
   ShiftedSumOfMarqueeAndMarquee: (() => {
     const x = getShiftedBitRotation(0);  // Marquee = 001
     const y = getShiftedBitRotation(0);  // Marquee = 001
-    const error1 = getShiftedBitRotation(6);  // Error [111]
-    const error2 = getShiftedBitRotation(6);  // Error [111]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], error1, error2]];
+    const result = getShiftedBitRotation(1);  // Error [111]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedSumOfMarqueeAndOne: (() => {
@@ -482,7 +480,7 @@ export const ShiftedSumSeries: SomeSeries = {
   ShiftedSumOfSixAndCarry: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111
     const y = getShiftedBitRotation(7);  // External carry = 000
-    const result = getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);  // Display 6 + Carry = OVERFLOW → TWIST-OFF
+    const result = getShiftedBitRotation(0);  // Display 6 + Carry = OVERFLOW → TWIST-OFF
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 

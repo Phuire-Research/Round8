@@ -29,9 +29,7 @@
  * This prevents Shor factorization attacks during multiplication.
  */
 
-import { getRegularBitRotation } from './Round8.terminology';
-
-type SomeSeries = Record<string, ((number)[] | number)[]>;
+import { getRegularBitRotation, SomeSeries } from '../Round8.terminology';
 
 export const DifferenceSeries: SomeSeries = {
   // Display 1 - N (N = 1-8)

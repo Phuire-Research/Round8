@@ -107,7 +107,6 @@ export const getWrungStringRepresentation = (buffer: bigint): string => {
     if (pos > firstValid) {
       return false; // Stop scanning
     }
-
     // Accumulate string representation for valid position
     result += getRotationString(buf, pos);
     return true; // Continue scanning
@@ -299,9 +298,7 @@ const handleLengthOne = (
   preparedString: string,
   isNegative: boolean
 ): bigint | undefined => {
-  console.log('REllEK', preparedString, isNegative);
   const numeral = preparedString[0];
-  console.log('REllEK', numeral, preparedString, isNegative);
   // Invalid case: numeral not in valid range (1-8)
   // Returns undefined
   if (!isValidRound8Numeral(numeral)) {
@@ -318,7 +315,6 @@ const handleLengthOne = (
   // Apply rotation at Position 1 using terminology
   const rotationValue = round8NumeralToRotation(numeral);
 
-  console.log('REllEK', rotationValue, buffer, numeral, preparedString, isNegative);
   // Invalid case: rotation mapping failed
   // Returns undefined
   if (rotationValue === undefined) {

@@ -38,9 +38,8 @@
  * This prevents Shor factorization attacks during multiplication.
  */
 
-import { getShiftedBitRotation, getRound8Case, Round8Cases } from './Round8.terminology';
+import { getShiftedBitRotation, getRound8Case, Round8Cases, SomeSeries } from '../Round8.terminology';
 
-type SomeSeries = Record<string, ((number)[] | number)[]>;
 
 export const ShiftedDifferenceSeries: SomeSeries = {
   // EXTERNAL CARRY OPERAND A CASES: [0,0,0] arriving from column 1
@@ -51,7 +50,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
     const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
     const result = getRound8Case(Round8Cases.ZERO_CASE);  // Carry - Carry = Absolute Zero
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getShiftedBitRotation(7)]];
   })(),
 
   ShiftedDifferenceOfCarryAndMarquee: (() => {
@@ -94,14 +93,14 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfCarryAndFive: (() => {
     const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
     const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
-    const result = getShiftedBitRotation(0);  // Carry - 5 = Marquee [001]
+    const result = getShiftedBitRotation(8);  // Carry - 5 = Marquee [001]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfCarryAndSix: (() => {
     const x = getShiftedBitRotation(7);  // External carry = 000 (position 7)
     const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
-    const result = getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);  // Underflow twist-off
+    const result = getShiftedBitRotation(8);  // Underflow twist-off
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
@@ -110,14 +109,14 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfMarqueeAndCarry: (() => {
     const x = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
     const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
-    const result = getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);  // Marquee - Carry = Underflow
+    const result = getShiftedBitRotation(8);  // Marquee - Carry = Underflow
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfMarqueeAndMarquee: (() => {
     const x = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
     const y = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
-    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Marquee - Marquee = Absolute Zero
+    const result = getShiftedBitRotation(8);  // Marquee - Marquee = Absolute Zero
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
@@ -173,7 +172,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfOneAndCarry: (() => {
     const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const y = getShiftedBitRotation(7);  // External carry = 000 (position 7)
-    const result = getShiftedBitRotation(0);  // Display 1 - Carry = Marquee [001]
+    const result = getShiftedBitRotation(8);  // Display 1 - Carry = Marquee [001]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
@@ -187,7 +186,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfOneAndOne: (() => {
     const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
-    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 1 - Display 1 = Absolute Zero
+    const result = getShiftedBitRotation(0);  // Display 1 - Display 1 = Absolute Zero
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
@@ -242,7 +241,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfTwoAndMarquee: (() => {
     const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
     const y = getShiftedBitRotation(0);  // Marquee = 001 (position 0)
-    const result = getShiftedBitRotation(0);  // Display 2 - Marquee = Marquee [001]
+    const result = getShiftedBitRotation(8);  // Display 2 - Marquee = Marquee [001]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
@@ -256,7 +255,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfTwoAndTwo: (() => {
     const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
     const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
-    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 2 - Display 2 = Absolute Zero
+    const result = getShiftedBitRotation(8);  // Display 2 - Display 2 = Absolute Zero
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
@@ -323,7 +322,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfThreeAndThree: (() => {
     const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
     const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
-    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 3 - Display 3 = Absolute Zero
+    const result = getShiftedBitRotation(8);  // Display 3 - Display 3 = Absolute Zero
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
@@ -390,7 +389,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfFourAndFour: (() => {
     const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
     const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
-    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 4 - Display 4 = Absolute Zero
+    const result = getShiftedBitRotation(0);  // Display 4 - Display 4 = Absolute Zero
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
@@ -456,7 +455,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfFiveAndFive: (() => {
     const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
     const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
-    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 5 - Display 5 = Absolute Zero
+    const result = getShiftedBitRotation(8);  // Display 5 - Display 5 = Absolute Zero
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
@@ -507,7 +506,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfSixAndFour: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
-    const result = getShiftedBitRotation(0);  // Display 6 - 4 = Marquee [001]
+    const result = getShiftedBitRotation(2);  // Display 6 - 4 = Marquee [001]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
@@ -521,7 +520,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfSixAndSix: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
-    const result = getRound8Case(Round8Cases.ZERO_CASE);  // Display 6 - Display 6 = Absolute Zero
+    const result = getShiftedBitRotation(8);  // Display 6 - Display 6 = Absolute Zero
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 };

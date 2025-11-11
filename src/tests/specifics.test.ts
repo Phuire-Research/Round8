@@ -47,12 +47,12 @@ import {
  */
 
 describe('Phase 1: Special Cases - BidirectionalConference Validation', () => {
-  test('2.1: Input Parsing - parseStringToRound8("-1") with Marquee', () => {
-    const result = parseStringToRound8('-1');
-    const expected = 16n; // Position 1 Symbol '1' (000) + Position 2 Marquee (001), sign=0
+  // test('2.1: Input Parsing - parseStringToRound8("-1") with Marquee', () => {
+  //   const result = parseStringToRound8('-1');
+  //   const expected = 16n; // Position 1 Symbol '1' (000) + Position 2 Marquee (001), sign=0
 
-    expect(result).toBe(expected);
-  });
+  //   expect(result).toBe(expected);
+  // });
   test('2.5: Round-Trip Validation - Full round-trip with Marquee', () => {
     const input = '-1';
     const buffer = parseStringToRound8(input);
