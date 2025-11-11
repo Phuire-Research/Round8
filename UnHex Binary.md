@@ -151,4 +151,4 @@ UnHex Binary and the Waste of UnCapital that is Hexed Binary.
 
 Crowd Funding and Subsequent Training Material through Such Coming Soon.
 
-Thank you for your Patience in this Formatic Advent.
+Thank you for your Patience in this Formatic Capitalism Advent. This would be the Precision and Error Correction Marketplace. Is the One to Break Ground to Enable the Rest on an Unlimited Frontier Bounded by our Reasonability.
