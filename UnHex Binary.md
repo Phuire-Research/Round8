@@ -134,7 +134,7 @@ Just within the 7% Power Savings for Each Ram, Storage, and Internet Communicati
 
 Are we Worse Off due to Y2K? Would we be Worse Off pending Random Breakthrough that would Invalidate the Majority of Encryption?
 
-This is the Largest Invisible Problem of our Modern Age and 7% is the Floor of Energy Savings. Via a Coordinate Effort and the Redirection of Funds due to Energy Savings Across our Economies. We Create Capital, we Create Jobs, we Create the Possibility for More Formation of Capital and an True Unlimited Marketplace in the Same Space.
+This is the Largest Invisible Problem of our Modern Age and 7% is the Floor of Energy Savings. Via a Coordinate Effort and the Redirection of Funds due to Energy Savings Across our Economies. We Create Capital, we Create Good Reward Reasonable Work(jobs), we Create the Possibility for More Formation of Capital and an True Unlimited Marketplace in the Same Space.
 
 7% More Fossil Fuel, 7% More Coal, 7% More Natural Gases, and 7x Less Wasted Lithium. Within those Savings are Jobs the Essence of Capitalism as a Method of Value Creation. Not burning our Finite Resources and Throwing Such into Landfills and Oceans. That is UnCapital, Loss of Value, not Value Creation that is Center to the Truest Form of Capitalism.
 
