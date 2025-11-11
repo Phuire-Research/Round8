@@ -538,7 +538,7 @@ const extractValueTuple = (value: bigint): [0 | 1, 0 | 1, 0 | 1] => {
  * Binary 001 = [1,0,0] (Round8 symbol '2' bit pattern)
  * Used for detecting Marquee positions during BidirectionalConference
  */
-export const MARQUEE_TUPLE: [0 | 1, 0 | 1, 0 | 1] = extractValueTuple(setNumeralProperty(2));
+export const MARQUEE_TUPLE: [0 | 1, 0 | 1, 0 | 1] = extractValueTuple(setNumeralProperty(1));
 
 export const NumeralStore = {
   Marquee: setNumeralProperty(Round8Numerals[0]),
@@ -810,9 +810,7 @@ export const applyNumeralRotation = (value: number, buffer: bigint, position: Po
     throw 'CRITICAL';
   }
   }
-
   WorkingBigIntBucket.content = finalValue;
-
   // Get pre-computed clear mask and bit offset (no runtime BigInt!)
   const clearMask = getClearMaskForPosition(position);
   const bitOffset = getBitOffsetForPosition(position);

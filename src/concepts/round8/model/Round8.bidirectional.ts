@@ -94,7 +94,6 @@ export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, bool
 
   // If positive sign, cannot be negative or Negative One
   // Sign is negative (0) - now check if ALL positions are 111
-  let isAllZero = false;
   let isAllOne = false;
   let between = false;
   let same = false;
@@ -126,13 +125,14 @@ export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, bool
         composition[0].order.push(position);
         composition[0].congruent = true;
         same = true;
-        isAllZero = true;
         aim = 0;
       } else if (same && aim !== 0) {
         composition[0].congruent = false;
-        isAllZero = false;
+        composition[1].congruent = false;
         between = true;
         return;
+      } else if (same) {
+        composition[0].order.push(position);
       }
       // eslint-disable-next-line consistent-return
     } else if (b0 === 1 && b1 === 1 && b2 === 1) {
@@ -142,18 +142,26 @@ export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, bool
         isAllOne = true;
         aim = 1;
       } else if (same && aim !== 1) {
+        composition[0].congruent = false;
         composition[1].order.push(position);
         composition[1].congruent = false;
         isAllOne = false;
         between = true;
         composition[2].order = [...NEGATIVE_ONE_STRIKE_SWEEP].splice(i + 1);
         return;
+      } else if (same) {
+        composition[1].order.push(position);
       }
     }
   });
-
+  console.log('REllEK', composition);
   // If we found any 0 bit: Negative but not Negative One
-  return [!signBit, isAllZero, isAllOne, composition]; // isNegative=true, isNegativeOne=false
+  return [
+    signBit === 0,
+    composition[0].order.length === 21 && signBit === 0,
+    isAllOne,
+    composition
+  ];
 };
 
 /**
@@ -200,6 +208,7 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
   if (isNegativeOne) {
     return {
       isNegativeOne: true,
+      marqueeRotation: 2,
       // First Position is the Delimiter. No Additional Positions After.
       // No Marquee due to our 2nd Column Activation Rule for our Marquee System.
       firstValidRotation: 1,
@@ -211,7 +220,7 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
   let marqueePosition: number | undefined;
   let firstValidPosition = -1;
   const startTwist = composition[0].order[0] === 21;
-  if (startTwist && !!composition[1].order.length) {
+  if (startTwist && composition[1].order.length >= 1) {
     composition[2].order.forEach(position => {
       const [b0, b1, b2] = extractBitTuple(buffer, position as Positions);
       if (!(b0 === 1 && b1 === 1 && b2 === 1)) {
@@ -223,11 +232,12 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
       }
     });
   }
-  const isFinalTwist = composition[0].congruent === false && composition[1].congruent;
+  const isFinalTwist = composition[0].congruent === false && composition[1].congruent && composition[1].order.length === 20;
   if (isFinalTwist) {
     return {
       isNegative,
       isFinalTwist,
+      isNegativeOne,
       marqueeRotation: 22,
       firstValidRotation: 21
     };
@@ -248,15 +258,17 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
       }
     } else if ((b0 === m0 && b1 === m1 && b2 === m2)) {
       // Position 1 only: No Marquee (single position counting)
-      marqueePosition = pos + 1;
-      firstValidPosition = pos;
+      marqueePosition = pos;
+      firstValidPosition = pos - 1;
       return false; // Stop scanning
     }
     return true; // Continue scanning downward
   });
 
   return {
-    firstValidRotation: firstValidPosition,
+    isNegative,
+    isNegativeOne,
+    firstValidRotation: firstValidPosition === -1 || firstValidPosition === 0 ? 1 : firstValidPosition,
     marqueeRotation: marqueePosition,
     isFinalTwist
   };

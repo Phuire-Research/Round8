@@ -121,7 +121,6 @@ export const getWrungStringRepresentation = (buffer: bigint): string => {
     result += getRotationString(buf, pos);
     return true; // Continue scanning
   });
-
   return result;
 };
 
@@ -310,7 +309,6 @@ const handleLengthOne = (
   isNegative: boolean
 ): bigint | undefined => {
   const numeral = preparedString[0];
-
   // Invalid case: numeral not in valid range (1-8)
   // Returns undefined
   if (!isValidRound8Numeral(numeral)) {
@@ -322,8 +320,8 @@ const handleLengthOne = (
 
   // Set sign bit (Sign-at-Origin: bit 0)
   // Negative = 0, Positive = 1
-  buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
 
+  buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
   // Apply rotation at Position 1 using terminology
   const rotationValue = round8NumeralToRotation(numeral);
 
@@ -332,9 +330,7 @@ const handleLengthOne = (
   if (rotationValue === undefined) {
     return undefined;
   }
-
   buffer = applyNumeralRotation(rotationValue, buffer, 1 as Positions);
-
   return buffer;
 };
 
@@ -350,59 +346,59 @@ const handleLengthOne = (
  * @param isNegative - Sign determination
  * @returns Round8 bigint buffer, or undefined if invalid
  */
-const handleLengthTwo = (
-  preparedString: string,
-  isNegative: boolean
-): bigint | undefined => {
-  let buffer = 0n;
+// const handleLengthTwo = (
+//   preparedString: string,
+//   isNegative: boolean
+// ): bigint | undefined => {
+//   let buffer = 0n;
 
-  // Set sign bit
-  buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
+//   // Set sign bit
+//   buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
 
-  // Apply Position 1
-  const numeral1 = preparedString[0];
+//   // Apply Position 1
+//   const numeral1 = preparedString[0];
 
-  // Invalid case: numeral1 not valid Round8 symbol
-  // Returns undefined
-  if (!isValidRound8Numeral(numeral1)) {
-    return undefined;
-  }
+//   // Invalid case: numeral1 not valid Round8 symbol
+//   // Returns undefined
+//   if (!isValidRound8Numeral(numeral1)) {
+//     return undefined;
+//   }
 
-  const rotation1 = round8NumeralToRotation(numeral1);
+//   const rotation1 = round8NumeralToRotation(numeral1);
 
-  // Invalid case: rotation mapping failed
-  // Returns undefined
-  if (rotation1 === undefined) {
-    return undefined;
-  }
+//   // Invalid case: rotation mapping failed
+//   // Returns undefined
+//   if (rotation1 === undefined) {
+//     return undefined;
+//   }
 
-  buffer = applyNumeralRotation(rotation1, buffer, 1 as Positions);
+//   buffer = applyNumeralRotation(rotation1, buffer, 1 as Positions);
 
-  // Apply Position 2
-  const numeral2 = preparedString[1];
+//   // Apply Position 2
+//   const numeral2 = preparedString[1];
 
-  // Invalid case: numeral2 not valid Round8 symbol
-  // Returns undefined
-  if (!isValidRound8Numeral(numeral2)) {
-    return undefined;
-  }
+//   // Invalid case: numeral2 not valid Round8 symbol
+//   // Returns undefined
+//   if (!isValidRound8Numeral(numeral2)) {
+//     return undefined;
+//   }
 
-  const rotation2 = round8NumeralToRotation(numeral2);
+//   const rotation2 = round8NumeralToRotation(numeral2);
 
-  // Invalid case: rotation mapping failed
-  // Returns undefined
-  if (rotation2 === undefined) {
-    return undefined;
-  }
+//   // Invalid case: rotation mapping failed
+//   // Returns undefined
+//   if (rotation2 === undefined) {
+//     return undefined;
+//   }
 
-  buffer = applyNumeralRotation(rotation2, buffer, 2 as Positions);
+//   buffer = applyNumeralRotation(rotation2, buffer, 2 as Positions);
 
-  // EXPLICITLY set Marquee at Position 3 using NumeralStore.Marquee
-  // 2nd Column Activation Rule: Length 2 activates Position 3 as Marquee delimiter
-  buffer = applyMarqueeAtPosition(buffer, 3 as Positions);
+//   // EXPLICITLY set Marquee at Position 3 using NumeralStore.Marquee
+//   // 2nd Column Activation Rule: Length 2 activates Position 3 as Marquee delimiter
+//   buffer = applyMarqueeAtPosition(buffer, 3 as Positions);
 
-  return buffer;
-};
+//   return buffer;
+// };
 
 /**
  * handleLengthThreeToTwenty - Standard Marquee placement
@@ -422,7 +418,6 @@ const handleLengthThreeToTwenty = (
 ): bigint | undefined => {
   let buffer = 0n;
   const length = preparedString.length;
-
   // Set sign bit
   buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
 
@@ -567,7 +562,6 @@ const handleLengthTwentyOne = (
  */
 export const parseStringToRound8 = (input: string): bigint | undefined => {
   // Phase 1: Special Case Early Returns (switch statement)
-
   // Special Case 1: Absolute Zero (True Zero)
   if (input === '0') {
     return getRound8Case(Round8Cases.ZERO_CASE);
@@ -642,15 +636,19 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
   // Invalid case: length exceeds maximum (21 positions)
   // Returns undefined
   if (length > 21) {
-    return undefined;
+    if (isNegative) {
+      return getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
+    } else {
+      return getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);
+    }
   }
 
   // Route to length-specific handling
   if (length === 1) {
     return handleLengthOne(preparedString, isNegative);
-  } else if (length === 2) {
-    return handleLengthTwo(preparedString, isNegative);
-  } else if (length >= 3 && length <= 20) {
+  // } else if (length === 2) {
+    // return handleLengthTwo(preparedString, isNegative);
+  } else if (length >= 2 && length <= 20) {
     return handleLengthThreeToTwenty(preparedString, isNegative);
   } else if (length === 21) {
     return handleLengthTwentyOne(preparedString, isNegative);
