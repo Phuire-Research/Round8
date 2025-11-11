@@ -639,10 +639,10 @@ export const initializeSpooledWrung = <T extends number | string>() => {
   return arr;
 };
 
-const spooledNumerals = initializeSpooledWrung<number>();
-const spooledShiftedNumerals = initializeSpooledWrung<number>();
-const spooledStringNumerals = initializeSpooledWrung<string>();
-const spooledShiftedStringNumerals = initializeSpooledWrung<string>();
+export const spooledNumerals = initializeSpooledWrung<number>();
+export const spooledShiftedNumerals = initializeSpooledWrung<number>();
+export const spooledStringNumerals = initializeSpooledWrung<string>();
+export const spooledShiftedStringNumerals = initializeSpooledWrung<string>();
 
 const spool = <T>(informativeSeries: [0 | 1, 0 | 1, 0 | 1][], baseSeries: T[], spooled: T[][][]) => {
   informativeSeries.forEach((informative, i) => {

@@ -225,7 +225,7 @@ export type ConferredMarqueeState = {
 };
 
 /**
- * ConferBidirectionally - Conferences TWO buffers to find combined Marquee states
+ * ConferBidirectional - Conferences TWO buffers to find combined Marquee states
  *
  * Returns both marquee positions separately to enable intelligent backward propagation:
  * - exactEven: true → Both marquees aligned, clean summation to delimiter
@@ -235,7 +235,7 @@ export type ConferredMarqueeState = {
  * @param wrungB - Second operand buffer
  * @returns ConferredMarqueeState with both marquees and shared valid zone
  */
-export const ConferBidirectionally = (
+export const ConferBidirectional = (
   wrungA: Uint8Array<ArrayBuffer>,
   wrungB: Uint8Array<ArrayBuffer>
 ): ConferredMarqueeState => {

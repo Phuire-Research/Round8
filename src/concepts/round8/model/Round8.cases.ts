@@ -15,7 +15,7 @@ import {
 import { GreaterThanSeries } from './Round8.greater.than.cases';
 import { LessThanSeries } from './Round8.less.than.cases';
 import { ShiftedGreaterThanSeries } from './Round8.shifted.greater.than.cases';
-import { BidirectionalConference, ConferBidirectionally, MarqueeState, ConferredMarqueeState } from './Round8.bidirectional';
+import { BidirectionalConference, ConferBidirectional, MarqueeState, ConferredMarqueeState } from './Round8.bidirectional';
 import { SomeSeries, SpooledWrung } from './Round8.terminology';
 
 // Initialize 6-dimensional array structure for SpooledSumSeries
@@ -537,7 +537,7 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
     tempB[0] = 1;
 
     // Conference for marquee detection
-    const case3Conf = ConferBidirectionally(tempA, tempB);
+    const case3Conf = ConferBidirectional(tempA, tempB);
 
     // Special case: both zero
     if (case3Conf.wrungAMarquee.isAbsoluteZero && case3Conf.wrungBMarquee.isAbsoluteZero) {
@@ -754,7 +754,7 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
     tempB[0] = 1;
 
     // Conference for marquee detection
-    const case4Conf = ConferBidirectionally(tempA, tempB);
+    const case4Conf = ConferBidirectional(tempA, tempB);
 
     // Special case: both zero
     if (case4Conf.wrungAMarquee.isAbsoluteZero && case4Conf.wrungBMarquee.isAbsoluteZero) {
@@ -966,7 +966,7 @@ export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<Arr
   console.log('CASE 1: Both positive → normal sum');
 
   // Phase 2: Conference both operands to determine Marquee states
-  const conferredState = ConferBidirectionally(wrungA, wrungB);
+  const conferredState = ConferBidirectional(wrungA, wrungB);
   // Special case: Both absolute zero
   if (conferredState.wrungAMarquee.isAbsoluteZero && conferredState.wrungBMarquee.isAbsoluteZero) {
     return SPECIAL_CASE_STORE.ZERO_CASE;
@@ -1181,7 +1181,7 @@ export const DifferenceWrung = (
       `wrungB col0=[${wrungB[1]},${wrungB[2]},${wrungB[3]}] col20=[${wrungB[61]},${wrungB[62]},${wrungB[63]}]`
   );
   // Phase 1: Conference both operands to determine Marquee states
-  const conferredState = ConferBidirectionally(wrungA, wrungB);
+  const conferredState = ConferBidirectional(wrungA, wrungB);
   console.log(
     'CONFERENCE RESULT: ' +
     `wrungAMarquee.marqueeRotation=${conferredState.wrungAMarquee.marqueeRotation}, ` +

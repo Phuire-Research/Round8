@@ -16,9 +16,9 @@ import {
   extractBitTuple,
   getSignBit,
   scanDownward,
-  getRotationValue,
   type Positions,
-  MARQUEE_TUPLE
+  MARQUEE_TUPLE,
+  spooledShiftedNumerals
 } from './Round8.terminology';
 
 /**
@@ -55,6 +55,7 @@ export type MarqueeState = {
  */
 const NEGATIVE_ONE_STRIKE_SWEEP: Positions[] = [
   21, // Strike 1: Highest position (expansion bound, most variation)
+  20,
   1,  // Strike 2: Lowest position (near origin)
   11, // Strike 3: Middle bisection
   12, 10, // Strikes 4-5: Alternating outward from middle
@@ -65,92 +66,94 @@ const NEGATIVE_ONE_STRIKE_SWEEP: Positions[] = [
   17, 5,  // Strikes 14-15
   18, 4,  // Strikes 16-17
   19, 3,  // Strikes 18-19
-  20, 2,  // Strikes 20-21
+  2,  // Strikes 20-21
 ];
-
+type CongruentOrder = {order: number[], congruent: boolean};
 /**
- * detectNegativeOne - Detect maximum negative magnitude with strike-through sweep
+ * flipAnorFlop - Detects the Anor of All Zero or All 1s and early returns for And
  *
  * Returns tuple to avoid redundant sign checks in caller:
- * - [false, false]: Positive sign (not negative)
- * - [true, false]: Negative sign but has at least one 0 bit (not Negative One)
- * - [true, true]: Negative sign AND all positions 111 (IS Negative One)
- *
+ * - [
+ * 0 : isNegative,
+ * 1 : isOrigin,
+ * 2 : isNegativeOne,
+ * 4 : congruentOrder
+ * ]
  * Uses configurable strike-through sweep for early termination.
- * Stops immediately when any 0 bit found (average-case optimization).
+ * Stops immediately when any Disjoined Anor Bit is Found (Unlimited Continuous Optimization Point).
  *
  * Zero-allocation: Uses extractBitTuple with pre-computed masks/offsets.
- * Compositional: Builds on validated extraction terminology.
+ * Compositional: Builds on validated formation terminology.
  *
  * @param buffer - BigInt buffer to check (Sign-at-Origin architecture)
- * @returns [isNegative, isNegativeOne] tuple
+ * @returns [isNegative, OneOrZero] tuple
  */
-export const detectNegativeOne = (buffer: bigint): [boolean | undefined, boolean] => {
+export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, boolean, CongruentOrder[]] => {
   // Single sign check (Sign-at-Origin, bit 0)
   const signBit = getSignBit(buffer);
 
   // If positive sign, cannot be negative or Negative One
-  if (signBit === 1) {
-    return [undefined, false];
-  }
-
   // Sign is negative (0) - now check if ALL positions are 111
-  let foundZeroBit = false;
-
+  let isAllZero = false;
+  let isAllOne = false;
+  let between = false;
+  let same = false;
+  let aim = -1;
+  const composition: CongruentOrder[] = [
+    {
+      order: [],
+      congruent: false
+    },
+    {
+      order: [],
+      congruent: false
+    },
+    {
+      order: [],
+      congruent: false
+    }
+  ];
   // Strike-through sweep: Early termination when any 0 found
-  NEGATIVE_ONE_STRIKE_SWEEP.forEach((position) => {
-    if (foundZeroBit) {return;} // Early exit from forEach (no further checks)
+  NEGATIVE_ONE_STRIKE_SWEEP.forEach((position, i) => {
+    if (between) {return;} // Early exit from forEach (no further checks)
 
     // Zero-allocation: Use extractBitTuple
     const [b0, b1, b2] = extractBitTuple(buffer, position);
 
     // Check if any bit is 0
-    if (b0 === 0 || b1 === 0 || b2 === 0) {
-      foundZeroBit = true;
+    if (b0 === 0 && b1 === 0 && b2 === 0) {
+      if (!same) {
+        composition[0].order.push(position);
+        composition[0].congruent = true;
+        same = true;
+        isAllZero = true;
+        aim = 0;
+      } else if (same && aim !== 0) {
+        composition[0].congruent = false;
+        isAllZero = false;
+        between = true;
+        return;
+      }
       // eslint-disable-next-line consistent-return
-      return; // Early termination (exit current iteration)
+    } else if (b0 === 1 && b1 === 1 && b2 === 1) {
+      if (!same) {
+        composition[1].order.push(position);
+        composition[1].congruent = true;
+        isAllOne = true;
+        aim = 1;
+      } else if (same && aim !== 1) {
+        composition[1].order.push(position);
+        composition[1].congruent = false;
+        isAllOne = false;
+        between = true;
+        composition[2].order = [...NEGATIVE_ONE_STRIKE_SWEEP].splice(i + 1);
+        return;
+      }
     }
   });
 
   // If we found any 0 bit: Negative but not Negative One
-  if (foundZeroBit) {
-    return [true, false]; // isNegative=true, isNegativeOne=false
-  }
-
-  // All positions are 111 with negative sign: IS Negative One
-  return [true, true]; // isNegative=true, isNegativeOne=true
-};
-
-/**
- * detectAbsoluteZero - Detect if all positions are 000
- *
- * Uses scanDownward for compositional building on validated terminology.
- * Early termination when any non-zero bit found.
- *
- * Zero-allocation: Uses extractBitTuple and scanDownward recursion.
- * Provable halting: Scan terminates at Position 1 or when non-zero found.
- *
- * @param buffer - BigInt buffer to check (Sign-at-Origin architecture)
- * @returns true if all 21 positions are 000, false otherwise
- */
-export const detectAbsoluteZero = (buffer: bigint): boolean => {
-  let allZeros = true;
-
-  // Compositional: Build on validated scanDownward (provable halting recursion)
-  scanDownward(buffer, (buf, pos) => {
-    // Zero-allocation: Use extractBitTuple
-    const [b0, b1, b2] = extractBitTuple(buf, pos);
-
-    // If any bit is non-zero, not absolute zero
-    if (b0 !== 0 || b1 !== 0 || b2 !== 0) {
-      allZeros = false;
-      return false; // Stop scanning (early termination)
-    }
-
-    return true; // Continue scanning downward
-  });
-
-  return allZeros;
+  return [!signBit, isAllZero, isAllOne, composition]; // isNegative=true, isNegativeOne=false
 };
 
 /**
@@ -184,17 +187,16 @@ export const detectAbsoluteZero = (buffer: bigint): boolean => {
  */
 export const BidirectionalConference = (buffer: bigint): MarqueeState => {
   const [m0, m1, m2] = MARQUEE_TUPLE;
+  const [isNegative, isOrigin, isNegativeOne, composition] = zeroAnorOne(buffer);
   // Special case: Absolute Zero (all positions 000)
-  if (detectAbsoluteZero(buffer)) {
+  if ((isOrigin)) {
     return {
       isAbsoluteZero: true,
       firstValidRotation: 1
     };
   }
-
   // Special case: Negative One (all positions 111, sign 0)
   // Uses optimized tuple return (single sign check)
-  const [isNegative, isNegativeOne] = detectNegativeOne(buffer);
   if (isNegativeOne) {
     return {
       isNegativeOne: true,
@@ -208,78 +210,49 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
   // Normal case: Scan downward from Position 21 toward origin to find Marquee
   let marqueePosition: number | undefined;
   let firstValidPosition = -1;
-  let isFinalTwist = false;
-
+  const startTwist = composition[0].order[0] === 21;
+  if (startTwist && !!composition[1].order.length) {
+    composition[2].order.forEach(position => {
+      const [b0, b1, b2] = extractBitTuple(buffer, position as Positions);
+      if (!(b0 === 1 && b1 === 1 && b2 === 1)) {
+        composition[1].congruent = false;
+        return;
+      } else {
+        composition[1].congruent = true;
+        composition[1].order.push(position);
+      }
+    });
+  }
+  const isFinalTwist = composition[0].congruent === false && composition[1].congruent;
+  if (isFinalTwist) {
+    return {
+      isNegative,
+      isFinalTwist,
+      marqueeRotation: 22,
+      firstValidRotation: 21
+    };
+  }
   scanDownward(buffer, (buf, pos) => {
     const [b0, b1, b2] = extractBitTuple(buf, pos);
-
     if (pos === 21) {
-      // Position 21 special handling (expansion bound)
-      if (b0 === 0 && b1 === 0 && b2 === 0) {
-        // 000 at Position 21: Check if Final Twist (all others 111)
-        let allOthersAre111 = true;
-
-        // Inner scan to verify all other positions are 111
-        scanDownward(buf, (innerBuf, innerPos) => {
-          if (innerPos === 21) {
-            return true; // Skip Position 21 itself
-          }
-
-          const [ib0, ib1, ib2] = extractBitTuple(innerBuf, innerPos);
-          if (!(ib0 === 1 && ib1 === 1 && ib2 === 1)) {
-            allOthersAre111 = false;
-            return false; // Stop inner scan (found non-111)
-          }
-          return true; // Continue inner scan
-        });
-
-        if (allOthersAre111) {
-          // Final Twist case: Position 21 = 000, all others = 111
-          isFinalTwist = true;
-          marqueePosition = 22;
-          firstValidPosition = 21;
-          return false; // Stop outer scan
-        } else {
-          return false; // Stop scanning (Position 21 is not a valid counting position)
-        }
-      } else if (b0 === m0 && b1 === m1 && b2 === m2) {
+      if (b0 === m0 && b1 === m1 && b2 === m2) {
         // 001 at Position 21: Shifted Holding (valid Marquee delimiter)
         marqueePosition = 21;
         firstValidPosition = 20;
         return false; // Stop scanning (found Marquee)
-      } else {
+      } else if (spooledShiftedNumerals[b1][b1][b2] !== 7) {
         // Position 21 has valid counting value (010-111)
         marqueePosition = 22;
         firstValidPosition = 21;
         return false; // Stop scanning (found Marquee)
       }
-    } else {
-      // Positions 1-20: Marquee detection with 2nd Column Activation Rule
-      if (!(b0 === 0 && b1 === 0 && b2 === 0)) {
-        // Found non-000 content (this is the first content position, Marquee is conceptually one position up)
-
-        if (pos === 1) {
-          // Position 1 only: No Marquee (single position counting)
-          marqueePosition = undefined;
-          firstValidPosition = 1;
-          return false; // Stop scanning
-        }
-
-        if (pos === 3 && b0 === m0 && b1 === m1 && b2 === m2) {
-          // Position 3 IS Marquee [1,0,0]: 2nd Column Activation Rule
-          // (Position 2 is ALWAYS valid when Position 3 is Marquee, including 000 as Round8 '1')
-          marqueePosition = 3;
-          firstValidPosition = 2;
-          return false; // Stop scanning
-        }
-
-        // All other positions (2-20): First non-000 found IS Marquee delimiter
-        marqueePosition = pos;
-        firstValidPosition = pos - 1;  // Everything below Marquee is valid content
-        return false; // Stop scanning
-      }
-      return true; // Continue scanning downward
+    } else if ((b0 === m0 && b1 === m1 && b2 === m2)) {
+      // Position 1 only: No Marquee (single position counting)
+      marqueePosition = pos + 1;
+      firstValidPosition = pos;
+      return false; // Stop scanning
     }
+    return true; // Continue scanning downward
   });
 
   return {
@@ -291,7 +264,7 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * DUAL-BUFFER MARQUEE COORDINATION (ConferBidirectionally)
+ * DUAL-BUFFER MARQUEE COORDINATION (ConferBidirectional)
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * Zero-allocation renewal for dual-operand operations (SumWrung, B Series).
@@ -341,7 +314,7 @@ export type ConferredMarqueeState = {
 };
 
 /**
- * ConferBidirectionally - Conference TWO buffers to find combined Marquee states
+ * ConferBidirectional - Conference TWO buffers to find combined Marquee states
  *
  * Zero-allocation renewal: Uses bigint buffers (Sign-at-Origin architecture).
  *
@@ -374,13 +347,13 @@ export type ConferredMarqueeState = {
  *
  * @example
  * // Buffer A: 5 positions, Buffer B: 8 positions
- * const conferredState = ConferBidirectionally(bufferA, bufferB);
+ * const conferredState = ConferBidirectional(bufferA, bufferB);
  * // conferredState.sharedValidRotation = 8 (rightmost Marquee position)
  * // conferredState.exactEven = false (5 ≠ 8, marquees shifted)
  * // Positions 1-5: Both buffers valid (shared zone)
  * // Positions 6-8: Only Buffer B valid (exclusive zone)
  */
-export const ConferBidirectionally = (
+export const ConferBidirectional = (
   wrungA: bigint,
   wrungB: bigint
 ): ConferredMarqueeState => {

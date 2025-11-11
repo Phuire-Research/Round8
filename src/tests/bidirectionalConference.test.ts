@@ -3,7 +3,7 @@
  *
  * Comprehensive testing for Round8 zero-allocation architecture:
  * - Round8.terminology.ts: Core primitives (Sign-at-Origin, position operations)
- * - Round8.bidirectional.ts: Marquee detection (BidirectionalConference, ConferBidirectionally)
+ * - Round8.bidirectional.ts: Marquee detection (BidirectionalConference, ConferBidirectional)
  * - Round8.conference.ts: Bidirectional transformation (buffer ↔ string)
  *
  * Clinical Trial Structure (Rose Prescription):
@@ -17,34 +17,22 @@
 
 import {
   getSignBit,
-  clearSignBit,
-  setSignBit,
-  extractBitTuple,
   getRotationValue,
-  getRotationString,
-  applyNumeralRotation,
-  scanUpward,
-  scanDownward,
   getRound8Case,
   Round8Cases,
   type Positions
 } from '../concepts/round8/model/Round8.terminology';
 
 import {
-  detectAbsoluteZero,
-  detectNegativeOne,
   BidirectionalConference,
-  ConferBidirectionally,
-  type MarqueeState,
-  type ConferredMarqueeState
+  ConferBidirectional,
+  zeroAnorOne
 } from '../concepts/round8/model/Round8.bidirectional';
 
 import {
   getWrungStringRepresentation,
-  getWrungNumberRepresentation,
   getFormattedColumnarWrungRepresentation,
   parseStringToRound8,
-  parseNumberToRound8
 } from '../concepts/round8/model/Round8.conference';
 
 /**
@@ -102,7 +90,7 @@ describe('Phase 1: Special Cases - BidirectionalConference Validation', () => {
 
     test('1.5: detectAbsoluteZero - Returns true for ZERO_CASE', () => {
       const buffer = getRound8Case(Round8Cases.ZERO_CASE);
-      const isAbsoluteZero = detectAbsoluteZero(buffer);
+      const isAbsoluteZero = zeroAnorOne(buffer)[1];
 
       expect(isAbsoluteZero).toBe(true);
     });
@@ -141,7 +129,7 @@ describe('Phase 1: Special Cases - BidirectionalConference Validation', () => {
 
     test('2.3: detectNegativeOne - Tuple return [isNegative, isNegativeOne]', () => {
       const buffer = getRound8Case(Round8Cases.NEGATIVE_1_CASE);
-      const [isNegative, isNegativeOne] = detectNegativeOne(buffer);
+      const [isNegative, _, isNegativeOne] = zeroAnorOne(buffer);
 
       expect(isNegative).toBe(true);
       expect(isNegativeOne).toBe(true);
@@ -533,19 +521,19 @@ describe('Phase 4: Advanced Features - Columnar Format & Dual-Buffer', () => {
   });
 
   /**
-   * Test Suite 11: ConferBidirectionally (Dual-Buffer Coordination)
+   * Test Suite 11: ConferBidirectional (Dual-Buffer Coordination)
    *
    * Advanced Feature: Dual-buffer Marquee conference for operations
    * Expected Behavior:
    * - sharedValidRotation = Math.max(firstValidA, firstValidB)
    * - exactEven = (firstValidA === firstValidB)
    */
-  describe('Test Suite 11: ConferBidirectionally - Dual-Buffer Coordination', () => {
+  describe('Test Suite 11: ConferBidirectional - Dual-Buffer Coordination', () => {
     test('11.1: Both Absolute Zero', () => {
       const bufferA = getRound8Case(Round8Cases.ZERO_CASE);
       const bufferB = getRound8Case(Round8Cases.ZERO_CASE);
 
-      const conferredState = ConferBidirectionally(bufferA, bufferB);
+      const conferredState = ConferBidirectional(bufferA, bufferB);
 
       expect(conferredState.wrungAMarquee.isAbsoluteZero).toBe(true);
       expect(conferredState.wrungBMarquee.isAbsoluteZero).toBe(true);
@@ -557,7 +545,7 @@ describe('Phase 4: Advanced Features - Columnar Format & Dual-Buffer', () => {
       const bufferA = getRound8Case(Round8Cases.ZERO_CASE);
       const bufferB = parseStringToRound8('12345')!;
 
-      const conferredState = ConferBidirectionally(bufferA, bufferB);
+      const conferredState = ConferBidirectional(bufferA, bufferB);
 
       expect(conferredState.sharedValidRotation).toBe(5); // B's extent
       expect(conferredState.exactEven).toBe(false);
@@ -567,7 +555,7 @@ describe('Phase 4: Advanced Features - Columnar Format & Dual-Buffer', () => {
       const bufferA = parseStringToRound8('12345')!;
       const bufferB = parseStringToRound8('67812')!;
 
-      const conferredState = ConferBidirectionally(bufferA, bufferB);
+      const conferredState = ConferBidirectional(bufferA, bufferB);
 
       // Both have length 5 → firstValidRotation = 5
       expect(conferredState.wrungAMarquee.firstValidRotation).toBe(5);
@@ -580,7 +568,7 @@ describe('Phase 4: Advanced Features - Columnar Format & Dual-Buffer', () => {
       const bufferA = parseStringToRound8('123')!; // Length 3
       const bufferB = parseStringToRound8('12345678')!; // Length 8
 
-      const conferredState = ConferBidirectionally(bufferA, bufferB);
+      const conferredState = ConferBidirectional(bufferA, bufferB);
 
       expect(conferredState.wrungAMarquee.firstValidRotation).toBe(3);
       expect(conferredState.wrungBMarquee.firstValidRotation).toBe(8);
