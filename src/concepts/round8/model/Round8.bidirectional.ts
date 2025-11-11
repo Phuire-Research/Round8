@@ -34,7 +34,6 @@ export type MarqueeState = {
   /** Whether buffer represents absolute zero (all positions 000) */
   isAbsoluteZero?: boolean;
   /** Whether buffer represents negative one (all positions 111, sign 0) */
-  isNegativeOne?: boolean;
   isNegative?: boolean;
 };
 
@@ -76,8 +75,7 @@ type CongruentOrder = {order: number[], congruent: boolean};
  * - [
  * 0 : isNegative,
  * 1 : isOrigin,
- * 2 : isNegativeOne,
- * 4 : congruentOrder
+ * 2 : congruentOrder
  * ]
  * Uses configurable strike-through sweep for early termination.
  * Stops immediately when any Disjoined Anor Bit is Found (Unlimited Continuous Optimization Point).
@@ -88,13 +86,12 @@ type CongruentOrder = {order: number[], congruent: boolean};
  * @param buffer - BigInt buffer to check (Sign-at-Origin architecture)
  * @returns [isNegative, OneOrZero] tuple
  */
-export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, boolean, CongruentOrder[]] => {
+export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, CongruentOrder[]] => {
   // Single sign check (Sign-at-Origin, bit 0)
   const signBit = getSignBit(buffer);
 
   // If positive sign, cannot be negative or Negative One
   // Sign is negative (0) - now check if ALL positions are 111
-  let isAllOne = false;
   let between = false;
   let same = false;
   let aim = -1;
@@ -139,13 +136,11 @@ export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, bool
       if (!same) {
         composition[1].order.push(position);
         composition[1].congruent = true;
-        isAllOne = true;
         aim = 1;
       } else if (same && aim !== 1) {
         composition[0].congruent = false;
         composition[1].order.push(position);
         composition[1].congruent = false;
-        isAllOne = false;
         between = true;
         composition[2].order = [...NEGATIVE_ONE_STRIKE_SWEEP].splice(i + 1);
         return;
@@ -158,7 +153,6 @@ export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, bool
   return [
     signBit === 0,
     composition[0].order.length === 21 && signBit === 0,
-    isAllOne,
     composition
   ];
 };
@@ -194,7 +188,7 @@ export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, bool
  */
 export const BidirectionalConference = (buffer: bigint): MarqueeState => {
   const [m0, m1, m2] = MARQUEE_TUPLE;
-  const [isNegative, isOrigin, isNegativeOne, composition] = zeroAnorOne(buffer);
+  const [isNegative, isOrigin, composition] = zeroAnorOne(buffer);
   // Special case: Absolute Zero (all positions 000)
   if ((isOrigin)) {
     return {
@@ -204,16 +198,6 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
   }
   // Special case: Negative One (all positions 111, sign 0)
   // Uses optimized tuple return (single sign check)
-  if (isNegativeOne) {
-    return {
-      isNegativeOne: true,
-      marqueeRotation: 2,
-      // First Position is the Delimiter. No Additional Positions After.
-      // No Marquee due to our 2nd Column Activation Rule for our Marquee System.
-      firstValidRotation: 1,
-      isNegative
-    };
-  }
 
   // Normal case: Scan downward from Position 21 toward origin to find Marquee
   let marqueePosition: number | undefined;
@@ -236,7 +220,6 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
     return {
       isNegative,
       isFinalTwist,
-      isNegativeOne,
       marqueeRotation: 22,
       firstValidRotation: 21
     };
@@ -266,7 +249,6 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
 
   return {
     isNegative,
-    isNegativeOne,
     firstValidRotation: firstValidPosition === -1 || firstValidPosition === 0 ? 1 : firstValidPosition,
     marqueeRotation: marqueePosition,
     isFinalTwist

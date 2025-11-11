@@ -15,18 +15,14 @@ export type SpooledWrung = bigint[][][][][][][];
 // eslint-disable-next-line no-shadow
 export enum Round8Cases {
   ZERO_CASE = 0,
-  POSITIVE_1_CASE = 1,
-  POSITIVE_TWIST_CASE = 2,
-  NEGATIVE_TWIST_CASE = 3,
-  NEGATIVE_1_CASE = 4,
+  POSITIVE_TWIST_CASE = 1,
+  NEGATIVE_TWIST_CASE = 2,
 }
 
 export const Round8CasesArray = [
   BigInt(0) * 64n,
   BigInt(1) * 64n,
   BigInt(2) * 64n,
-  BigInt(3) * 64n,
-  BigInt(4) * 64n,
 ];
 
 // PRUNED: getSignedBit, flipSignedBit
@@ -117,36 +113,23 @@ export const createTrue64BitBuffer = (): bigint => {
  */
 const Round8CaseStore = ((): bigint => {
   let store = 0n;
-
   // SIGN-AT-ORIGIN SPECIAL CASES
   // Sign bit is at bit 0 (origin), positions extend upward
 
   // ZERO_CASE at bits 0-63: all zeros
   const zeroCase = 0n;
 
-  // POSITIVE_1_CASE at bits 64-127: Sign bit (bit 0) = 1, all position bits = 0
-  const positive1Case = 0x1n;  // Just the sign bit set at origin
-
-  // POSITIVE_TWIST_CASE at bits 128-191:
+  // POSITIVE_TWIST_CASE at bits 64-128:
   // Sign bit = 1, P21 (bits 61-63) = 000, P1-P20 (bits 1-60) = all 111
   const positiveTwistCase = 0x1fffffffffffffffn;  // Sign=1, positions 1-20 all 1s, position 21 = 000
 
-  // NEGATIVE_TWIST_CASE at bits 192-255:
+  // NEGATIVE_TWIST_CASE at bits 128-191:
   // Sign bit = 0, P21 = 000, all other positions = 000
   const negativeTwistCase = 0x0n;  // All zeros (sign=0, all positions=000)
 
-  // NEGATIVE_1_CASE at bits 256-319:
-  // Sign bit (bit 0) = 0, all position bits = 1
-  const negative1Case = 0xfffffffffffffffen;  // All 1s except bit 0
-
-  // DISPLAY_STORE at bits 320-383: display mappings + marquee
-
-  // Stack them into the 384-bit store
   store |= zeroCase; // Bits 0-63
-  store |= positive1Case << 64n; // Bits 64-127
-  store |= positiveTwistCase << 128n; // Bits 128-191
-  store |= negativeTwistCase << 192n; // Bits 192-255
-  store |= negative1Case << 256n; // Bits 256-319
+  store |= positiveTwistCase << 64n; // Bits 64-128
+  store |= negativeTwistCase << 128n; // Bits 128-191
 
   return store;
 })();

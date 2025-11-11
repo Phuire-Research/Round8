@@ -145,33 +145,8 @@ describe('Round8 Terminology Proof', () => {
     console.log('NEGATIVE_TWIST_CASE sign bit:', negativeSignBit, '→ Expected 0 (negative)');
     expect(negativeSignBit).toBe(0);
 
-    // Test POSITIVE_1_CASE sign bit (bit 0 should be 1)
-    const positive1Case = getRound8Case(Round8Cases.POSITIVE_1_CASE);
-    const positive1SignBit = getSignBit(positive1Case);
-    console.log('POSITIVE_1_CASE sign bit:', positive1SignBit, '→ Expected 1 (positive)');
-    expect(positive1SignBit).toBe(1);
-
-    // Test NEGATIVE_1_CASE sign bit (bit 0 should be 0)
-    const negative1Case = getRound8Case(Round8Cases.NEGATIVE_1_CASE);
-    const negative1SignBit = getSignBit(negative1Case);
-    console.log('NEGATIVE_1_CASE sign bit:', negative1SignBit, '→ Expected 0 (negative)');
-    expect(negative1SignBit).toBe(0);
-
     // PROOF 5: Test flipSignBit with special cases (Sign-at-Origin)
     console.log('\n=== Flip Sign Bit Validation ===');
-
-    // Test Special Case 1: POSITIVE_1_CASE → NEGATIVE_1_CASE
-    const flippedPositive1 = flipSignBit(positive1Case);
-    console.log('POSITIVE_1_CASE flipped:', flippedPositive1.toString(16));
-    console.log('Expected NEGATIVE_1_CASE:', negative1Case.toString(16));
-    expect(flippedPositive1).toBe(0x0n); // Sign flipped from 1 to 0, all positions remain 0
-    expect(flippedPositive1).toBe(0x0n); // Should be ZERO_CASE
-
-    // Test Special Case 2: NEGATIVE_1_CASE → POSITIVE_1_CASE equivalent
-    const flippedNegative1 = flipSignBit(negative1Case);
-    console.log('NEGATIVE_1_CASE flipped:', flippedNegative1.toString(16));
-    console.log('Expected value with sign=1:', flippedNegative1.toString(16));
-    expect(flippedNegative1).toBe(0xFFFFFFFFFFFFFFFFn); // All 1s including sign (64 bits)
 
     // Test Standard Case: POSITIVE_TWIST_CASE → negative version
     const flippedPositiveTwist = flipSignBit(positiveTwist);
@@ -192,10 +167,6 @@ describe('Round8 Terminology Proof', () => {
     console.log('ZERO_CASE:', zeroCase.toString(16));
     expect(zeroCase).toBe(0n);
 
-    const anotherPositive1Case = getRound8Case(Round8Cases.POSITIVE_1_CASE);
-    console.log('POSITIVE_1_CASE:', anotherPositive1Case.toString(16));
-    expect(anotherPositive1Case).toBe(0x1n); // Sign=1, all positions=0
-
     const anotherPositiveTwist = getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);
     console.log('POSITIVE_TWIST_CASE:', anotherPositiveTwist.toString(16));
     expect(anotherPositiveTwist).toBe(0x1FFFFFFFFFFFFFFFn); // Sign=1, P1-P20 all 1s, P21=000
@@ -203,10 +174,6 @@ describe('Round8 Terminology Proof', () => {
     const anotherNegativeTwist = getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
     console.log('NEGATIVE_TWIST_CASE:', anotherNegativeTwist.toString(16));
     expect(anotherNegativeTwist).toBe(0x0n); // Sign=0, all positions=000
-
-    const anotherNegative1Case = getRound8Case(Round8Cases.NEGATIVE_1_CASE);
-    console.log('NEGATIVE_1_CASE:', anotherNegative1Case.toString(16));
-    expect(anotherNegative1Case).toBe(0xFFFFFFFFFFFFFFFEn); // Sign=0, all positions=1
 
     console.log('\n✓ All Round8 Terminology proofs validated - Gold found, not snake oil!');
   });

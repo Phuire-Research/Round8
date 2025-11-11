@@ -97,15 +97,6 @@ export const getWrungStringRepresentation = (buffer: bigint): string => {
     return '0';
   }
 
-  // Special case: Negative One (all positions 111, sign 0)
-  // 2nd Column Activation Rule: No Marquee formed when firstValidRotation = 1
-  // First Position is the Delimiter. No Additional Positions After.
-  if (marqueeState.isNegativeOne) {
-    // PLACEHOLDER: Will be refined with 2nd Column Activation Rule expansion
-    // For now: Return single position representation
-    return '1'; // Represents the delimiter position itself
-  }
-
   // Normal case: Scan from Position 1 up to Marquee delimiter
   const firstValid = marqueeState.firstValidRotation ?? 1;
   let result = '';
@@ -308,7 +299,9 @@ const handleLengthOne = (
   preparedString: string,
   isNegative: boolean
 ): bigint | undefined => {
+  console.log('REllEK', preparedString, isNegative);
   const numeral = preparedString[0];
+  console.log('REllEK', numeral, preparedString, isNegative);
   // Invalid case: numeral not in valid range (1-8)
   // Returns undefined
   if (!isValidRound8Numeral(numeral)) {
@@ -325,12 +318,14 @@ const handleLengthOne = (
   // Apply rotation at Position 1 using terminology
   const rotationValue = round8NumeralToRotation(numeral);
 
+  console.log('REllEK', rotationValue, buffer, numeral, preparedString, isNegative);
   // Invalid case: rotation mapping failed
   // Returns undefined
   if (rotationValue === undefined) {
     return undefined;
   }
   buffer = applyNumeralRotation(rotationValue, buffer, 1 as Positions);
+  buffer = applyMarqueeAtPosition(buffer, 2 as Positions);
   return buffer;
 };
 
@@ -412,7 +407,7 @@ const handleLengthOne = (
  * @param isNegative - Sign determination
  * @returns Round8 bigint buffer, or undefined if invalid
  */
-const handleLengthThreeToTwenty = (
+const handleLengthTwoToTwenty = (
   preparedString: string,
   isNegative: boolean
 ): bigint | undefined => {
@@ -567,11 +562,6 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
     return getRound8Case(Round8Cases.ZERO_CASE);
   }
 
-  // Special Case 2: Negative One
-  if (input === '-1') {
-    return getRound8Case(Round8Cases.NEGATIVE_1_CASE);
-  }
-
   // Phase 2: Format Normalization
   let preparedString = input;
   let isNegative = false;
@@ -646,14 +636,11 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
   // Route to length-specific handling
   if (length === 1) {
     return handleLengthOne(preparedString, isNegative);
-  // } else if (length === 2) {
-    // return handleLengthTwo(preparedString, isNegative);
   } else if (length >= 2 && length <= 20) {
-    return handleLengthThreeToTwenty(preparedString, isNegative);
+    return handleLengthTwoToTwenty(preparedString, isNegative);
   } else if (length === 21) {
     return handleLengthTwentyOne(preparedString, isNegative);
   }
-
   // Fallback: should never reach here due to prior guards
   // Returns undefined for safety
   return undefined;
