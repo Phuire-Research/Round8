@@ -154,7 +154,6 @@ export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, bool
       }
     }
   });
-  console.log('REllEK', composition);
   // If we found any 0 bit: Negative but not Negative One
   return [
     signBit === 0,
