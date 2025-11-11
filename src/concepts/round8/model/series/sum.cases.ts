@@ -11,7 +11,7 @@
  * 8+8=18 (16 in decimal)
  */
 
-import { SomeSeries, getRegularBitRotation, getRegularRotation } from '../Round8.terminology';
+import { SomeSeries, getRegularBitRotation, getRegularRotation } from '../terminology';
 
 export const SumSeries: SomeSeries = {
   // 1 + N (N = 1-8)

@@ -17,7 +17,7 @@
 import {
   BidirectionalConference,
   type MarqueeState
-} from './Round8.bidirectional';
+} from './bidirectional';
 
 import {
   scanUpward,
@@ -27,8 +27,10 @@ import {
   ShiftedNumeralStore,
   WorkingBigIntBucket,
   getClearMaskForPosition,
-  getBitOffsetForPosition
-} from './Round8.terminology';
+  getBitOffsetForPosition,
+  extractBitTuple,
+  getSignBit
+} from './terminology';
 
 /**
  * applyMarqueeAtPosition - Directly apply Marquee value at specified position
@@ -180,6 +182,65 @@ export const getFormattedColumnarWrungRepresentation = (buffer: bigint): string 
 };
 
 /**
+ * createFormattedRound8BinaryString - Display Round8 buffer as formatted binary string
+ *
+ * Formats bigint buffer into human-readable binary representation for debugging/display.
+ *
+ * **Orientation**: Left (Upward/Expansion) → Right (Downward/Origin)
+ * ```
+ * Sign | Position 21 | Position 20 | ... | Position 2 | Position 1
+ *  ^      ^upward (expansion)          ^downward      ^origin
+ * ```
+ *
+ * **Display Structure**:
+ * - Sign bit: 1 (positive) or 0 (negative) - leftmost
+ * - Each position: 3 bits (MSB to LSB: b2 b1 b0)
+ * - Separator: ' | ' between each segment
+ *
+ * **Examples**:
+ * - Positive One (17n): `1 | 000 | 000 | ... | 001 | 000`
+ *   - Sign=1, Position 2 has Marquee (001), Position 1 has Symbol '1' (000)
+ * - Negative One (16n): `0 | 000 | 000 | ... | 001 | 000`
+ *   - Sign=0, Position 2 has Marquee (001), Position 1 has Symbol '1' (000)
+ * - Absolute Zero (0n): `0 | 000 | 000 | ... | 000 | 000`
+ *   - Sign=0, all positions 000
+ * - Positive Twist: `1 | 000 | 111 | ... | 111 | 111`
+ *   - Sign=1, Position 21=000 (Final Twist), Positions 1-20 all 111
+ *
+ * **Display Only**: NOT for parsing back to BigInt
+ * **Zero-Allocation**: Uses extractBitTuple with pre-computed masks
+ *
+ * @param buffer - Round8 BigInt buffer (Sign-at-Origin)
+ * @returns Formatted binary string with '|' separators (22 segments: sign + 21 positions)
+ *
+ * @example
+ * const buffer = parseStringToRound8("1");
+ * const binaryDisplay = createFormattedRound8BinaryString(buffer);
+ * // Returns: "1 | 000 | 000 | 000 | ... | 001 | 000"
+ * // (Sign=1, Position 2 Marquee, Position 1 Symbol '1')
+ */
+export const createFormattedRound8BinaryString = (buffer: bigint): string => {
+  // Extract sign bit (bit 0)
+  const signBit = getSignBit(buffer);
+
+  // Build position strings from 21 (expansion) down to 1 (origin)
+  // Left to Right: High position → Low position
+  const positionStrings: string[] = [];
+
+  for (let pos = 21; pos >= 1; pos--) {
+    const [b0, b1, b2] = extractBitTuple(buffer, pos as Positions);
+
+    // Display as MSB to LSB: b2 b1 b0
+    // Example: Marquee (001) = b0=1, b1=0, b2=0 → displays as "001"
+    const binaryString = `${b2}${b1}${b0}`;
+    positionStrings.push(binaryString);
+  }
+
+  // Combine: Sign | P21 | P20 | ... | P2 | P1
+  return `${signBit} | ${positionStrings.join(' | ')}`;
+};
+
+/**
  * ═══════════════════════════════════════════════════════════════════════════
  * STRING-TO-ROUND8 CONVERSION FUNCTIONS (Bidirectional Transformation)
  * ═══════════════════════════════════════════════════════════════════════════
@@ -214,7 +275,7 @@ import {
   setSignBit,
   getRound8Case,
   Round8Cases
-} from './Round8.terminology';
+} from './terminology';
 
 /**
  * isValidRound8Numeral - Validate Round8 counting numeral (1-8)

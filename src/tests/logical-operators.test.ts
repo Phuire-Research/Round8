@@ -15,7 +15,7 @@ import {
   or,
   xor,
   not
-} from '../concepts/round8/model/Round8.cases';
+} from '../concepts/round8/model/cases';
 
 describe('Logical Operators - Universal Boolean Operations', () => {
   describe('AND - Boolean Conjunction', () => {

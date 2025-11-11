@@ -15,7 +15,7 @@
  * Applies Rule Set 4: Column 0 Shifted Manifold Topology
  */
 
-import { SumWrung } from '../concepts/round8/model/Round8.cases';
+import { SumWrung } from '../concepts/round8/model/cases';
 
 describe('SumWrung - Column 0 Shifted Manifold Tests', () => {
   /**

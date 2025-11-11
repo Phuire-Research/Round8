@@ -7,7 +7,7 @@
  * 2. Proper carry detection and handling
  */
 
-import { SumWrung } from '../concepts/round8/model/Round8.cases';
+import { SumWrung } from '../concepts/round8/model/cases';
 
 describe('SumWrung - First Column Addition Tests', () => {
   /**

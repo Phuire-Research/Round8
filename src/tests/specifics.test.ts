@@ -21,19 +21,19 @@ import {
   getRound8Case,
   Round8Cases,
   type Positions
-} from '../concepts/round8/model/Round8.terminology';
+} from '../concepts/round8/model/terminology';
 
 import {
   BidirectionalConference,
   ConferBidirectional,
   zeroAnorOne
-} from '../concepts/round8/model/Round8.bidirectional';
+} from '../concepts/round8/model/bidirectional';
 
 import {
   getWrungStringRepresentation,
   getFormattedColumnarWrungRepresentation,
   parseStringToRound8,
-} from '../concepts/round8/model/Round8.conference';
+} from '../concepts/round8/model/conference';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -58,7 +58,7 @@ describe('Phase 1: Special Cases - BidirectionalConference Validation', () => {
     const buffer = parseStringToRound8(input);
     const magnitude = getWrungStringRepresentation(buffer!);
     const output = buffer! === 16n ? '-' + magnitude : magnitude; // Check sign bit
-
+    console.log();
     // Universal Marquee pattern enables complete round-trip
     expect(output).toBe('-1'); // "-1" → 16n → "-1"
   });

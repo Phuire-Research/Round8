@@ -9,8 +9,8 @@
  * - Borrow propagation from column 1 to column 0
  */
 
-import { DifferenceWrung } from '../concepts/round8/model/Round8.cases';
-import { detectNegativeOne } from '../concepts/round8/model/Round8.bidirectional';
+import { DifferenceWrung } from '../concepts/round8/model/cases';
+import { detectNegativeOne } from '../concepts/round8/model/bidirectional';
 
 describe('DifferenceWrung - Column Zero (Shifted Topology)', () => {
   /**

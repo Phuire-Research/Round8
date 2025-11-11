@@ -21,19 +21,19 @@ import {
   getRound8Case,
   Round8Cases,
   type Positions
-} from '../concepts/round8/model/Round8.terminology';
+} from '../concepts/round8/model/terminology';
 
 import {
   BidirectionalConference,
   ConferBidirectional,
   zeroAnorOne
-} from '../concepts/round8/model/Round8.bidirectional';
+} from '../concepts/round8/model/bidirectional';
 
 import {
   getWrungStringRepresentation,
   getFormattedColumnarWrungRepresentation,
   parseStringToRound8,
-} from '../concepts/round8/model/Round8.conference';
+} from '../concepts/round8/model/conference';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════

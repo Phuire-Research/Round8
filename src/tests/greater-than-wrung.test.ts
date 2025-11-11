@@ -10,7 +10,7 @@
  * operations in DifferenceWrung by providing magnitude comparison capability.
  */
 
-import { greaterThan, lessThan } from '../concepts/round8/model/Round8.cases';
+import { greaterThan, lessThan } from '../concepts/round8/model/cases';
 
 describe('GreaterThan - Single Rotation (Regular Topology)', () => {
   /**

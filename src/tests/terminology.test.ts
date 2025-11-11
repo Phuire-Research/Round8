@@ -11,7 +11,7 @@ import {
   getSignBit,
   flipSignBit,
   type Positions
-} from '../concepts/round8/model/Round8.terminology';
+} from '../concepts/round8/model/terminology';
 
 describe('Round8 Terminology Proof', () => {
   test('Prove the Accuracy of Mask and Clear Operations for Non Factorized Bit Packing', () => {

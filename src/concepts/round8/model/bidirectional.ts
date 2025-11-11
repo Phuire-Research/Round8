@@ -19,7 +19,7 @@ import {
   type Positions,
   MARQUEE_TUPLE,
   spooledShiftedNumerals
-} from './Round8.terminology';
+} from './terminology';
 
 /**
  * MarqueeState - Result of BidirectionalConference Marquee detection

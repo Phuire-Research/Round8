@@ -84,7 +84,7 @@ export const flipSignBit = (buffer: bigint): bigint => {
  * True64BitBuffer - Creates actual 64-bit binary storage using BigInt
  * This represents true binary (0 or 1 per bit position)
  */
-export const createTrue64BitBuffer = (): bigint => {
+export const createBuffer = (): bigint => {
   // 512 bit BigInt initialized to 0 (Still Stores in 64bit chunks)
   return 0n;
 };
@@ -171,9 +171,9 @@ export const getRound8Case = (caseType: Round8Cases): bigint => {
 };
 
 // Position constraints
-export type RegularPosition = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export type RegularRotation = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
-export type ShiftedPosition = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type ShiftedRotation = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 // PRUNED: getRegularBitRotation, getShiftedBitRotation, getMarqueeBitRotation
 // These display-specific functions are replaced by unified access:

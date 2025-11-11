@@ -15,8 +15,8 @@
  * - Rule Set 7: Multi-Column Processing
  */
 
-import { SumWrung } from '../concepts/round8/model/Round8.cases';
-import { BidirectionalConference } from '../concepts/round8/model/Round8.bidirectional';
+import { SumWrung } from '../concepts/round8/model/cases';
+import { BidirectionalConference } from '../concepts/round8/model/bidirectional';
 
 describe('SumWrung - Multi-Column Tests', () => {
   /**

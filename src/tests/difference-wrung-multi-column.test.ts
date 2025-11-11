@@ -11,8 +11,8 @@
  * Follows observational testing pattern from sumwrung-multi-column.test.ts
  */
 
-import { DifferenceWrung } from '../concepts/round8/model/Round8.cases';
-import { BidirectionalConference } from '../concepts/round8/model/Round8.bidirectional';
+import { DifferenceWrung } from '../concepts/round8/model/cases';
+import { BidirectionalConference } from '../concepts/round8/model/bidirectional';
 
 describe('DifferenceWrung - Multi-Column Operations', () => {
   /**

@@ -1,13 +1,13 @@
 /* eslint-disable complexity */
 
-import { SumSeries } from './series/Round8.sum.cases';
-import { ShiftedSumSeries } from './series/Round8.shifted.sum.cases';
-import { DifferenceSeries } from './series/Round8.difference.cases';
-import { GreaterThanSeries } from './series/Round8.greater.than.cases';
-import { LessThanSeries } from './series/Round8.less.than.cases';
-import { ShiftedGreaterThanSeries } from './series/Round8.shifted.greater.than.cases';
-import { SomeSeries, SpooledWrung } from './Round8.terminology';
-import { ShiftedDifferenceSeries } from './series/Round8.shifted.difference.cases';
+import { SumSeries } from './series/sum.cases';
+import { ShiftedSumSeries } from './series/shiftedSum.cases';
+import { DifferenceSeries } from './series/difference.cases';
+import { GreaterThanSeries } from './series/greaterThan.cases';
+import { LessThanSeries } from './series/lessThan.cases';
+import { ShiftedGreaterThanSeries } from './series/shiftedGreaterThan.cases';
+import { SomeSeries, SpooledWrung } from './terminology';
+import { ShiftedDifferenceSeries } from './series/shiftedDifference.cases';
 
 // Initialize 6-dimensional array structure for SpooledSumSeries
 export const initializeSpooledWrung = (): SpooledWrung => {
@@ -103,8 +103,9 @@ export {
  * @returns 1 if X > Y, 0 otherwise
  */
 export const greaterThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  // bit2_X // bit1_X // bit0_X // bit2_Y // bit1_Y // bit0_Y
   const result =
-    SpooledGreaterThanSeries[columnX[0]][columnX[1]][columnX[2]][columnY[0]][columnY[1]][columnY[2]]; // bit2_X // bit1_X // bit0_X // bit2_Y // bit1_Y // bit0_Y
+    SpooledGreaterThanSeries[columnX[0]][columnX[1]][columnX[2]][columnY[0]][columnY[1]][columnY[2]];
   // Result is [bit0_result, result_copy] - return first element
   return result[0] as unknown as number;
 };
@@ -116,8 +117,9 @@ export const greaterThan = (columnX: Uint8Array, columnY: Uint8Array): number =>
  * @returns 1 if X < Y, 0 otherwise
  */
 export const lessThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
+  // bit2_X // bit1_X // bit0_X // bit2_Y // bit1_Y // bit0_Y
   const result =
-    SpooledLessThanSeries[columnX[0]][columnX[1]][columnX[2]][columnY[0]][columnY[1]][columnY[2]]; // bit2_X // bit1_X // bit0_X // bit2_Y // bit1_Y // bit0_Y
+    SpooledLessThanSeries[columnX[0]][columnX[1]][columnX[2]][columnY[0]][columnY[1]][columnY[2]];
   // Result is [bit0_result, result_copy] - return first element
   return result[0] as unknown as number;
 };

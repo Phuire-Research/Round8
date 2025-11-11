@@ -15,10 +15,10 @@
  * - Rule Set 7: Multi-Column Processing
  */
 
-import { SPECIAL_CASE_STORE, SumWrung } from '../concepts/round8/model/Round8.cases';
-import { BidirectionalConference } from '../concepts/round8/model/Round8.bidirectional';
+import { SPECIAL_CASE_STORE, SumWrung } from '../concepts/round8/model/cases';
+import { BidirectionalConference } from '../concepts/round8/model/bidirectional';
 import {
-  createTrue64BitBuffer,
+  createBuffer,
   getRotation,
   getRound8Case,
   mask64Bit,
@@ -30,7 +30,7 @@ import {
   getRegularRotation,
   getShiftedRotation,
   getMarqueeRotation
-} from '../concepts/round8/model/Round8.terminology';
+} from '../concepts/round8/model/terminology';
 
 // ==================== PHASE 2: CASE 1 - BOTH POSITIVE (EXISTING COVERAGE) ====================
 

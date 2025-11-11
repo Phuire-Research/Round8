@@ -11,15 +11,6 @@
  * @purpose Compositional calculator API - create multiple instances inline
  */
 
-import {
-  round8StringToBuffer,
-  round8BufferToString,
-  round8BufferToBinaryString,
-  addRound8BuffersBinary,
-  subtractRound8BuffersBinary,
-  Round8Error
-} from '../src/index';
-
 // ============================================================
 // Type Definitions
 // ============================================================
@@ -29,7 +20,7 @@ type OperationType = '+' | '-' | null;
 
 interface InputState {
   value: string;                        // Round8 string ("1,2,3")
-  buffer: Uint8Array<ArrayBuffer>;      // 64-bit buffer
+  buffer: bigint;      // 64-bit buffer
   binary: string;                       // Binary display ("1|001|010|011|...")
 }
 
@@ -58,17 +49,17 @@ export function createCalculator() {
   const state: CalculatorState = {
     input1: {
       value: '',
-      buffer: new Uint8Array(64) as Uint8Array<ArrayBuffer>,
+      buffer: 0n,
       binary: ''
     },
     input2: {
       value: '',
-      buffer: new Uint8Array(64) as Uint8Array<ArrayBuffer>,
+      buffer: 0n,
       binary: ''
     },
     output: {
       value: '',
-      buffer: new Uint8Array(64) as Uint8Array<ArrayBuffer>,
+      buffer: 0n,
       binary: ''
     },
     operation: null,

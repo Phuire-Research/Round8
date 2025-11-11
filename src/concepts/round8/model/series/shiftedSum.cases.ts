@@ -49,7 +49,7 @@
  * This prevents Shor factorization attacks during multiplication.
  */
 
-import { getShiftedBitRotation, getRound8Case, Round8Cases, SomeSeries } from '../Round8.terminology';
+import { getShiftedBitRotation, getRound8Case, Round8Cases, SomeSeries } from '../terminology';
 
 
 export const ShiftedSumSeries: SomeSeries = {

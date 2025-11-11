@@ -17,7 +17,7 @@ import {
   notEquals,
   greaterThan,
   lessThan
-} from '../concepts/round8/model/Round8.cases';
+} from '../concepts/round8/model/cases';
 
 describe('Comparison Operators - Regular Topology', () => {
   /**

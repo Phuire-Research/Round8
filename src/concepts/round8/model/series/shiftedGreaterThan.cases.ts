@@ -37,7 +37,7 @@
  * This prevents Shor factorization attacks during multiplication.
  */
 
-import { getShiftedBitRotation } from '../Round8.terminology';
+import { getShiftedBitRotation } from '../terminology';
 
 type SomeSeries = Record<string, ((number)[] | number)[]>;
 

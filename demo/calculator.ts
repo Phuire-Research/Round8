@@ -11,7 +11,8 @@
  * @purpose DOM event bindings for calculator instance
  */
 
-import { createCalculator } from './calculator-binary';
+import { r8_,  } from '../src/index';
+import type { CalculatorState, OperationType, Positions, InputState } from '../src/index';
 
 /**
  * Initialize calculator UI with DOM event bindings
@@ -19,10 +20,7 @@ import { createCalculator } from './calculator-binary';
  */
 function initializeCalculator(): void {
   // Create calculator instance (fresh state, not singleton)
-  const calc = createCalculator();
-
-  // Initialize calculator state
-  calc.initializeCalculatorState();
+  const calc = r8_.createCalculator();
 
   // ============================================================
   // DOM Event Bindings
@@ -49,9 +47,9 @@ function initializeCalculator(): void {
   }
 
   // Comma button (visual only)
-  const commaBtn = document.getElementById('commaBtn');
-  if (commaBtn) {
-    commaBtn.addEventListener('click', () => calc.handleComma());
+  const signedBtn = document.getElementById('signedBtn');
+  if (signedBtn) {
+    signedBtn.addEventListener('click', () => calc.handleSigned());
   }
 
   // Operation buttons
@@ -66,10 +64,10 @@ function initializeCalculator(): void {
   }
 
   // Calculate button
-  const calculateBtn = document.getElementById('calculateBtn');
-  if (calculateBtn) {
-    calculateBtn.addEventListener('click', () => calc.handleCalculate());
-  }
+  // const calculateBtn = document.getElementById('calculateBtn');
+  // if (calculateBtn) {
+  //   calculateBtn.addEventListener('click', () => calc.());
+  // }
 
   // Clear button
   const clearBtn = document.getElementById('clearBtn');
@@ -83,18 +81,18 @@ function initializeCalculator(): void {
     flipBtn.addEventListener('click', () => calc.handleInputSwitch());
   }
 
-  // Dark mode toggle
-  const darkModeToggle = document.getElementById('darkModeToggle');
-  if (darkModeToggle) {
-    darkModeToggle.addEventListener('change', () => calc.handleDarkModeToggle());
-  }
+  // // Dark mode toggle
+  // const darkModeToggle = document.getElementById('darkModeToggle');
+  // if (darkModeToggle) {
+  //   darkModeToggle.addEventListener('change', () => calc.handleDarkModeToggle());
+  // }
 
   // Input row click handlers
   const input1Row = document.getElementById('input1Row');
   if (input1Row) {
     input1Row.addEventListener('click', () => {
       calc.state.activeInput = 'input1';
-      calc.updateActiveInputHighlight();
+      // calc.updateActiveInputHighlight();
     });
   }
 
@@ -102,7 +100,7 @@ function initializeCalculator(): void {
   if (input2Row) {
     input2Row.addEventListener('click', () => {
       calc.state.activeInput = 'input2';
-      calc.updateActiveInputHighlight();
+      // calc.updateActiveInputHighlight();
     });
   }
 
