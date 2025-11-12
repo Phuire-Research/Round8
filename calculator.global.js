@@ -800,16 +800,24 @@ var Round8Calculator = (() => {
     if (marqueeState.isAbsoluteZero) {
       return "0";
     }
+    if (marqueeState.isFinalTwist) {
+      if (marqueeState.isNegative) {
+        return "-788888888888888888888";
+      } else {
+        return "788888888888888888888";
+      }
+    }
     const firstValid = marqueeState.firstValidRotation ?? 1;
     let result = "";
     scanUpward(buffer, (buf, pos) => {
       if (pos > firstValid) {
         return false;
       }
-      result += getRotationString(buf, pos);
+      const rotationString = getRotationString(buf, pos);
+      result += rotationString;
       return true;
     });
-    return result;
+    return result.split("").reverse().join("");
   };
   var getFormattedColumnarWrungRepresentation = (buffer) => {
     const fullString = getWrungStringRepresentation(buffer);
@@ -820,12 +828,18 @@ var Round8Calculator = (() => {
       return fullString;
     }
     const columns = [];
-    for (let i = 0; i < fullString.length; i += 2) {
+    const isOdd = fullString.length % 2 === 1;
+    let startIndex = 0;
+    if (isOdd) {
+      columns.push(fullString[0]);
+      startIndex = 1;
+    }
+    for (let i = startIndex; i < fullString.length; i += 2) {
       const column = fullString.slice(i, i + 2);
       columns.push(column);
     }
-    columns.reverse();
-    return columns.join(",");
+    const result = columns.join(",");
+    return result;
   };
   var createFormattedRound8BinaryString = (buffer) => {
     const signBit = getSignBit(buffer);
@@ -835,7 +849,7 @@ var Round8Calculator = (() => {
       const binaryString = `${b2}${b1}${b0}`;
       positionStrings.push(binaryString);
     }
-    return `${signBit} | ${positionStrings.join(" | ")}`;
+    return `${positionStrings.join(" | ")} | ${signBit} S`;
   };
   var isValidRound8Numeral = (char) => {
     return /^[1-8]$/.test(char);
@@ -923,7 +937,6 @@ var Round8Calculator = (() => {
     let isNegative = false;
     if (preparedString.includes(",")) {
       const parts = preparedString.split(",");
-      parts.reverse();
       preparedString = parts.join("");
     }
     if (preparedString.startsWith("-")) {
@@ -957,6 +970,7 @@ var Round8Calculator = (() => {
         return getRound8Case(1 /* POSITIVE_TWIST_CASE */);
       }
     }
+    preparedString = preparedString.split("").reverse().join("");
     if (length === 1) {
       return handleLengthOne(preparedString, isNegative);
     } else if (length >= 2 && length <= 20) {
@@ -1009,16 +1023,19 @@ var Round8Calculator = (() => {
     const state = {
       input1: {
         value: "",
+        rawSequence: "",
         buffer: 0n,
         binary: ""
       },
       input2: {
         value: "",
+        rawSequence: "",
         buffer: 0n,
         binary: ""
       },
       output: {
         value: "",
+        rawSequence: "",
         buffer: 0n,
         binary: ""
       },
@@ -1027,11 +1044,11 @@ var Round8Calculator = (() => {
       darkMode: true
     };
     function handleDigitEntry(digit) {
-      console.log("HITTING", digit);
       const inputState = state[state.activeInput];
-      const currentValue = inputState.value;
-      const newValue = currentValue ? `${currentValue}${digit}` : `${digit}`;
-      const buffer = r8_.parseStringToBuffer(newValue);
+      const currentSequence = inputState.rawSequence;
+      const newSequence = currentSequence ? `${currentSequence}${digit}` : `${digit}`;
+      inputState.rawSequence = newSequence;
+      const buffer = r8_.parseStringToBuffer(newSequence);
       if (buffer) {
         const binary = r8_.createBufferDisplay(buffer);
         const displayValue = r8_.createRoundDisplay(buffer);
@@ -1042,18 +1059,18 @@ var Round8Calculator = (() => {
     }
     function handleBackspace() {
       const inputState = state[state.activeInput];
-      const currentValue = inputState.value;
-      if (!currentValue) {
+      const currentSequence = inputState.rawSequence;
+      if (!currentSequence) {
         return;
       }
-      const rawDigits = currentValue.replace(/,/g, "");
-      const newDigits = rawDigits.slice(0, -1);
-      if (newDigits === "") {
+      const newSequence = currentSequence.slice(0, -1);
+      inputState.rawSequence = newSequence;
+      if (newSequence === "") {
         inputState.value = "0";
         inputState.buffer = 0n;
         inputState.binary = inputState.buffer.toLocaleString();
       } else {
-        const buffer = r8_.parseStringToBuffer(newDigits);
+        const buffer = r8_.parseStringToBuffer(newSequence);
         const binary = buffer?.toString();
         inputState.buffer = buffer ? buffer : 0n;
         const displayValue = r8_.createRoundDisplay(inputState.buffer);
@@ -1064,6 +1081,7 @@ var Round8Calculator = (() => {
     function handleZero() {
       const inputState = state[state.activeInput];
       inputState.value = r8_.createRoundDisplay(0n);
+      inputState.rawSequence = "0";
       inputState.buffer = 0n;
       inputState.binary = r8_.createBufferDisplay(0n);
     }
@@ -1072,12 +1090,15 @@ var Round8Calculator = (() => {
     }
     function handleClear() {
       state.input1.value = "";
+      state.input1.rawSequence = "";
       state.input1.buffer = 0n;
       state.input1.binary = "";
       state.input2.value = "";
+      state.input2.rawSequence = "";
       state.input2.buffer = 0n;
       state.input2.binary = "";
       state.output.value = "";
+      state.output.rawSequence = "";
       state.output.buffer = 0n;
       state.output.binary = "";
       state.operation = null;
