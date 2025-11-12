@@ -16,8 +16,8 @@ npm install round8
 ```
 
 ## Change Log
-### v0.0.12
-Hunted down a hallucinated test that reversed a test case and renewed with a sensible input and output.
+### v0.0.12-0.0.13
+Hunted down a hallucinated tests that reversed or did not prepare our signed output properly. Now Aligned. 
 
 ## What This PoC Demonstrates
 
