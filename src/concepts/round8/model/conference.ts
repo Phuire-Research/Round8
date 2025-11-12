@@ -115,7 +115,7 @@ export const getWrungStringRepresentation = (buffer: bigint): string => {
     return true; // Continue scanning
   });
 
-  return result;
+  return result.split('').reverse().join('');
 };
 
 /**
@@ -160,7 +160,6 @@ export const getWrungNumberRepresentation = (buffer: bigint): number => {
 export const getFormattedColumnarWrungRepresentation = (buffer: bigint): string => {
   // Compositional: Get Marquee-aware base string
   const fullString = getWrungStringRepresentation(buffer);
-  console.log('[getFormattedColumnarWrungRepresentation] fullString from getWrungStringRepresentation:', fullString);
 
   // Handle special cases (empty or single character)
   if (fullString.length === 0) {
@@ -249,7 +248,7 @@ export const createFormattedRound8BinaryString = (buffer: bigint): string => {
   }
 
   // Combine: Sign | P21 | P20 | ... | P2 | P1
-  return `${signBit} | ${positionStrings.join(' | ')}`;
+  return `${positionStrings.join(' | ')} | ${signBit} S`;
 };
 
 /**
@@ -480,17 +479,14 @@ const handleLengthTwoToTwenty = (
   preparedString: string,
   isNegative: boolean
 ): bigint | undefined => {
-  console.log('[handleLengthTwoToTwenty] INPUT:', { preparedString, isNegative, length: preparedString.length });
   let buffer = 0n;
   const length = preparedString.length;
   // Set sign bit
   buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
-  console.log('[handleLengthTwoToTwenty] After sign bit:', buffer.toString(2));
 
   // Apply rotations for each position
   for (let i = 0; i < length; i++) {
     const numeral = preparedString[i];
-    console.log(`[handleLengthTwoToTwenty] Loop i=${i}, numeral='${numeral}'`);
 
     // Invalid case: numeral not valid Round8 symbol (1-8)
     // Returns undefined
@@ -499,7 +495,6 @@ const handleLengthTwoToTwenty = (
     }
 
     const rotation = round8NumeralToRotation(numeral);
-    console.log(`[handleLengthTwoToTwenty] numeral='${numeral}' → rotation=${rotation}`);
 
     // Invalid case: rotation mapping failed
     // Returns undefined
@@ -508,18 +503,14 @@ const handleLengthTwoToTwenty = (
     }
 
     const position = (i + 1) as Positions; // String index 0 = Position 1
-    console.log(`[handleLengthTwoToTwenty] Applying rotation=${rotation} at position=${position}`);
 
     buffer = applyNumeralRotation(rotation, buffer, position);
-    console.log(`[handleLengthTwoToTwenty] After position ${position}:`, buffer.toString(2));
   }
 
   // EXPLICITLY set Marquee at Position (length + 1) using NumeralStore.Marquee
   // Example: Length 5 → Positions 1-5 set, Marquee at Position 6
   const marqueePosition = (length + 1) as Positions;
-  console.log(`[handleLengthTwoToTwenty] Setting Marquee at position=${marqueePosition}`);
   buffer = applyMarqueeAtPosition(buffer, marqueePosition);
-  console.log('[handleLengthTwoToTwenty] Final buffer:', buffer.toString(2));
 
   return buffer;
 };
@@ -717,6 +708,7 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
   }
 
   // Route to length-specific handling
+  preparedString = preparedString.split('').reverse().join('');
   if (length === 1) {
     return handleLengthOne(preparedString, isNegative);
   } else if (length >= 2 && length <= 20) {

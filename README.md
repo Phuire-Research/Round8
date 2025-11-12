@@ -15,6 +15,10 @@ Round8 is a proof-of-concept demonstrating spool-based indexed lookups for binar
 npm install round8
 ```
 
+## Change Log
+### v0.0.12
+Hunted down a hallucinated test that reversed a test case and renewed with a sensible input and output.
+
 ## What This PoC Demonstrates
 
 This proof-of-concept validates:
