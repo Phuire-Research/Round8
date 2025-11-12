@@ -22,7 +22,6 @@ export type OperationType = '+' | '-' | null;
 
 export interface InputState {
   value: string;                        // Round8 string ("1,2,3") - DISPLAY value (reversed)
-  rawSequence: string;                  // Raw typed sequence ("123") - actual input order
   buffer: bigint;      // 64-bit buffer
   binary: string;                       // Binary display ("1|001|010|011|...")
 }
@@ -52,19 +51,16 @@ function createCalculator() {
   const state: CalculatorState = {
     input1: {
       value: '',
-      rawSequence: '',
       buffer: 0n,
       binary: ''
     },
     input2: {
       value: '',
-      rawSequence: '',
       buffer: 0n,
       binary: ''
     },
     output: {
       value: '',
-      rawSequence: '',
       buffer: 0n,
       binary: ''
     },
@@ -80,12 +76,9 @@ function createCalculator() {
   function handleDigitEntry(digit: number): void {
     const inputState = state[state.activeInput];
     // Build sequence in typed order (oldest first)
-    const currentSequence = inputState.rawSequence;
+    const currentSequence = inputState.value;
     // Append new digit to end (typed order)
     const newSequence = currentSequence ? `${currentSequence}${digit}` : `${digit}`;
-
-    // Update raw sequence
-    inputState.rawSequence = newSequence;
 
     // Parse directly (in typed order)
     const buffer = r8_.parseStringToBuffer(newSequence);
@@ -100,13 +93,12 @@ function createCalculator() {
 
   function handleBackspace(): void {
     const inputState = state[state.activeInput];
-    const currentSequence = inputState.rawSequence;
+    const currentSequence = inputState.value;
 
     if (!currentSequence) {return;}
 
     // Remove last digit from raw sequence
     const newSequence = currentSequence.slice(0, -1);
-    inputState.rawSequence = newSequence;
 
     if (newSequence === '') {
       inputState.value = '0';
@@ -129,7 +121,6 @@ function createCalculator() {
   function handleZero(): void {
     const inputState = state[state.activeInput];
     inputState.value = r8_.createRoundDisplay(0n);
-    inputState.rawSequence = '0';
     inputState.buffer = 0n;
     inputState.binary = r8_.createBufferDisplay(0n);
   }
@@ -166,17 +157,14 @@ function createCalculator() {
 
   function handleClear(): void {
     state.input1.value = '';
-    state.input1.rawSequence = '';
     state.input1.buffer = 0n;
     state.input1.binary = '';
 
     state.input2.value = '';
-    state.input2.rawSequence = '';
     state.input2.buffer = 0n;
     state.input2.binary = '';
 
     state.output.value = '';
-    state.output.rawSequence = '';
     state.output.buffer = 0n;
     state.output.binary = '';
 
