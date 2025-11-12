@@ -110,9 +110,11 @@ export const getWrungStringRepresentation = (buffer: bigint): string => {
       return false; // Stop scanning
     }
     // Accumulate string representation for valid position
-    result += getRotationString(buf, pos);
+    const rotationString = getRotationString(buf, pos);
+    result += rotationString;
     return true; // Continue scanning
   });
+
   return result;
 };
 
@@ -158,6 +160,7 @@ export const getWrungNumberRepresentation = (buffer: bigint): number => {
 export const getFormattedColumnarWrungRepresentation = (buffer: bigint): string => {
   // Compositional: Get Marquee-aware base string
   const fullString = getWrungStringRepresentation(buffer);
+  console.log('[getFormattedColumnarWrungRepresentation] fullString from getWrungStringRepresentation:', fullString);
 
   // Handle special cases (empty or single character)
   if (fullString.length === 0) {
@@ -167,18 +170,27 @@ export const getFormattedColumnarWrungRepresentation = (buffer: bigint): string 
     return fullString;
   }
 
-  // Group into pairs from left (positions 1-2, 3-4, etc.)
+  // Group into pairs, handling odd-length strings
+  // If odd length, the FIRST (oldest) digit gets its own column
   const columns: string[] = [];
-  for (let i = 0; i < fullString.length; i += 2) {
+  const isOdd = fullString.length % 2 === 1;
+  let startIndex = 0;
+
+  // If odd length, first column is single digit
+  if (isOdd) {
+    columns.push(fullString[0]);
+    startIndex = 1;
+  }
+
+  // Group remaining digits into pairs
+  for (let i = startIndex; i < fullString.length; i += 2) {
     const column = fullString.slice(i, i + 2);
     columns.push(column);
   }
 
-  // Reverse to display expansion→origin (left→right in visual tower)
-  columns.reverse();
-
   // Join with commas to separate columnar tiers
-  return columns.join(',');
+  const result = columns.join(',');
+  return result;
 };
 
 /**
@@ -468,14 +480,17 @@ const handleLengthTwoToTwenty = (
   preparedString: string,
   isNegative: boolean
 ): bigint | undefined => {
+  console.log('[handleLengthTwoToTwenty] INPUT:', { preparedString, isNegative, length: preparedString.length });
   let buffer = 0n;
   const length = preparedString.length;
   // Set sign bit
   buffer = isNegative ? clearSignBit(buffer) : setSignBit(buffer);
+  console.log('[handleLengthTwoToTwenty] After sign bit:', buffer.toString(2));
 
   // Apply rotations for each position
   for (let i = 0; i < length; i++) {
     const numeral = preparedString[i];
+    console.log(`[handleLengthTwoToTwenty] Loop i=${i}, numeral='${numeral}'`);
 
     // Invalid case: numeral not valid Round8 symbol (1-8)
     // Returns undefined
@@ -484,6 +499,7 @@ const handleLengthTwoToTwenty = (
     }
 
     const rotation = round8NumeralToRotation(numeral);
+    console.log(`[handleLengthTwoToTwenty] numeral='${numeral}' → rotation=${rotation}`);
 
     // Invalid case: rotation mapping failed
     // Returns undefined
@@ -492,14 +508,18 @@ const handleLengthTwoToTwenty = (
     }
 
     const position = (i + 1) as Positions; // String index 0 = Position 1
+    console.log(`[handleLengthTwoToTwenty] Applying rotation=${rotation} at position=${position}`);
 
     buffer = applyNumeralRotation(rotation, buffer, position);
+    console.log(`[handleLengthTwoToTwenty] After position ${position}:`, buffer.toString(2));
   }
 
   // EXPLICITLY set Marquee at Position (length + 1) using NumeralStore.Marquee
   // Example: Length 5 → Positions 1-5 set, Marquee at Position 6
   const marqueePosition = (length + 1) as Positions;
+  console.log(`[handleLengthTwoToTwenty] Setting Marquee at position=${marqueePosition}`);
   buffer = applyMarqueeAtPosition(buffer, marqueePosition);
+  console.log('[handleLengthTwoToTwenty] Final buffer:', buffer.toString(2));
 
   return buffer;
 };
@@ -629,7 +649,7 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
     const parts = preparedString.split(',');
 
     // Reverse parts (display format expansion→origin becomes origin→expansion)
-    parts.reverse();
+    // parts.reverse();
 
     // Rejoin without commas for processing
     preparedString = parts.join('');
@@ -666,6 +686,12 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
       return undefined;
     }
   }
+
+  // NOTE: NO reversal needed here!
+  // User types "123" → preparedString stays "123"
+  // handleLengthTwoToTwenty applies digits origin→expansion (position 1←'1', 2←'2', 3←'3')
+  // getFormattedColumnarWrungRepresentation reverses for display (shows "123")
+  // Input order = Display order (both left-to-right)
 
   // Phase 3: Length-Based Routing
   const length = preparedString.length;

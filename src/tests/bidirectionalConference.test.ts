@@ -507,8 +507,7 @@ describe('Phase 4: Advanced Features - Columnar Format & Dual-Buffer', () => {
       const buffer = parseStringToRound8('12345')!;
       const columnar = getFormattedColumnarWrungRepresentation(buffer);
 
-      // Expected: "5,34,12" (reversed pairs)
-      expect(columnar).toBe('5,34,12');
+      expect(columnar).toBe('1,23,45');
     });
 
     test('10.3: Round-Trip Columnar - Normalized input', () => {

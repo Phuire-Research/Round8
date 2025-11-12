@@ -21,7 +21,8 @@ type ActiveInputIdentifier = 'input1' | 'input2';
 export type OperationType = '+' | '-' | null;
 
 export interface InputState {
-  value: string;                        // Round8 string ("1,2,3")
+  value: string;                        // Round8 string ("1,2,3") - DISPLAY value (reversed)
+  rawSequence: string;                  // Raw typed sequence ("123") - actual input order
   buffer: bigint;      // 64-bit buffer
   binary: string;                       // Binary display ("1|001|010|011|...")
 }
@@ -51,16 +52,19 @@ function createCalculator() {
   const state: CalculatorState = {
     input1: {
       value: '',
+      rawSequence: '',
       buffer: 0n,
       binary: ''
     },
     input2: {
       value: '',
+      rawSequence: '',
       buffer: 0n,
       binary: ''
     },
     output: {
       value: '',
+      rawSequence: '',
       buffer: 0n,
       binary: ''
     },
@@ -74,14 +78,17 @@ function createCalculator() {
   // ============================================================
 
   function handleDigitEntry(digit: number): void {
-    console.log('HITTING', digit);
-
     const inputState = state[state.activeInput];
-    const currentValue = inputState.value;
-    // Just concatenate digits - no commas during entry
-    const newValue = currentValue ? `${currentValue}${digit}` : `${digit}`;
+    // Build sequence in reverse order (newest first)
+    const currentSequence = inputState.rawSequence;
+    // Prepend new digit to front (reverse order)
+    const newSequence = currentSequence ? `${digit}${currentSequence}` : `${digit}`;
 
-    const buffer = r8_.parseStringToBuffer(newValue);
+    // Update raw sequence
+    inputState.rawSequence = newSequence;
+
+    // Parse directly (already in reversed order)
+    const buffer = r8_.parseStringToBuffer(newSequence);
     if (buffer) {
       const binary = r8_.createBufferDisplay(buffer);
       const displayValue = r8_.createRoundDisplay(buffer);
@@ -93,20 +100,22 @@ function createCalculator() {
 
   function handleBackspace(): void {
     const inputState = state[state.activeInput];
-    const currentValue = inputState.value;
+    const currentSequence = inputState.rawSequence;
 
-    if (!currentValue) {return;}
+    if (!currentSequence) {return;}
 
-    // Remove commas to get raw digits, then remove last digit
-    const rawDigits = currentValue.replace(/,/g, '');
-    const newDigits = rawDigits.slice(0, -1);
+    // Remove last digit from raw sequence
+    const newSequence = currentSequence.slice(0, -1);
+    inputState.rawSequence = newSequence;
 
-    if (newDigits === '') {
+    if (newSequence === '') {
       inputState.value = '0';
       inputState.buffer = 0n;
       inputState.binary = inputState.buffer.toLocaleString();
     } else {
-      const buffer = r8_.parseStringToBuffer(newDigits);
+      // Reverse the sequence before parsing (same as handleDigitEntry)
+      const reversedSequence = newSequence.split('').reverse().join('');
+      const buffer = r8_.parseStringToBuffer(reversedSequence);
       const binary = buffer?.toString();
 
       inputState.buffer = buffer ? buffer : 0n;
@@ -121,6 +130,7 @@ function createCalculator() {
   function handleZero(): void {
     const inputState = state[state.activeInput];
     inputState.value = r8_.createRoundDisplay(0n);
+    inputState.rawSequence = '0';
     inputState.buffer = 0n;
     inputState.binary = r8_.createBufferDisplay(0n);
   }
@@ -157,14 +167,17 @@ function createCalculator() {
 
   function handleClear(): void {
     state.input1.value = '';
+    state.input1.rawSequence = '';
     state.input1.buffer = 0n;
     state.input1.binary = '';
 
     state.input2.value = '';
+    state.input2.rawSequence = '';
     state.input2.buffer = 0n;
     state.input2.binary = '';
 
     state.output.value = '';
+    state.output.rawSequence = '';
     state.output.buffer = 0n;
     state.output.binary = '';
 
