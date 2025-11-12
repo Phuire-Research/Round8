@@ -1,13 +1,13 @@
-# Round8 v0.0.1
+# Round8 v0.0.11 - Proof of Concept
 
 [![Node.js CI](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml/badge.svg)](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml)
 [![npm version](https://badge.fury.io/js/round8.svg)](https://www.npmjs.com/package/round8)
 [![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/Phuire-Research/Round8)
 [![Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://phuire-research.github.io/Round8/)
 
-**Base-72 Numeral System with String-Only API**
+**Pure Binary Calculator - Quantum-Resistant Architecture Demonstration**
 
-Round8 is a pure spatial coordinate stratimuxian mathematics library that provides energy-efficient numerical operations through a string-based API. No hex crumbling - operations work directly on Round8 string representations.
+Round8 is a proof-of-concept demonstrating spool-based indexed lookups for binary operations. This PoC validates that the underlying binary system is operational and proven. All foundational operations work - it's now just pushing the boulder up the hill with incremental feature releases.
 
 ## Installation
 
@@ -15,76 +15,84 @@ Round8 is a pure spatial coordinate stratimuxian mathematics library that provid
 npm install round8
 ```
 
-## Quick Start
+## What This PoC Demonstrates
+
+This proof-of-concept validates:
+
+1. **Spool-Based Value Lookups** - All numeral values come from pre-computed indexed lookups (NumeralStore), not binary arithmetic
+2. **Relative Position Addressing** - Bit shifts used exclusively for placing 3-bit values at correct buffer positions
+3. **Dual Display Validation** - Round8 ↔ Binary correspondence proven operational
+4. **Marquee Delimiter System** - Delimiter-aware parsing with shifted frame at position 21
+5. **Calculator Interface** - Working digit entry, backspace, display rendering
+
+**Critical Architectural Note**: Shifts (`<<`) are used for **relative position addressing only** - placing spooled values at their buffer positions. No binary operand calculations (shift/OR/AND for value computation). Values themselves come from indexed spool lookups.
+
+**Try the Live Demo**: [https://phuire-research.github.io/Round8/](https://phuire-research.github.io/Round8/)
+
+The interactive calculator demonstrates the binary system functioning as designed. Digit entry updates both Round8 and binary displays in real-time.
+
+## API Reference (v0.0.11)
+
+Current PoC exports the calculator factory and core display functions:
+
+### Calculator Factory
 
 ```typescript
 import { r8_ } from 'round8';
 
-// Parse Round8 strings
-const a = r8_.parse("18,86,24");
-const b = r8_.parse("12,34,56");
+// Create calculator instance
+const calculator = r8_.createCalculator();
 
-// Perform operations
-const sum = r8_.add(a, b);
-console.log(sum.value);  // "21,32,82"
+// Access state
+calculator.getState();        // Full calculator state
+calculator.getInput1();       // Input 1 state
+calculator.getInput2();       // Input 2 state
+calculator.getOutput();       // Output state
 
-// All operations return Round8 strings
-const diff = r8_.subtract(a, b);
-console.log(diff.value);  // Round8 string result
+// Calculator operations
+calculator.handleDigitEntry(5);   // Enter digit
+calculator.handleBackspace();     // Remove last digit
+calculator.handleZero();          // Enter zero
+calculator.handleClear();         // Clear active input
 ```
 
-## API Reference
-
-### Core Operations (v0.0.1)
-
-#### Parsing & Constants
-
-- **`r8_.parse(string)`** - Parse Round8 string to r8Value
-- **`r8_.zero()`** - Return zero constant
-- **`r8_.negativeOne()`** - Return negative one constant
-
-#### Arithmetic
-
-- **`r8_.add(a, b)`** - Addition (proven by SumWrung validation)
-- **`r8_.subtract(a, b)`** - Subtraction (proven by DifferenceWrung validation)
-
-#### Comparison
-
-- **`r8_.compare(a, b)`** - Compare values (-1, 0, 1)
-- **`r8_.equals(a, b)`** - Check equality
-- **`r8_.min(a, b)`** - Get minimum value
-- **`r8_.max(a, b)`** - Get maximum value
-
-#### Unary Operations
-
-- **`r8_.abs(value)`** - Absolute value
-- **`r8_.negate(value)`** - Negate (flip sign)
-
-#### Validation
-
-- **`r8_.isZero(value)`** - Check if value is zero
-- **`r8_.isNegativeOne(value)`** - Check if value is negative one
-
-#### Information
-
-- **`r8_.getTheoreticalMax()`** - Get maximum representable value as Round8 string
-
-### r8Value Type
-
-All operations return `r8Value` objects with the following properties:
+### Display Functions
 
 ```typescript
-type r8Value = {
-  readonly value: string;        // Round8 string with commas (e.g., "18,86,24")
-  readonly valueRaw: string;     // Round8 string without commas (e.g., "188624")
-  readonly isPositive: boolean;  // True if positive
-  readonly isNegative: boolean;  // True if negative (excluding zero)
-  readonly isZero: boolean;      // True if zero
-  readonly isNegativeOne: boolean; // True if negative one
-};
+// Parse Round8 string to buffer
+const buffer = r8_.parseStringToBuffer("1,2,3");
+
+// Create Round8 display from buffer
+const round8Display = r8_.createRoundDisplay(buffer);  // "1,2,3"
+
+// Create Round8 string (no commas)
+const round8String = r8_.createRoundString(buffer);    // "123"
+
+// Create binary display from buffer
+const binaryDisplay = r8_.createBufferDisplay(buffer); // "1|001|010|011|..."
 ```
 
-**Note**: For 0.0.1 `decimal` property - pure string-only API.
+### Types
+
+```typescript
+export type OperationType = '+' | '-' | null;
+export type Positions = 1 | 2 | 3 | ... | 21;  // Position identifiers
+
+export interface InputState {
+  value: string;      // Round8 display ("1,2,3")
+  buffer: bigint;     // 64-bit buffer
+  binary: string;     // Binary display ("1|001|010|011|...")
+}
+
+export interface CalculatorState {
+  input1: InputState;
+  input2: InputState;
+  output: InputState;
+  operation: OperationType;
+  activeInput: 'input1' | 'input2';
+  darkMode: boolean;
+}
+```
 
 ## Energy Efficiency Proof
 
