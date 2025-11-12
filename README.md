@@ -3,7 +3,7 @@
 [![Node.js CI](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml/badge.svg)](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml)
 [![npm version](https://badge.fury.io/js/round8.svg)](https://www.npmjs.com/package/round8)
 [![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/Phuire-Research/Round8)
-[![Demo](https://img.shields.io/badge/demo-WIP-yellow.svg)](https://github.com/Phuire-Research/Round8)
+[![Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://phuire-research.github.io/Round8/)
 
 **Base-72 Numeral System with String-Only API**
 
