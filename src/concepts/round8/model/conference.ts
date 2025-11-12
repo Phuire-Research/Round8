@@ -122,7 +122,7 @@ export const getWrungStringRepresentation = (buffer: bigint): string => {
     return true; // Continue scanning
   });
 
-  return result.split('').reverse().join('');
+  return (marqueeState.isNegative ? '-' : '') + result.split('').reverse().join('');
 };
 
 /**
@@ -166,37 +166,41 @@ export const getWrungNumberRepresentation = (buffer: bigint): number => {
  */
 export const getFormattedColumnarWrungRepresentation = (buffer: bigint): string => {
   // Compositional: Get Marquee-aware base string
-  const fullString = getWrungStringRepresentation(buffer);
+  const beforeString = getWrungStringRepresentation(buffer);
 
   // Handle special cases (empty or single character)
-  if (fullString.length === 0) {
+  if (beforeString.length === 0) {
     return '0';
   }
-  if (fullString.length === 1) {
-    return fullString;
+  if (beforeString.length === 1) {
+    return beforeString;
   }
+  const isNegative = beforeString.charAt(0) === '-';  // Group into pairs, handling odd-length strings
+  const afterString = isNegative ?
+    beforeString.slice(1)
+    :
+    beforeString;
 
-  // Group into pairs, handling odd-length strings
   // If odd length, the FIRST (oldest) digit gets its own column
   const columns: string[] = [];
-  const isOdd = fullString.length % 2 === 1;
+  const isOdd = afterString.length % 2 === 1;
   let startIndex = 0;
 
   // If odd length, first column is single digit
   if (isOdd) {
-    columns.push(fullString[0]);
+    columns.push(afterString[0]);
     startIndex = 1;
   }
 
   // Group remaining digits into pairs
-  for (let i = startIndex; i < fullString.length; i += 2) {
-    const column = fullString.slice(i, i + 2);
+  for (let i = startIndex; i < afterString.length; i += 2) {
+    const column = afterString.slice(i, i + 2);
     columns.push(column);
   }
 
   // Join with commas to separate columnar tiers
   const result = columns.join(',');
-  return result;
+  return (isNegative ? '-' : '') + result;
 };
 
 /**
