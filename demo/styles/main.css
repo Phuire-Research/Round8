@@ -1,22 +1,161 @@
 /* HiFi Functional Design - Main Entry Point */
 /* Import-Bound Tailwind CSS with HiFi Base Replacement */
 
+/* 0. Import Space Mono font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
 /* 1. Import HiFi base colors FIRST (defines utility classes) */
 @import "./hifi-base.css";
 
-/* 2. Import Tailwind v4 (processes all layers) */
-@import "tailwindcss";
-
+/* 2. Import Tailwind v4 (without preflight reset) */
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+* {
+  font-family: 'Orbitron', monospace;
+}
 /* 3. HiFi-specific calculator components */
 @layer components {
-  /* Calculator Container */
+  /* Calculator Container - 10% wider */
   .calculator-container {
-    @apply max-w-2xl w-full;
+    @apply w-full;
+    max-width: 46.2rem; /* 42rem (max-w-2xl) + 10% = 46.2rem */
   }
 
-  /* Calculator Card */
+  /* Calculator Card - Glossy Black with Golden-Green Shine (Enhanced) */
   .calculator-card {
-    @apply bg-slate-900 dark:bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700;
+    @apply rounded-2xl shadow-2xl;
+    padding: 10px !important;
+    border-width: 3px !important;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    /* Multi-layer glossy composition with enhanced golden-green */
+    background:
+      /* Noise texture overlay (subtle) */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E"),
+      /* Golden-green soft spotlight (center) */
+      radial-gradient(
+        ellipse 70% 50% at 50% 50%,
+        rgba(232, 213, 85, 0.2) 0%,
+        rgba(196, 184, 67, 0.15) 25%,
+        rgba(154, 154, 49, 0.1) 45%,
+        rgba(112, 128, 31, 0.06) 65%,
+        transparent 100%
+      ),
+      /* Glossy black base gradient */
+      linear-gradient(
+        135deg,
+        #1a1a1a 0%,
+        #0a0a0a 30%,
+        #000000 70%,
+        #0a0a0a 100%
+      );
+    background-size: 260px 260px, 100% 100%, 100% 100%;
+    background-position: 0 0, 0 0, 0 0;
+    background-repeat: repeat, no-repeat, no-repeat;
+
+    /* HiFi dimensional border - teal-cyan with 8% darker top/right */
+    border-top: 2px solid #1b363c;      /* 8% darker teal-cyan */
+    border-right: 2px solid #1b363c;    /* 8% darker teal-cyan */
+    border-bottom: 2px solid #1d3b41;   /* Base teal-cyan */
+    border-left: 2px solid #1d3b41;     /* Base teal-cyan */
+    box-shadow:
+      /* Golden-green ambient glow */
+      0 8px 32px rgba(154, 154, 49, 0.15),
+      /* Depth shadow */
+      0 4px 16px rgba(0, 0, 0, 0.4),
+      /* Inner golden-green highlight for glossy sheen */
+      inset 0 1px 0 rgba(232, 213, 85, 0.2);
+  }
+
+  .calculator-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(232, 213, 85, 0.15) 0%,
+      rgba(232, 213, 85, 0.05) 30%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+    border-radius: inherit;
+  }
+
+  /* Controls Wrapper - Frames Operands, Dial Pad, and Scientific sections */
+  .controls-wrapper {
+    background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.95), rgba(0, 0, 0, 0.95));
+    padding: 5px;
+    border-radius: 10px;
+    border: #3d1324 3px solid;
+  }
+
+  /* Calculator Header - Glossy Black with Golden-Green Shine */
+  .calculator-header {
+    position: relative;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    isolation: isolate;
+    overflow: hidden;
+
+    /* HiFi dimensional border - warm brown-gold tones */
+    border-top: 2px solid #704d11fc;
+    border-right: 2px solid #704d11fc;
+    border-bottom: 2px solid #a67219fc;
+    border-left: 2px solid #a67219fc;
+
+    /* Multi-layer glossy composition */
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232, 213, 85, 0.25) 0%, rgba(196, 184, 67, 0.18) 20%, rgba(154, 154, 49, 0.12) 40%, rgba(112, 128, 31, 0.08) 60%, transparent 100%), linear-gradient(135deg, #362433 0%, #30200f 30%, #361e1e 70%, #29231d 100%);
+
+    /* No drop shadow - only inset highlight */
+    box-shadow: inset 0 1px 0 rgba(245, 220, 70, 0.2);
+  }
+
+  .calculator-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(232, 213, 85, 0.12) 0%,
+      rgba(232, 213, 85, 0.04) 40%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+    border-radius: inherit;
+  }
+
+  /* Calculator Inner Structure - Structural Border Frame */
+  .display-section,
+  .operands-section,
+  .dialpad-section,
+  .scientific-section {
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .dark .display-section,
+  .dark .operands-section,
+  .dark .dialpad-section,
+  .dark .scientific-section {
+    border-color: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.15);
   }
 
   /* Input Fields with HiFi Focus (Ochre = Attention) */
@@ -126,6 +265,322 @@
   .hifi-surface-dark {
     @apply bg-slate-900 text-slate-100;
   }
+
+  /* ========================================
+     HiFi Three-Layer Button Composition
+     Layer 1: Spotlight gradient (87.5% 12.5%)
+     Layer 2: SVG pattern overlay (100px tiled)
+     Layer 3: Content (text)
+     Layer 4: Dimensional borders (8% differential)
+     ======================================== */
+
+  /* HiFi Button Wrappers - Shadow Clipping Containers */
+  .hifi-btn-wrapper {
+    @apply relative rounded-lg overflow-hidden;
+    padding: 3px;
+    background: rgba(0, 0, 0, 0.3);
+    isolation: isolate;
+    max-height: 60px;
+  }
+
+  .dark .hifi-btn-wrapper {
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  /* Zero button wrapper spans 2 columns for center square layout */
+  .hifi-btn-wrapper-zero {
+    @apply relative rounded-lg overflow-hidden;
+    padding: 3px;
+    background: rgba(0, 0, 0, 0.3);
+    isolation: isolate;
+    grid-column: span 2;
+    max-height: 60px;
+  }
+
+  .dark .hifi-btn-wrapper-zero {
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  /* Digit Buttons (1-8): Cobalt/Implementation */
+  .hifi-btn-digit {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Orbitron', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-cobalt),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-cobalt) 0%, #151d1e 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 100px 100px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-cobalt-border-dark);
+    border-right: 2px solid var(--color-cobalt-border-dark);
+    border-bottom: 2px solid var(--color-cobalt-border-light);
+    border-left: 2px solid var(--color-cobalt-border-light);
+    box-shadow: -8px 8px 32px var(--color-cobalt-shadow);
+  }
+
+  .hifi-btn-digit:hover {
+    background-image:
+      var(--pattern-cobalt),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-cobalt-light) 0%, #151d1e 88%);
+    box-shadow: -6px 6px 24px var(--color-cobalt-shadow);
+    transform: scale(0.96); /* Pressed-in effect */
+  }
+
+  .hifi-btn-digit:active {
+    border-top: 2px solid var(--color-cobalt-border-light);
+    border-right: 2px solid var(--color-cobalt-border-light);
+    border-bottom: 2px solid var(--color-cobalt-border-dark);
+    border-left: 2px solid var(--color-cobalt-border-dark);
+  }
+
+  /* Addition Button: Rust/Prospection */
+  .hifi-btn-add {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Orbitron', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-rust),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-rust) 0%, #1e1915 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 100px 100px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-rust-border-dark);
+    border-right: 2px solid var(--color-rust-border-dark);
+    border-bottom: 2px solid var(--color-rust-border-light);
+    border-left: 2px solid var(--color-rust-border-light);
+    box-shadow: -8px 8px 32px var(--color-rust-shadow);
+  }
+
+  .hifi-btn-add:hover {
+    background-image:
+      var(--pattern-rust),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-rust-light) 0%, #1e1915 88%);
+    box-shadow: -6px 6px 24px var(--color-rust-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-add:active {
+    border-top: 2px solid var(--color-rust-border-light);
+    border-right: 2px solid var(--color-rust-border-light);
+    border-bottom: 2px solid var(--color-rust-border-dark);
+    border-left: 2px solid var(--color-rust-border-dark);
+  }
+
+  /* Subtraction Button: Rose/Healing */
+  .hifi-btn-subtract {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Orbitron', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-rose),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-rose) 0%, #1e151d 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 100px 100px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-rose-border-dark);
+    border-right: 2px solid var(--color-rose-border-dark);
+    border-bottom: 2px solid var(--color-rose-border-light);
+    border-left: 2px solid var(--color-rose-border-light);
+    box-shadow: -8px 8px 32px var(--color-rose-shadow);
+  }
+
+  .hifi-btn-subtract:hover {
+    background-image:
+      var(--pattern-rose),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-rose-light) 0%, #1e151d 88%);
+    box-shadow: -6px 6px 24px var(--color-rose-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-subtract:active {
+    border-top: 2px solid var(--color-rose-border-light);
+    border-right: 2px solid var(--color-rose-border-light);
+    border-bottom: 2px solid var(--color-rose-border-dark);
+    border-left: 2px solid var(--color-rose-border-dark);
+  }
+
+  /* Zero/Abs.Zero Button: Maroon/Curation */
+  .hifi-btn-zero {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Orbitron', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-maroon),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-maroon) 0%, #1e1515 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 100px 100px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-maroon-border-dark);
+    border-right: 2px solid var(--color-maroon-border-dark);
+    border-bottom: 2px solid var(--color-maroon-border-light);
+    border-left: 2px solid var(--color-maroon-border-light);
+    box-shadow: -8px 8px 32px var(--color-maroon-shadow);
+  }
+
+  .hifi-btn-zero:hover {
+    background-image:
+      var(--pattern-maroon),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-maroon-light) 0%, #1e1515 88%);
+    box-shadow: -6px 6px 24px var(--color-maroon-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-zero:active {
+    border-top: 2px solid var(--color-maroon-border-light);
+    border-right: 2px solid var(--color-maroon-border-light);
+    border-bottom: 2px solid var(--color-maroon-border-dark);
+    border-left: 2px solid var(--color-maroon-border-dark);
+  }
+
+  /* Backspace Button: Amethyst/Operations */
+  .hifi-btn-backspace {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Orbitron', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-amethyst),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-amethyst) 0%, #1a151e 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 100px 100px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-amethyst-border-dark);
+    border-right: 2px solid var(--color-amethyst-border-dark);
+    border-bottom: 2px solid var(--color-amethyst-border-light);
+    border-left: 2px solid var(--color-amethyst-border-light);
+    box-shadow: -8px 8px 32px var(--color-amethyst-shadow);
+  }
+
+  .hifi-btn-backspace:hover {
+    background-image:
+      var(--pattern-amethyst),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-amethyst-light) 0%, #1a151e 88%);
+    box-shadow: -6px 6px 24px var(--color-amethyst-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-backspace:active {
+    border-top: 2px solid var(--color-amethyst-border-light);
+    border-right: 2px solid var(--color-amethyst-border-light);
+    border-bottom: 2px solid var(--color-amethyst-border-dark);
+    border-left: 2px solid var(--color-amethyst-border-dark);
+  }
+
+  /* Signed Toggle Button: Ochre/Drafting */
+  .hifi-btn-signed {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Orbitron', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-ochre),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-ochre) 0%, #1e1d15 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 100px 100px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-ochre-border-dark);
+    border-right: 2px solid var(--color-ochre-border-dark);
+    border-bottom: 2px solid var(--color-ochre-border-light);
+    border-left: 2px solid var(--color-ochre-border-light);
+    box-shadow: -8px 8px 32px var(--color-ochre-shadow);
+  }
+
+  .hifi-btn-signed:hover {
+    background-image:
+      var(--pattern-ochre),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-ochre-light) 0%, #1e1d15 88%);
+    box-shadow: -6px 6px 24px var(--color-ochre-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-signed:active {
+    border-top: 2px solid var(--color-ochre-border-light);
+    border-right: 2px solid var(--color-ochre-border-light);
+    border-bottom: 2px solid var(--color-ochre-border-dark);
+    border-left: 2px solid var(--color-ochre-border-dark);
+  }
+
+  /* Flip/Switch Input Button: Viridian/Instillment */
+  .hifi-btn-flip {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Orbitron', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-viridian),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-viridian) 0%, #1d1e15 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 100px 100px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-viridian-border-dark);
+    border-right: 2px solid var(--color-viridian-border-dark);
+    border-bottom: 2px solid var(--color-viridian-border-light);
+    border-left: 2px solid var(--color-viridian-border-light);
+    box-shadow: -8px 8px 32px var(--color-viridian-shadow);
+  }
+
+  .hifi-btn-flip:hover {
+    background-image:
+      var(--pattern-viridian),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-viridian-light) 0%, #1d1e15 88%);
+    box-shadow: -6px 6px 24px var(--color-viridian-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-flip:active {
+    border-top: 2px solid var(--color-viridian-border-light);
+    border-right: 2px solid var(--color-viridian-border-light);
+    border-bottom: 2px solid var(--color-viridian-border-dark);
+    border-left: 2px solid var(--color-viridian-border-dark);
+  }
+
+  /* Clear Button: Red/Warning (Special Case) */
+  .hifi-btn-clear {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Orbitron', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-red),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-red) 0%, #1e1515 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 100px 100px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-red-border-dark);
+    border-right: 2px solid var(--color-red-border-dark);
+    border-bottom: 2px solid var(--color-red-border-light);
+    border-left: 2px solid var(--color-red-border-light);
+    box-shadow: -8px 8px 32px var(--color-red-shadow);
+  }
+
+  .hifi-btn-clear:hover {
+    background-image:
+      var(--pattern-red),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-red-light) 0%, #1e1515 88%);
+    box-shadow: -6px 6px 24px var(--color-red-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-clear:active {
+    border-top: 2px solid var(--color-red-border-light);
+    border-right: 2px solid var(--color-red-border-light);
+    border-bottom: 2px solid var(--color-red-border-dark);
+    border-left: 2px solid var(--color-red-border-dark);
+  }
+
 }
 
 /* 4. Custom utilities for HiFi design */
@@ -190,30 +645,30 @@
 
   .operand-add:hover {
     background-color: var(--color-viridian-light);
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(64, 130, 109, 0.4);
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(64, 130, 109, 0.4);
   }
 
   .operand-subtract:hover {
     background-color: var(--color-cobalt-light);
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 71, 171, 0.4);
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(0, 71, 171, 0.4);
   }
 
   .operand-compare:hover {
     background-color: var(--color-amethyst-light);
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(106, 13, 173, 0.4);
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(106, 13, 173, 0.4);
   }
 
   .operand-calculate:hover {
     background-color: rgb(34 197 94);  /* green-500 */
-    transform: scale(1.05);
+    transform: scale(0.96);
   }
 
   .operand-clear:hover {
     background-color: var(--color-red-light);
-    transform: scale(1.05);
+    transform: scale(0.96);
   }
 }
 
@@ -257,6 +712,7 @@
 /* 4. Calculator Container Components */
 .calculator-header {
   text-align: center;
+  max-height: 54px;
   margin-bottom: 1.5rem;
 }
 
@@ -265,13 +721,44 @@
   font-weight: 700;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 2;
+  text-shadow: 1px 2px crimson;
+}
+
+/* HiFi Eight with Rust Shadow */
+.hifi-eight {
+  text-shadow: 1px 2px var(--color-rust);
+}
+
+/* HiFi Letter Colors for CALC with Custom Shadows */
+.hifi-viridian {
+  color: var(--color-viridian);
+  text-shadow: 1px 2px var(--color-ochre);
+}
+
+.hifi-cobalt {
+  color: var(--color-cobalt);
+  text-shadow: 1px 2px var(--color-viridian);
+}
+
+.hifi-amethyst {
+  color: var(--color-amethyst);
+  text-shadow: 1px 2px var(--color-cobalt);
+}
+
+.hifi-rose {
+  color: var(--color-rose);
+  text-shadow: 1px 2px var(--color-amethyst);
 }
 
 .calculator-subtitle {
   font-size: 0.875rem;
-  color: rgb(148 163 184);  /* slate-400 */
+  color: rgb(212, 194, 74);  /* Golden-green tint */
   font-weight: 500;
   letter-spacing: 0.05em;
+  position: relative;
+  z-index: 2;
 }
 
 /* 5. Display Section */
@@ -284,7 +771,7 @@
   padding: 1.25rem;
   margin-bottom: 1.25rem;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(71, 85, 105, 0.3);
+  border: 3px solid rgb(63 20 83);
   position: relative;
 }
 

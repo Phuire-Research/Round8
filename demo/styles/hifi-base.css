@@ -45,6 +45,77 @@
     --color-red: #dc143c;
     --color-red-light: #ff1744;
     --color-red-dark: #b01030;
+
+    /* === HiFi Dimensional Borders: 8% Differential (Subtle Factor) === */
+    /* Darker variants (-8%): Top/Right borders (closer to spotlight) */
+    /* Lighter variants (+8%): Bottom/Left borders (away from spotlight) */
+
+    /* Maroon Border Variants */
+    --color-maroon-border-dark: #751d1d;  /* 8% darker for dimensional depth */
+    --color-maroon-border-light: #8a2423; /* 8% lighter for dimensional depth */
+    --color-maroon-shadow: rgba(117, 29, 29, 0.6); /* Colored drop shadow */
+
+    /* Rust Border Variants */
+    --color-rust-border-dark: #a83c0d;   /* 8% darker */
+    --color-rust-border-light: #c5460f; /* 8% lighter */
+    --color-rust-shadow: rgba(168, 60, 13, 0.6);
+
+    /* Ochre Border Variants */
+    --color-ochre-border-dark: #bc6e20;  /* 8% darker */
+    --color-ochre-border-light: #db8024; /* 8% lighter */
+    --color-ochre-shadow: rgba(188, 110, 32, 0.6);
+
+    /* Viridian Border Variants */
+    --color-viridian-border-dark: #3b7864; /* 8% darker */
+    --color-viridian-border-light: #458c76; /* 8% lighter */
+    --color-viridian-shadow: rgba(59, 120, 100, 0.6);
+
+    /* Cobalt Border Variants */
+    --color-cobalt-border-dark: #00429e;  /* 8% darker */
+    --color-cobalt-border-light: #004cb8; /* 8% lighter */
+    --color-cobalt-shadow: rgba(0, 66, 158, 0.6);
+
+    /* Amethyst Border Variants */
+    --color-amethyst-border-dark: #620ca0; /* 8% darker */
+    --color-amethyst-border-light: #750ebc; /* 8% lighter */
+    --color-amethyst-shadow: rgba(98, 12, 160, 0.6);
+
+    /* Rose Border Variants */
+    --color-rose-border-dark: #eb0075;    /* 8% darker */
+    --color-rose-border-light: #ff1a8a;  /* 8% lighter */
+    --color-rose-shadow: rgba(235, 0, 117, 0.6);
+
+    /* Red Border Variants */
+    --color-red-border-dark: #cb1237;     /* 8% darker */
+    --color-red-border-light: #ed1541;   /* 8% lighter */
+    --color-red-shadow: rgba(203, 18, 55, 0.6);
+
+    /* === HiFi SVG Pattern Textures (Semantic Geometry) === */
+    /* 100x100px tileable patterns at 20% opacity, stroke-width × 4/3 */
+
+    /* Maroon: Grid with Circular Collection Elements (Curation) */
+    --pattern-maroon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect x='10' y='10' width='35' height='35' stroke='%23800020' stroke-width='2.67' fill='none' opacity='0.2'/%3E%3Crect x='55' y='10' width='35' height='35' stroke='%23800020' stroke-width='2.67' fill='none' opacity='0.2'/%3E%3Crect x='10' y='55' width='35' height='35' stroke='%23800020' stroke-width='2.67' fill='none' opacity='0.2'/%3E%3Crect x='55' y='55' width='35' height='35' stroke='%23800020' stroke-width='2.67' fill='none' opacity='0.2'/%3E%3Ccircle cx='27.5' cy='27.5' r='8' stroke='%23800020' stroke-width='2' fill='none' opacity='0.2'/%3E%3Ccircle cx='72.5' cy='72.5' r='8' stroke='%23800020' stroke-width='2' fill='none' opacity='0.2'/%3E%3C/svg%3E");
+
+    /* Rust: Radiating Horizon Lines + Concentric Circles (Prospection) */
+    --pattern-rust: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cline x1='50' y1='50' x2='100' y2='20' stroke='%23b7410e' stroke-width='2.67' opacity='0.2'/%3E%3Cline x1='50' y1='50' x2='100' y2='50' stroke='%23b7410e' stroke-width='2.67' opacity='0.2'/%3E%3Cline x1='50' y1='50' x2='100' y2='80' stroke='%23b7410e' stroke-width='2.67' opacity='0.2'/%3E%3Cline x1='50' y1='50' x2='0' y2='20' stroke='%23b7410e' stroke-width='2.67' opacity='0.2'/%3E%3Cline x1='50' y1='50' x2='0' y2='50' stroke='%23b7410e' stroke-width='2.67' opacity='0.2'/%3E%3Cline x1='50' y1='50' x2='0' y2='80' stroke='%23b7410e' stroke-width='2.67' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b7410e' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='15' stroke='%23b7410e' stroke-width='1.33' fill='none' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='25' stroke='%23b7410e' stroke-width='1.33' fill='none' opacity='0.15'/%3E%3C/svg%3E");
+
+    /* Ochre: Blueprint Crosshairs with Dashed Guidelines (Drafting) */
+    --pattern-ochre: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cline x1='10' y1='30' x2='90' y2='30' stroke='%23cc7722' stroke-width='2' stroke-dasharray='5,3' opacity='0.2'/%3E%3Cline x1='10' y1='50' x2='90' y2='50' stroke='%23cc7722' stroke-width='2.67' opacity='0.2'/%3E%3Cline x1='10' y1='70' x2='90' y2='70' stroke='%23cc7722' stroke-width='2' stroke-dasharray='5,3' opacity='0.2'/%3E%3Cline x1='30' y1='10' x2='30' y2='90' stroke='%23cc7722' stroke-width='2' stroke-dasharray='5,3' opacity='0.2'/%3E%3Cline x1='50' y1='10' x2='50' y2='90' stroke='%23cc7722' stroke-width='2.67' opacity='0.2'/%3E%3Cline x1='70' y1='10' x2='70' y2='90' stroke='%23cc7722' stroke-width='2' stroke-dasharray='5,3' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='12' stroke='%23cc7722' stroke-width='2.67' fill='none' opacity='0.2'/%3E%3C/svg%3E");
+
+    /* Viridian: Root and Branch Patterns with Growth Nodes (Instillment) */
+    --pattern-viridian: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M50,10 L50,50' stroke='%2340826d' stroke-width='4' opacity='0.2'/%3E%3Cpath d='M50,50 Q35,60 25,75' stroke='%2340826d' stroke-width='2.67' fill='none' opacity='0.2'/%3E%3Cpath d='M50,50 Q65,60 75,75' stroke='%2340826d' stroke-width='2.67' fill='none' opacity='0.2'/%3E%3Cpath d='M50,50 Q40,70 30,90' stroke='%2340826d' stroke-width='2' fill='none' opacity='0.2'/%3E%3Cpath d='M50,50 Q60,70 70,90' stroke='%2340826d' stroke-width='2' fill='none' opacity='0.2'/%3E%3Ccircle cx='50' cy='15' r='4' fill='%2340826d' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%2340826d' opacity='0.2'/%3E%3Ccircle cx='25' cy='75' r='3' fill='%2340826d' opacity='0.2'/%3E%3Ccircle cx='75' cy='75' r='3' fill='%2340826d' opacity='0.2'/%3E%3C/svg%3E");
+
+    /* Cobalt: Gear Mechanics with Cardinal/Diagonal Teeth (Implementation) */
+    --pattern-cobalt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' stroke='%230047ab' stroke-width='4' fill='none' opacity='0.2'/%3E%3Crect x='48' y='25' width='4' height='10' fill='%230047ab' opacity='0.2'/%3E%3Crect x='48' y='65' width='4' height='10' fill='%230047ab' opacity='0.2'/%3E%3Crect x='25' y='48' width='10' height='4' fill='%230047ab' opacity='0.2'/%3E%3Crect x='65' y='48' width='10' height='4' fill='%230047ab' opacity='0.2'/%3E%3Crect x='33' y='33' width='7' height='7' fill='%230047ab' transform='rotate(45 36.5 36.5)' opacity='0.2'/%3E%3Crect x='60' y='33' width='7' height='7' fill='%230047ab' transform='rotate(45 63.5 36.5)' opacity='0.2'/%3E%3Crect x='33' y='60' width='7' height='7' fill='%230047ab' transform='rotate(45 36.5 63.5)' opacity='0.2'/%3E%3Crect x='60' y='60' width='7' height='7' fill='%230047ab' transform='rotate(45 63.5 63.5)' opacity='0.2'/%3E%3C/svg%3E");
+
+    /* Amethyst: Network Nodes with Connecting Pathways (Operations) */
+    --pattern-amethyst: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='30' cy='30' r='5' fill='%236a0dad' opacity='0.2'/%3E%3Ccircle cx='70' cy='30' r='5' fill='%236a0dad' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%236a0dad' opacity='0.2'/%3E%3Ccircle cx='30' cy='70' r='5' fill='%236a0dad' opacity='0.2'/%3E%3Ccircle cx='70' cy='70' r='5' fill='%236a0dad' opacity='0.2'/%3E%3Cline x1='30' y1='30' x2='50' y2='50' stroke='%236a0dad' stroke-width='2' opacity='0.2'/%3E%3Cline x1='70' y1='30' x2='50' y2='50' stroke='%236a0dad' stroke-width='2' opacity='0.2'/%3E%3Cline x1='30' y1='70' x2='50' y2='50' stroke='%236a0dad' stroke-width='2' opacity='0.2'/%3E%3Cline x1='70' y1='70' x2='50' y2='50' stroke='%236a0dad' stroke-width='2' opacity='0.2'/%3E%3Cline x1='30' y1='30' x2='70' y2='30' stroke='%236a0dad' stroke-width='1.33' opacity='0.15'/%3E%3Cline x1='30' y1='70' x2='70' y2='70' stroke='%236a0dad' stroke-width='1.33' opacity='0.15'/%3E%3C/svg%3E");
+
+    /* Rose: Spiral Patterns with Organic Curves (Healing) */
+    --pattern-rose: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M50,50 Q55,45 55,40 Q55,35 52,32 Q48,30 45,32 Q42,35 42,40 Q42,46 48,50 Q54,54 60,52 Q66,50 68,44 Q70,38 66,32 Q62,26 55,24' stroke='%23ff007f' stroke-width='3.33' fill='none' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%23ff007f' opacity='0.2'/%3E%3Cpath d='M30,70 Q35,65 40,70' stroke='%23ff007f' stroke-width='2' fill='none' opacity='0.2'/%3E%3Cpath d='M60,70 Q65,65 70,70' stroke='%23ff007f' stroke-width='2' fill='none' opacity='0.2'/%3E%3Cpath d='M20,50 Q22,45 25,50' stroke='%23ff007f' stroke-width='2' fill='none' opacity='0.2'/%3E%3Cpath d='M75,50 Q77,45 80,50' stroke='%23ff007f' stroke-width='2' fill='none' opacity='0.2'/%3E%3C/svg%3E");
+
+    /* Red: Warning Cross Pattern (Clear/Warning) */
+    --pattern-red: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cline x1='30' y1='30' x2='70' y2='70' stroke='%23dc143c' stroke-width='4' opacity='0.2'/%3E%3Cline x1='70' y1='30' x2='30' y2='70' stroke='%23dc143c' stroke-width='4' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='20' stroke='%23dc143c' stroke-width='3' fill='none' opacity='0.2'/%3E%3C/svg%3E");
   }
 }
 

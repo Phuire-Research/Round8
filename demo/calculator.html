@@ -115,13 +115,13 @@
 
     <!-- Calculator Container -->
     <div id="calculatorContainer" class="calculator-container">
+        <!-- Ochre Grounding Card (Desk Surface) -->
+        <div class="calculator-card">
 
         <!-- Calculator Header -->
         <div class="calculator-header">
             <h1 class="calculator-title">
-                <span class="text-white bg-gradient-to-r from-maroon via-ochre to-rose bg-clip-text">
-                    Round8 Binary Calculator
-                </span>
+                <span class="text-white">Round<span class="hifi-eight">8</span></span><span class="hifi-viridian">C</span><span class="hifi-cobalt">A</span><span class="hifi-amethyst">L</span><span class="hifi-rose">C</span>
             </h1>
             <p class="calculator-subtitle">
                 Base-72 UnHexed Shor's Proofed Binary
@@ -241,32 +241,39 @@
             </div>
         </div>
 
+        <!-- Controls Wrapper (Operands + Dial Pad + Scientific) -->
+        <div class="controls-wrapper">
+
         <!-- Operands Section -->
         <div class="operands-section">
             <div class="operands-grid">
 
                 <!-- Row 1: Arithmetic Operations -->
-                <button
-                    id="addBtn"
-                    class="operand-btn operand-add"
-                    data-operation="add"
-                    data-symbol="+"
-                    data-color="viridian"
-                    title="Add - Viridian: Instillation">
-                    <span class="btn-symbol">+</span>
-                    <span class="btn-label">Add</span>
-                </button>
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="addBtn"
+                        class="operand-btn operand-add hifi-btn-add"
+                        data-operation="add"
+                        data-symbol="+"
+                        data-color="rust"
+                        title="Add - Rust: Prospection">
+                        <span class="btn-symbol">+</span>
+                        <span class="btn-label">Add</span>
+                    </button>
+                </div>
 
-                <button
-                    id="subtractBtn"
-                    class="operand-btn operand-subtract"
-                    data-operation="subtract"
-                    data-symbol="−"
-                    data-color="cobalt"
-                    title="Subtract - Cobalt: Implementation">
-                    <span class="btn-symbol">−</span>
-                    <span class="btn-label">Subtract</span>
-                </button>
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="subtractBtn"
+                        class="operand-btn operand-subtract hifi-btn-subtract"
+                        data-operation="subtract"
+                        data-symbol="−"
+                        data-color="rose"
+                        title="Subtract - Rose: Healing">
+                        <span class="btn-symbol">−</span>
+                        <span class="btn-label">Subtract</span>
+                    </button>
+                </div>
 
                 <button
                     class="operand-btn operand-multiply disabled"
@@ -328,13 +335,15 @@
                 </button>
 
                 <!-- Row 3: Control Operations -->
-                <button
-                    id="clearBtn"
-                    class="operand-btn operand-clear"
-                    title="Clear All - Red: Warning">
-                    <span class="btn-symbol">AC</span>
-                    <span class="btn-label">Clear</span>
-                </button>
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="clearBtn"
+                        class="operand-btn operand-clear hifi-btn-clear"
+                        title="Clear All - Red: Warning">
+                        <span class="btn-symbol">AC</span>
+                        <span class="btn-label">Clear</span>
+                    </button>
+                </div>
 
                 <button
                     id="equalsBtn"
@@ -347,13 +356,15 @@
                     <span class="btn-label">Equals</span>
                 </button>
 
-                <button
-                    id="flipBtn"
-                    class="operand-btn operand-flip"
-                    title="Switch Active Input - Ochre: Attention">
-                    <span class="btn-symbol">⇅</span>
-                    <span class="btn-label">Select</span>
-                </button>
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="flipBtn"
+                        class="operand-btn operand-flip hifi-btn-flip"
+                        title="Switch Active Input - Viridian: Instillment">
+                        <span class="btn-symbol">⇅</span>
+                        <span class="btn-label">Select</span>
+                    </button>
+                </div>
 
                 <button
                     id="calculateBtn"
@@ -370,40 +381,62 @@
             <!-- Positions Grid -->
             <div class="dialpad-grid">
                 <!-- Row 1: Positions 1-4 -->
-                <button class="dial-btn" data-position="1">1</button>
-                <button class="dial-btn" data-position="2">2</button>
-                <button class="dial-btn" data-position="3">3</button>
-                <button class="dial-btn" data-position="4">4</button>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="1">1</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="2">2</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="3">3</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="4">4</button>
+                </div>
 
                 <!-- Row 2: Positions 5-8 -->
-                <button class="dial-btn" data-position="5">5</button>
-                <button class="dial-btn" data-position="6">6</button>
-                <button class="dial-btn" data-position="7">7</button>
-                <button class="dial-btn" data-position="8">8</button>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="5">5</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="6">6</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="7">7</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="8">8</button>
+                </div>
 
                 <!-- Special Buttons -->
-                <button
-                    id="backspaceBtn"
-                    class="dial-btn dial-backspace"
-                    title="Remove Last Position">
-                    ⌫
-                </button>
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="backspaceBtn"
+                        class="dial-btn dial-backspace hifi-btn-backspace"
+                        title="Remove Last Position - Amethyst: Operations">
+                        ⌫
+                    </button>
+                </div>
 
-                <button
-                    id="zeroBtn"
-                    class="dial-btn dial-zero"
-                    title="Clear active input and set to zero"
-                    aria-label="Reset active input to zero">
-                    <span class="zero-text">Reset</span>
-                    <span class="zero-symbol">(0)</span>
-                </button>
+                <div class="hifi-btn-wrapper-zero">
+                    <button
+                        id="zeroBtn"
+                        class="dial-btn dial-zero hifi-btn-zero"
+                        title="Clear active input and set to absolute zero - Maroon: Curation"
+                        aria-label="Reset active input to absolute zero">
+                        <span class="zero-text">Abs.Zero</span>
+                        <span class="zero-symbol">(0)</span>
+                    </button>
+                </div>
 
-                <button
-                    id="sighnedBtn"
-                    class="dial-btn dial-comma"
-                    title="Insert Comma Separator">
-                    (0/1)
-                </button>
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="sighnedBtn"
+                        class="dial-btn dial-comma hifi-btn-signed"
+                        title="Toggle Sign Bit - Ochre: Drafting">
+                        (0/1)
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -447,6 +480,10 @@
                 <button class="mem-btn disabled" disabled>MS</button>
             </div>
         </div>
+
+        </div><!-- End Controls Wrapper -->
+
+        </div><!-- End Ochre Grounding Card -->
 
         <!-- Version Info -->
         <div class="version-info">
