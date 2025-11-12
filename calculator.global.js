@@ -817,29 +817,31 @@ var Round8Calculator = (() => {
       result += rotationString;
       return true;
     });
-    return result.split("").reverse().join("");
+    return (marqueeState.isNegative ? "-" : "") + result.split("").reverse().join("");
   };
   var getFormattedColumnarWrungRepresentation = (buffer) => {
-    const fullString = getWrungStringRepresentation(buffer);
-    if (fullString.length === 0) {
+    const beforeString = getWrungStringRepresentation(buffer);
+    if (beforeString.length === 0) {
       return "0";
     }
-    if (fullString.length === 1) {
-      return fullString;
+    if (beforeString.length === 1) {
+      return beforeString;
     }
+    const isNegative = beforeString.charAt(0) === "-";
+    const afterString = isNegative ? beforeString.slice(1) : beforeString;
     const columns = [];
-    const isOdd = fullString.length % 2 === 1;
+    const isOdd = afterString.length % 2 === 1;
     let startIndex = 0;
     if (isOdd) {
-      columns.push(fullString[0]);
+      columns.push(afterString[0]);
       startIndex = 1;
     }
-    for (let i = startIndex; i < fullString.length; i += 2) {
-      const column = fullString.slice(i, i + 2);
+    for (let i = startIndex; i < afterString.length; i += 2) {
+      const column = afterString.slice(i, i + 2);
       columns.push(column);
     }
     const result = columns.join(",");
-    return result;
+    return (isNegative ? "-" : "") + result;
   };
   var createFormattedRound8BinaryString = (buffer) => {
     const signBit = getSignBit(buffer);
@@ -1023,19 +1025,16 @@ var Round8Calculator = (() => {
     const state = {
       input1: {
         value: "",
-        rawSequence: "",
         buffer: 0n,
         binary: ""
       },
       input2: {
         value: "",
-        rawSequence: "",
         buffer: 0n,
         binary: ""
       },
       output: {
         value: "",
-        rawSequence: "",
         buffer: 0n,
         binary: ""
       },
@@ -1045,9 +1044,8 @@ var Round8Calculator = (() => {
     };
     function handleDigitEntry(digit) {
       const inputState = state[state.activeInput];
-      const currentSequence = inputState.rawSequence;
+      const currentSequence = inputState.value;
       const newSequence = currentSequence ? `${currentSequence}${digit}` : `${digit}`;
-      inputState.rawSequence = newSequence;
       const buffer = r8_.parseStringToBuffer(newSequence);
       if (buffer) {
         const binary = r8_.createBufferDisplay(buffer);
@@ -1059,12 +1057,11 @@ var Round8Calculator = (() => {
     }
     function handleBackspace() {
       const inputState = state[state.activeInput];
-      const currentSequence = inputState.rawSequence;
+      const currentSequence = inputState.value;
       if (!currentSequence) {
         return;
       }
       const newSequence = currentSequence.slice(0, -1);
-      inputState.rawSequence = newSequence;
       if (newSequence === "") {
         inputState.value = "0";
         inputState.buffer = 0n;
@@ -1081,7 +1078,6 @@ var Round8Calculator = (() => {
     function handleZero() {
       const inputState = state[state.activeInput];
       inputState.value = r8_.createRoundDisplay(0n);
-      inputState.rawSequence = "0";
       inputState.buffer = 0n;
       inputState.binary = r8_.createBufferDisplay(0n);
     }
@@ -1090,15 +1086,12 @@ var Round8Calculator = (() => {
     }
     function handleClear() {
       state.input1.value = "";
-      state.input1.rawSequence = "";
       state.input1.buffer = 0n;
       state.input1.binary = "";
       state.input2.value = "";
-      state.input2.rawSequence = "";
       state.input2.buffer = 0n;
       state.input2.binary = "";
       state.output.value = "";
-      state.output.rawSequence = "";
       state.output.buffer = 0n;
       state.output.binary = "";
       state.operation = null;
@@ -1111,6 +1104,7 @@ var Round8Calculator = (() => {
     function handleSigned() {
       const inputState = state[state.activeInput];
       const flipped = r8_.terminology.flipSignBit(inputState.buffer);
+      console.log("DOES THIS FLIP", flipped);
       inputState.buffer = flipped;
       inputState.binary = r8_.createBufferDisplay(flipped);
       inputState.value = r8_.createRoundDisplay(flipped);
