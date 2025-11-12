@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Round8 Base-72 UnHexed Shor's Proofed Calculator</title>
+    <meta name="description" content="Round8 Base-72 UnHexed Binary Calculator - Four-row integrated display with dial pad input">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- Orbitron Monospace Font for Displays -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- HiFi Functional Design Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Dual Display Binary Visualization Styles -->
+    <style>
+        /* Display Label (Round8: / Binary:) */
+        .display-label {
+            font-weight: 600;
+            margin-right: 0.75rem;
+            color: var(--text-primary, #e2e8f0);
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        /* Binary Display Container */
+        .binary-display {
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-size: 9.2px;
+            color: #e2e8f0;
+            padding: 0.5rem 0.75rem;
+            background: #4d0000;
+            border-radius: 0.375rem;
+            margin-top: 0.5rem;
+            overflow-x: auto;
+            white-space: nowrap;
+            border: 1px solid rgba(77, 0, 0, 0.4);
+            transition: all 0.2s ease;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-height: 8px;
+        }
+
+        /* Binary Display Hover Effect */
+        .binary-display:hover {
+            background: #660000;
+            border-color: rgba(102, 0, 0, 0.6);
+        }
+
+        /* Binary Value (scrollable if needed) */
+        .binary-value {
+            display: inline-block;
+            letter-spacing: 0;
+            font-weight: 400;
+            color: #d4853d;
+            text-wrap: balance;
+        }
+
+        /* Hide Binary Label */
+        .binary-display .display-label {
+            display: none;
+        }
+
+        /* Dark Mode (default) */
+        .dark .binary-display {
+            background: #4d0000;
+            border-color: rgba(77, 0, 0, 0.4);
+        }
+
+        .dark .binary-value {
+            color: #d4853d;
+        }
+
+        .dark .display-label {
+            color: #e2e8f0;
+        }
+
+        /* Light Mode */
+        body:not(.dark) .binary-display {
+            background: #4d0000;
+            border-color: rgba(77, 0, 0, 0.4);
+        }
+
+        body:not(.dark) .binary-value {
+            color: #d4853d;
+        }
+
+        body:not(.dark) .display-label {
+            color: #1e293b;
+        }
+
+        /* Input Display Enhancement */
+        .input-display,
+        .output-display {
+            position: relative;
+        }
+
+        /* Responsive: smaller screens */
+        @media (max-width: 640px) {
+            .binary-display {
+                font-size: 9.2px;
+                padding: 0.375rem 0.5rem;
+            }
+
+            .display-label {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Sponsor Button - HiFi Prismatic Design */
+        .sponsor-button-container {
+            margin: 2rem 0 4rem 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .sponsor-button {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-decoration: none;
+            overflow: hidden;
+            isolation: isolate;
+            transition: all 0.3s ease;
+
+            /* Three-layer composition: SVG Octagrams → Prismatic Spotlight → Burgundy Base */
+            background:
+                /* Top: Black SVG Octagram Pattern (8-pointed stars with alternating rays, firefly-like) */
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cdefs%3E%3Cstyle%3E.octagram%7Bfill:%23000000;opacity:0.12%7D%3C/style%3E%3C/defs%3E%3Cg class='octagram'%3E%3Cpath transform='translate(20,28) scale(0.08)' d='M 0,-180 L 35,-70 L 127.28,-127.28 L 70,-35 L 180,0 L 70,35 L 127.28,127.28 L 35,70 L 0,180 L -35,70 L -127.28,127.28 L -70,35 L -180,0 L -70,-35 L -127.28,-127.28 L -35,-70 Z' /%3E%3Cpath transform='translate(50,13) scale(0.08)' d='M 0,-180 L 35,-70 L 127.28,-127.28 L 70,-35 L 180,0 L 70,35 L 127.28,127.28 L 35,70 L 0,180 L -35,70 L -127.28,127.28 L -70,35 L -180,0 L -70,-35 L -127.28,-127.28 L -35,-70 Z' /%3E%3Cpath transform='translate(80,58) scale(0.08)' d='M 0,-180 L 35,-70 L 127.28,-127.28 L 70,-35 L 180,0 L 70,35 L 127.28,127.28 L 35,70 L 0,180 L -35,70 L -127.28,127.28 L -70,35 L -180,0 L -70,-35 L -127.28,-127.28 L -35,-70 Z' /%3E%3Cpath transform='translate(30,73) scale(0.08)' d='M 0,-180 L 35,-70 L 127.28,-127.28 L 70,-35 L 180,0 L 70,35 L 127.28,127.28 L 35,70 L 0,180 L -35,70 L -127.28,127.28 L -70,35 L -180,0 L -70,-35 L -127.28,-127.28 L -35,-70 Z' /%3E%3Cpath transform='translate(90,23) scale(0.08)' d='M 0,-180 L 35,-70 L 127.28,-127.28 L 70,-35 L 180,0 L 70,35 L 127.28,127.28 L 35,70 L 0,180 L -35,70 L -127.28,127.28 L -70,35 L -180,0 L -70,-35 L -127.28,-127.28 L -35,-70 Z' /%3E%3Cpath transform='translate(60,83) scale(0.08)' d='M 0,-180 L 35,-70 L 127.28,-127.28 L 70,-35 L 180,0 L 70,35 L 127.28,127.28 L 35,70 L 0,180 L -35,70 L -127.28,127.28 L -70,35 L -180,0 L -70,-35 L -127.28,-127.28 L -35,-70 Z' /%3E%3C/g%3E%3C/svg%3E"),
+                /* Middle: Prismatic Spotlight (Upper-right, offset 8px, 2x size, opacity ease 32% → 8% → 1%) */
+                radial-gradient(
+                    ellipse 200% 160% at calc(100% + 8px) calc(0% - 8px),
+                    rgba(180, 0, 32, 0.32) 0%,      /* Maroon - 32% */
+                    rgba(183, 65, 14, 0.32) 5%,     /* Rust/Vermillion - 32% */
+                    rgba(204, 119, 34, 0.24) 15%,   /* Ochre - ease out */
+                    rgba(74, 166, 133, 0.16) 25%,   /* Viridian - ease out */
+                    rgba(0, 71, 171, 0.08) 40%,     /* Cobalt - 8% */
+                    rgba(124, 23, 224, 0.04) 60%,   /* Amethyst - ease to 1% */
+                    rgba(255, 26, 143, 0.01) 80%,   /* Rose - 1% */
+                    transparent 100%
+                ),
+                /* Bottom: Burgundy Base */
+                linear-gradient(135deg, #800020 0%, #6b001a 100%);
+            background-size: 100px 100px, 100% 100%, 100% 100%;
+            background-position: 0 0, 0 0, 0 0;
+            background-repeat: repeat, no-repeat, no-repeat;
+
+            /* HiFi dimensional border - Crimson top/right, Maroon bottom/left */
+            border: 3px solid;
+            border-top-color: #dc143c;    /* Crimson */
+            border-right-color: #dc143c;  /* Crimson */
+            border-bottom-color: #800020; /* Maroon */
+            border-left-color: #800020;   /* Maroon */
+
+            box-shadow:
+                0 8px 24px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .sponsor-button:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 12px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        /* White text with black shadow */
+        .sponsor-text-white {
+            color: #ffffff;
+            text-shadow:
+                1px 1px 2px rgba(0, 0, 0, 0.8),
+                -1px -1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Black text with white shadow */
+        .sponsor-text-black {
+            color: #000000;
+            text-shadow:
+                1px 1px 2px rgba(255, 255, 255, 0.8),
+                -1px -1px 2px rgba(255, 255, 255, 0.5);
+        }
+
+        /* PhuirE Logo - Colored Letters with Text Shadows (Shifted Forward) */
+        .sponsor-logo {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            gap: 0.1rem;
+        }
+
+        .sponsor-letter-p {
+            color: #b7410e;  /* Rust/Vermillion */
+            text-shadow:
+                1px 1px 3px rgba(0, 0, 0, 0.6),
+                -1px -1px 2px rgba(255, 255, 255, 0.4);
+        }
+
+        .sponsor-letter-h {
+            color: #cc7722;  /* Ochre */
+            text-shadow:
+                1px 1px 3px rgba(0, 0, 0, 0.6),
+                -1px -1px 2px rgba(255, 255, 255, 0.4);
+        }
+
+        .sponsor-letter-u {
+            color: #4aa685;  /* Viridian */
+            text-shadow:
+                1px 1px 3px rgba(0, 0, 0, 0.6),
+                -1px -1px 2px rgba(255, 255, 255, 0.4);
+        }
+
+        .sponsor-letter-i {
+            color: #0047ab;  /* Cobalt */
+            text-shadow:
+                1px 1px 3px rgba(0, 0, 0, 0.6),
+                -1px -1px 2px rgba(255, 255, 255, 0.4);
+        }
+
+        .sponsor-letter-r {
+            color: #7c17e0;  /* Amethyst */
+            text-shadow:
+                1px 1px 3px rgba(0, 0, 0, 0.6),
+                -1px -1px 2px rgba(255, 255, 255, 0.4);
+        }
+
+        .sponsor-letter-e {
+            color: #ff1a8f;  /* Rose */
+            text-shadow:
+                1px 1px 3px rgba(0, 0, 0, 0.6),
+                -1px -1px 2px rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-800 via-slate-900 to-black min-h-screen">
+
+    <!-- Layer 2: Markdown Background/Reader Layer (Default: background mode, z-index 1) -->
+    <div id="markdown-layer" class="markdown-background-layer" data-mode="background">
+        <div class="markdown-scroll-wrapper">
+            <div id="markdown-content" class="markdown-content-renderer">
+                <!-- UnHex Binary: Pre-rendered HTML with HiFi suite-colored sections -->
+                <!-- Generated from: scripts/render-markdown.js demo/content/unhex-binary.md -->
+                <div class="markdown-section" data-suite="maroon">
+<h1>UnHexing Binary: Our Modern Y2K</h1>
+</div>
+<div class="markdown-section" data-suite="rust">
+<h2>&quot;What can be saved and employed at the same time?&quot;</h2>
+</div>
+<div class="markdown-section" data-suite="ochre">
+<h2>Understanding Round8 Efficiency</h2>
+<p>Consider these decimal counts represented in Round8:</p>
+<ul>
+<li>88: Count of 72 Decimal</li>
+<li>8,88: Count of 584 Decimal</li>
+<li>88,88: Count of 4,680 Decimal (Total length of 4,095 Decimal)</li>
+<li>1,88,88: Count of 8,776 Decimal</li>
+<li>2,88,88: Count of 12,872 Decimal</li>
+<li>3,88,88: Count of 16,969 Decimal</li>
+<li>4,88,88: Count of 21,064 Decimal</li>
+<li>5,88,88: Count of 25,160 Decimal</li>
+<li>6,88,88: Count of 29,256 Decimal</li>
+<li>7,88,88: Count of 33,352 Decimal</li>
+<li>8,88,88: Count of 37,448 Decimal (Total length of 32,768 Decimal)</li>
+<li>1,88,88,88: Count of 70,216 ← <strong>Round8 surpasses Hex Binary by approximately 7%</strong></li>
+</ul>
+</div>
+<div class="markdown-section" data-suite="viridian">
+<h2>How Does Round8 Beat Hex at 16 Bits?</h2>
+<p>Our Columnar Marquee System demonstrates this efficiency:</p>
+<pre><code>Round8 UnHex Binary
+0 000 000 000 001 111 = 8
+0 000 000 001 111 111 = 88
+0 000 001 111 111 111 = 8,88
+0 001 111 111 111 111 = 88,88
+1 111 111 001 111 111 = 1,88,88 | Count of 70,216
+</code></pre>
+<h3>Why Is 16-Bit So Important?</h3>
+<p>Every internet packet would carry 7% more data. Every 16-bit operation would be 7% more efficient.</p>
+<p>Within this framework, we have sufficient capacity to implement Round8 for any information equal to or greater than 16 bits, beginning at the baseline with a remarkable 7% more digits represented in binary than hex.</p>
+<p><strong>Comparison with Hexed Binary:</strong></p>
+<pre><code>Hexed Binary
+1111 1111 , 1111 1111          16 bits  @ 65,536
+1111 , 1111 1111 , 1111 1111   20 bits  @ 1,048,576
+1111 1111 , 1111 1111 , 1111 1111   24 bits  @ 16,777,216
+</code></pre>
+</div>
+<div class="markdown-section" data-suite="cobalt">
+<h2>The Quantum-Proof Advantage</h2>
+<p>The major breakthrough that Round8 brings involves the study of abstractions and their underlying manifolds. This enables the creation of <strong>Bidirectional Higher-Ordered Look-Up Tables</strong>, or Manifold Spools, which leverage the relative position of bits for increased combinations.</p>
+<p>Critically, this approach provides <strong>immunity from Shor&#39;s Factorization Attack</strong> on binary operands. Counter-intuitively, where many would fail to understand this paradigm shift is precisely the point where this system becomes quantum-proof by current measurement techniques.</p>
+<h3>The Efficiency Threshold</h3>
+<p>Prior to 16 bits, the system is not as efficient as hexed binary. However, <strong>after 16 bits</strong>, the advantages compound significantly.</p>
+<p>What was once a <strong>Y2K-level challenge</strong> for civilization stands at our doorstep once again.</p>
+<hr>
+<p><em>Note: This method uses binary operations to inform modern switches. Our approach employs signals relatively alongside bidirectional higher-ordered compositional principles. There is no intended value judgment on arbitrary symbol creation. This demonstrates the limited perceptual scope of unidirectional associations without bidirectional validation.</em></p>
+<hr>
+</div>
+<div class="markdown-section" data-suite="amethyst">
+<h2>ADDENDUM: Base 72 Recursive Self-Reference</h2>
+<h3>What Makes Round8 Unique?</h3>
+<p>Round8 is based on a spatial coordinate system with only one zero at its origin, while truncating the need for a 10th placeholder position. This means the usual expectations of an octal counting system do not apply, yet it maintains a non-columnar design.</p>
+<p><strong>How does this work?</strong></p>
+<ul>
+<li>0 Decimal = 0 Round8 (as origin)</li>
+<li>8 Decimal = 8 Round8</li>
+<li>9 Decimal = 11 Round8</li>
+</ul>
+<p>Due to the truncation of arbitrary placeholder positions in the baseline, we have an extra two counts available. Once the rotation completes, rather than creating an arbitrary 10th place, the next counting position activates and adds to the stack of counts.</p>
+<h3>The Spatial Coordinate Foundation</h3>
+<p>The reason Round8 functions as a spatial coordinate system relates to its design for graphs. The only true zero in reality is the origin of a graph. The limitation of eight counts derives from how we subdivide circles on a graph.</p>
+<p><strong>Consider this progression:</strong></p>
+<p>In Base 10 Decimal, starting with a count of 10 for the total representation of degrees in a subdivided circle:</p>
+<ul>
+<li>10 ÷ 2 = 5</li>
+</ul>
+<p>You cannot subdivide the space further without maintaining a fraction or decimal.</p>
+<p>If we limit circle subdivisions to round numbers: 2, 4, 8, 16. At 16, you encounter the same issue. In Base 10 Decimal, the extra position for the 10th place imposes an offset in the symbol space. Therefore, our round counts can only be represented via 2 through 8, where 8 is the maximum expression space prior to requiring a 10th place.</p>
+<h3>Historical Context</h3>
+<p>Roman numerals were once the standard. They represented counts, but the true advent of mathematics came with the Arabic numeral system and the invention of zero. However, with zero came placeholder positions in the counting system. The issue is that there is no such thing as zero outside of absolute zero within our physics system.</p>
+<p>This is where the bidirectional nature of this counting system emerges. We stand on the shoulders of giants.</p>
+<h3>Round Counting in Practice</h3>
+<p>With our circle degrees represented as 8:</p>
+<ul>
+<li>8 ÷ 2 = 4</li>
+<li>4 ÷ 2 = 2</li>
+<li>2 ÷ 2 = 1</li>
+</ul>
+<p>It&#39;s a complete round counting system. In geometry, we already acknowledge this—we don&#39;t divide circles into tenths expecting to divide further than fifths. Once you do, the division is no longer round, which distinguishes this system from base systems.</p>
+<h3>The Base 72 Structure</h3>
+<p>So what is the maximum count of 64 bits? Our current base mathematics system has an offset and cannot represent higher-accuracy round numbers, especially in higher ranges. While Round8 is Base 72 starting at two rotations (or two positions of 8s), the reason is that the base system equals 8 × 9. The first 8 represents the first rotation, and the next 8s represent the second rotation, counting the number of 8s by 8. This pattern continues for the entire length.</p>
+<p>Base octal systems are limited to 70 number representations in the same space. We can see this as a compounding error rate at higher ranges. This also applies to our Base 10 system. It&#39;s important to acknowledge that while Base 10 counts to 10 and 100, within that same space of counts, fewer counts are possible within the same symbol space.</p>
+<p><strong>Comparison:</strong></p>
+<ul>
+<li>Base 10 &lt; Base 72 Recursive Self-Referential</li>
+<li>Base 16 (Hex) &lt; Base 72 Recursive Self-Referential</li>
+</ul>
+<p>The eventual RoundX as Base 100 will provide the means of converting from Round8 to Base 10 Decimal.</p>
+<hr>
+</div>
+<div class="markdown-section" data-suite="rose">
+<h2>Practical Counting Methods</h2>
+<h3>How to Count to 8 on One Hand</h3>
+<p>Using finger positions:</p>
+<ol start="0">
+<li>Closed hand</li>
+<li>Index</li>
+<li>Index + Middle</li>
+<li>Index + Middle + Ring</li>
+<li>Index + Middle + Ring + Pinky</li>
+<li>Index + Middle + Ring + Pinky + Thumb extended</li>
+<li>(Index + Thumb) + Middle + Ring + Pinky + Thumb in play</li>
+<li>Index + (Middle + Thumb) + Ring + Pinky + Thumb in play</li>
+<li>Index + Middle + (Ring + Thumb) + Pinky + Thumb in play</li>
+</ol>
+<p>Notice how we reach our maximum count and still have a pinky available? The thumb acts like a Round8 marquee, relative to the other fingers.</p>
+<h3>RoundX Future: Counting to X on One Hand</h3>
+<ol start="0">
+<li>Closed hand</li>
+<li>Index</li>
+<li>Index + Middle</li>
+<li>Index + Middle + Ring</li>
+<li>Index + Middle + Ring + Pinky</li>
+<li>Index + Middle + Ring + Pinky + Thumb extended</li>
+<li>(Index + Thumb) + Middle + Ring + Pinky + Thumb in play</li>
+<li>Index + (Middle + Thumb) + Ring + Pinky + Thumb in play</li>
+<li>Index + Middle + (Ring + Thumb) + Pinky + Thumb in play</li>
+<li>Index + Middle + Thumb + (Pinky + Thumb) + Thumb in play
+X. Hang ten / Hang loose</li>
+</ol>
+<h3>Counting to 100 with Two Hands (RoundX)</h3>
+<p><strong>XX:</strong> (Hang ten / Hang loose) on two hands
+X × X = XX</p>
+<h3>Counting to 88 with Two Hands (Round8)</h3>
+<p><strong>88:</strong> Index + Middle + (Ring + Thumb) + Pinky + Thumb in play on both hands</p>
+<p>Within the same amount of space on your hands, you can represent more information in the same space.</p>
+<h3>Counting to a Billion in Less Than a Minute</h3>
+<p>Where 1,000,000,000 = X,XX,XX,XX,XX</p>
+<p>(X,XX,XX,XX,XX - Hang ten / Hang loose) on two hands
+X × 4 shakes = XX,XX,XX,XX</p>
+<ul>
+<li>Hang ten / Hang loose as one shake of one hand = X,XX,XX,XX,XX
+= 1,000,000,000</li>
+</ul>
+<p>In RoundX, we don&#39;t need a placeholder. However, when we do count in that position—like our Round8 marquees—it exists, but we don&#39;t need to represent it until we start counting the next level.</p>
+<p><strong>Key Distinctions:</strong></p>
+<ul>
+<li><strong>Round8</strong> is designed for binary operations</li>
+<li><strong>RoundX</strong> is an interchange for Base 10 that provides intuitive understanding of billion-scale numbers through hand gestures</li>
+</ul>
+<p>Our counts are accurate, but if you&#39;re working in geometric space, you still would not divide a circle into Xths as in our base system—instead, it would be represented by rounds.</p>
+<p>In RoundX, we compose a linear counting system that flattens the curve that Round8 matches in its compounding rotations. That exact curve is precisely why predicting the maximum range in Round8 without the eventual mapping of RoundX remains on the roadmap.</p>
+<p><strong>What is that curve?</strong> The limit of our spatial reality—without it, there would be no circles, squares, or triangles.</p>
+<hr>
+</div>
+<div class="markdown-section" data-suite="maroon">
+<h2>Why This Is Our Y2K Moment</h2>
+<p>Round8 orders information more efficiently than binary operand operations. Its clear methodology, aligned with higher-order data structures as manifolds and spools, enables us to have a safe, secure future in a post-Shor&#39;s world without requiring upgrades to every computer.</p>
+<h3>Not Compression or Encryption—Something Better</h3>
+<p>This system is neither a compression method nor encryption. It&#39;s too expansive and counter-intuitive for conventional linear counting. These very qualities make it the perfect hex replacement. It enhances current encryption by interchanging the storage method, removing Shor&#39;s attack vector of factorization. Instead, we utilize manifolds with clear and set operations.</p>
+<h3>The Energy Savings Opportunity</h3>
+<p>Consider the 7% power savings for each component—RAM, storage, and internet communication. In total world energy savings, we have a formative method of creating a marketplace in the same space. This is not extraction; this is value creation and represents the essence of the purest form of capitalism: the creation of marketplaces where none existed before.</p>
+<p><strong>Key Questions:</strong></p>
+<ul>
+<li>Are we worse off due to Y2K preparedness?</li>
+<li>Would we be worse off pending a breakthrough that invalidates the majority of current encryption?</li>
+</ul>
+<p>This represents the largest invisible problem of our modern age, and <strong>7% is the floor of energy savings</strong>. Through coordinated effort and redirection of funds due to energy savings across our economies, we create capital, create good work and jobs, and create the possibility for more capital formation—a true unlimited marketplace in the same space.</p>
+<h3>Real-World Impact</h3>
+<ul>
+<li>7% more efficient use of fossil fuels</li>
+<li>7% more efficient use of coal</li>
+<li>7% more efficient use of natural gas</li>
+<li>7× less wasted lithium</li>
+</ul>
+<p>Within those savings are jobs—the essence of capitalism as a method of value creation. This is not about burning our finite resources and discarding them into landfills and oceans. That represents loss of value, not the value creation central to the truest form of capitalism.</p>
+<h3>The Advent of Formative Capitalism</h3>
+<p>This introduces Formative Capitalism: the idea that the formation of capital is the value that capital produces.</p>
+<p><strong>The ceiling is not:</strong></p>
+<ul>
+<li>50%</li>
+<li>60%</li>
+<li>70%</li>
+</ul>
+<p><strong>The potential:</strong> 70% less fuel and resources wasted through every computer system on the planet.</p>
+<p>Consider the climate change discussion. This advent addresses that challenge fundamentally while creating 7% more capital to circulate into our economies, increasing GDP worldwide.</p>
+<hr>
+</div>
+<div class="markdown-section" data-suite="rust">
+<h2>UnHex Binary: Eliminating the Waste of UnCapital</h2>
+<p>Crowdfunding and subsequent training materials coming soon.</p>
+<p>Thank you for your patience in this Formative Capitalism advent. This represents the Precision and Error Correction Marketplace—the one poised to break ground and enable the rest on an unlimited frontier bounded by our reasonability.</p>
+<hr>
+<p><strong>Cheers,</strong>
+MTK @ PhuirE Research</p>
+
+<!-- Sponsor Button -->
+<div class="sponsor-button-container">
+    <a href="https://github.com/sponsors/Phuire-Research" target="_blank" rel="noopener noreferrer" class="sponsor-button">
+        <span class="sponsor-text-white">Sponsor</span>
+        <span class="sponsor-logo">
+            <span class="sponsor-letter-p">P</span><span class="sponsor-letter-h">h</span><span class="sponsor-letter-u">u</span><span class="sponsor-letter-i">i</span><span class="sponsor-letter-r">r</span><span class="sponsor-letter-e">E</span>
+        </span>
+        <span class="sponsor-text-black">Research</span>
+    </a>
+</div>
+
+</div>
+                <!-- End pre-rendered HTML -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Layer 1: Calculator Overlay Layer (Default: front, z-index 50) -->
+    <div id="calculator-layer" class="calculator-overlay-layer">
+        <div class="calculator-layer-inner">
+            <!-- Calculator Container -->
+            <div id="calculatorContainer" class="calculator-container">
+        <!-- Ochre Grounding Card (Desk Surface) -->
+        <div class="calculator-card">
+
+        <!-- Calculator Header -->
+        <div class="calculator-header">
+            <h1 class="calculator-title">
+                <span class="text-white">Round<span class="hifi-eight">8</span></span><span class="hifi-viridian">C</span><span class="hifi-cobalt">A</span><span class="hifi-amethyst">L</span><span class="hifi-rose">C</span>
+            </h1>
+            <p class="calculator-subtitle">
+                Base-72 UnHexed Shor's Proofed Binary
+            </p>
+        </div>
+
+        <!-- Four-Row Integrated Display Section -->
+        <div class="display-section">
+
+            <!-- Dark/Light Mode Toggle -->
+            <!-- <div class="mode-toggle-container">
+                <label class="mode-toggle">
+                    <input type="checkbox" id="darkModeToggle" class="sr-only" checked>
+                    <div class="toggle-track">
+                        <div class="toggle-thumb"></div>
+                    </div>
+                    <span class="toggle-label">
+                        <span class="light-label">Light</span>
+                        <span class="dark-label">Dark</span>
+                    </span>
+                </label>
+            </div> -->
+
+            <!-- Row 1: Input 1 Dual Display -->
+            <div
+                id="input1Row"
+                class="display-row input-row input-row-active"
+                data-input="input1"
+                role="textbox"
+                aria-readonly="true"
+                aria-label="Round8 Input 1: Use dial pad to enter positions"
+                tabindex="0">
+                <label class="input-label">
+                    <span class="label-text">Round8 Input 1</span>
+                    <span class="label-hint text-ochre">(Focus)</span>
+                </label>
+
+                <!-- Round8 String Display -->
+                <div class="input-display" id="input1Display">
+                    <span class="display-label">Round8:</span>
+                    <span class="input-value" id="input1Value"></span>
+                    <span class="input-cursor" id="input1Cursor">|</span>
+                </div>
+
+                <!-- Binary Display (Quantum-Resistant Verification) -->
+                <div class="binary-display" id="input1BinaryDisplay">
+                    <span class="display-label">Binary:</span>
+                    <span class="binary-value" id="input1Binary"></span>
+                </div>
+            </div>
+
+            <!-- Row 2: Operand Display -->
+            <div id="operandRow" class="display-row operand-row">
+                <label class="operand-label" id="operandLabel">
+                    <span class="label-text">Operation Selected</span>
+                </label>
+                <div class="operand-display" id="operandDisplay">
+                    <span class="operand-symbol" id="operandSymbol"></span>
+                    <span class="operand-name" id="operandName"></span>
+                </div>
+            </div>
+
+            <!-- Row 3: Input 2 Dual Display -->
+            <div
+                id="input2Row"
+                class="display-row input-row"
+                data-input="input2"
+                role="textbox"
+                aria-readonly="true"
+                aria-label="Round8 Input 2: Use dial pad to enter positions"
+                tabindex="0">
+                <label class="input-label">
+                    <span class="label-text">Round8 Input 2</span>
+                    <span class="label-hint text-ochre">(Focus)</span>
+                </label>
+
+                <!-- Round8 String Display -->
+                <div class="input-display" id="input2Display">
+                    <span class="display-label">Round8:</span>
+                    <span class="input-value" id="input2Value"></span>
+                    <span class="input-cursor" id="input2Cursor">|</span>
+                </div>
+
+                <!-- Binary Display (Quantum-Resistant Verification) -->
+                <div class="binary-display" id="input2BinaryDisplay">
+                    <span class="display-label">Binary:</span>
+                    <span class="binary-value" id="input2Binary"></span>
+                </div>
+            </div>
+
+            <!-- Row 4: Output Dual Display -->
+            <div id="outputRow" class="display-row output-row">
+                <label class="output-label">
+                    <span class="label-text">Result</span>
+                    <span class="label-hint text-maroon">(Read)</span>
+                </label>
+
+                <!-- Round8 String Display -->
+                <div class="output-display" id="outputDisplay">
+                    <span class="display-label">Round8:</span>
+                    <span class="output-value" id="outputValue"></span>
+                </div>
+
+                <!-- Binary Display (Quantum-Resistant Verification) -->
+                <div class="binary-display" id="outputBinaryDisplay">
+                    <span class="display-label">Binary:</span>
+                    <span class="binary-value" id="outputBinary"></span>
+                </div>
+            </div>
+
+            <!-- Error Display (Alternative to Output Row) -->
+            <div id="errorRow" class="display-row error-row hidden">
+                <div class="error-display">
+                    <span class="error-icon">⚠️</span>
+                    <span class="error-message" id="errorMessage"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Wrapper (Operands + Dial Pad + Scientific) -->
+        <div class="controls-wrapper">
+
+        <!-- Operands Section -->
+        <div class="operands-section">
+            <div class="operands-grid">
+
+                <!-- Row 1: Arithmetic Operations -->
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="addBtn"
+                        class="operand-btn operand-add hifi-btn-add"
+                        data-operation="add"
+                        data-symbol="+"
+                        data-color="rust"
+                        disabled
+                        title="Add - Rust: Prospection (Coming in v0.0.2)">
+                        <span class="btn-symbol">+</span>
+                        <span class="btn-label">Add</span>
+                        <span class="version-tag">v0.0.2</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="subtractBtn"
+                        class="operand-btn operand-subtract hifi-btn-subtract"
+                        data-operation="subtract"
+                        data-symbol="−"
+                        data-color="rose"
+                        disabled
+                        title="Subtract - Rose: Healing (Coming in v0.0.2)">
+                        <span class="btn-symbol">−</span>
+                        <span class="btn-label">Subtract</span>
+                        <span class="version-tag">v0.0.2</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper">
+                    <button
+                        class="operand-btn operand-multiply hifi-btn-multiply"
+                        disabled
+                        title="Multiply - Viridian: Instillment (Coming in v0.0.2)">
+                        <span class="btn-symbol">×</span>
+                        <span class="btn-label">Mult</span>
+                        <span class="version-tag">v0.0.2</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper">
+                    <button
+                        class="operand-btn operand-divide hifi-btn-divide"
+                        disabled
+                        title="Divide - Ochre: Drafting (Coming in v0.0.2)">
+                        <span class="btn-symbol">÷</span>
+                        <span class="btn-label">Div</span>
+                        <span class="version-tag">v0.0.2</span>
+                    </button>
+                </div>
+
+                <!-- Row 2: Comparison Operations -->
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="greaterBtn"
+                        class="operand-btn operand-compare hifi-btn-compare"
+                        data-operation="compare"
+                        data-symbol=">"
+                        data-color="amethyst"
+                        disabled
+                        title="Greater Than - Amethyst: Operations (Coming in v0.0.2)">
+                        <span class="btn-symbol">></span>
+                        <span class="version-tag">v0.0.2</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="greaterEqualBtn"
+                        class="operand-btn operand-compare hifi-btn-compare"
+                        data-operation="compare"
+                        data-symbol="=>"
+                        data-color="amethyst"
+                        disabled
+                        title="Greater or Equal - Amethyst: Operations (Coming in v0.0.2)">
+                        <span class="btn-symbol">=></span>
+                        <span class="version-tag">v0.0.2</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="lessBtn"
+                        class="operand-btn operand-compare hifi-btn-compare"
+                        data-operation="compare"
+                        data-symbol="<"
+                        data-color="amethyst"
+                        disabled
+                        title="Less Than - Amethyst: Operations (Coming in v0.0.2)">
+                        <span class="btn-symbol"><</span>
+                        <span class="version-tag">v0.0.2</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="lessEqualBtn"
+                        class="operand-btn operand-compare hifi-btn-compare"
+                        data-operation="compare"
+                        data-symbol="=<"
+                        data-color="amethyst"
+                        disabled
+                        title="Less or Equal - Amethyst: Operations (Coming in v0.0.2)">
+                        <span class="btn-symbol">=<</span>
+                        <span class="version-tag">v0.0.2</span>
+                    </button>
+                </div>
+
+                <!-- Row 3: Control Operations -->
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="clearBtn"
+                        class="operand-btn operand-clear hifi-btn-clear"
+                        title="Clear All - Red: Warning">
+                        <span class="btn-symbol">AC</span>
+                        <span class="btn-label">Clear</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="equalsBtn"
+                        class="operand-btn operand-equals hifi-btn-equals"
+                        data-operation="compare"
+                        data-symbol="="
+                        data-color="rose"
+                        disabled
+                        title="Equals - Rose: System (Coming in v0.0.2)">
+                        <span class="btn-symbol">=</span>
+                        <span class="btn-label">Equals</span>
+                        <span class="version-tag">v0.0.2</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="flipBtn"
+                        class="operand-btn operand-flip hifi-btn-flip"
+                        title="Switch Active Input - Viridian: Instillment">
+                        <span class="btn-symbol">⇅</span>
+                        <span class="btn-label">Select</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="calculateBtn"
+                        class="operand-btn operand-calculate hifi-btn-calculate"
+                        disabled
+                        title="Execute Calculation - Viridian: Instillment (Coming in v0.0.2)">
+                        <span class="btn-symbol">⏎</span>
+                        <span class="btn-label">Calc</span>
+                        <span class="version-tag">v0.0.2</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Round8 Dial Pad Section -->
+        <div class="dialpad-section">
+            <!-- Positions Grid -->
+            <div class="dialpad-grid">
+                <!-- Row 1: Positions 1-4 -->
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="1">1</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="2">2</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="3">3</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="4">4</button>
+                </div>
+
+                <!-- Row 2: Positions 5-8 -->
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="5">5</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="6">6</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="7">7</button>
+                </div>
+                <div class="hifi-btn-wrapper">
+                    <button class="dial-btn hifi-btn-digit" data-position="8">8</button>
+                </div>
+
+                <!-- Special Buttons -->
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="backspaceBtn"
+                        class="dial-btn dial-backspace hifi-btn-backspace"
+                        title="Remove Last Position - Amethyst: Operations">
+                        <span class="backspace-symbol">⌫</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper-zero">
+                    <button
+                        id="zeroBtn"
+                        class="dial-btn dial-zero hifi-btn-zero"
+                        title="Clear active input and set to absolute zero - Maroon: Curation"
+                        aria-label="Reset active input to absolute zero">
+                        <span class="zero-text">Abs.Zero</span>
+                        <span class="zero-symbol">(0)</span>
+                    </button>
+                </div>
+
+                <div class="hifi-btn-wrapper">
+                    <button
+                        id="sighnedBtn"
+                        class="dial-btn dial-comma hifi-btn-signed"
+                        title="Toggle Sign Bit - Ochre: Drafting">
+                        (0/1)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scientific Functions Section (Greyed Out) -->
+        <div class="scientific-section">
+            <div class="section-label">Scientific Functions (v0.0.2+)</div>
+
+            <!-- Row 1: Trigonometry -->
+            <div class="function-row">
+                <button class="sci-btn disabled" disabled>2nd</button>
+                <button class="sci-btn disabled" disabled>deg</button>
+                <button class="sci-btn disabled" disabled>sin</button>
+                <button class="sci-btn disabled" disabled>cos</button>
+                <button class="sci-btn disabled" disabled>tan</button>
+            </div>
+
+            <!-- Row 2: Powers & Roots -->
+            <div class="function-row">
+                <button class="sci-btn disabled" disabled>x²</button>
+                <button class="sci-btn disabled" disabled>x<sup>y</sup></button>
+                <button class="sci-btn disabled" disabled>√</button>
+                <button class="sci-btn disabled" disabled>∛</button>
+                <button class="sci-btn disabled" disabled>10<sup>x</sup></button>
+            </div>
+
+            <!-- Row 3: Logarithms & Constants -->
+            <div class="function-row">
+                <button class="sci-btn disabled" disabled>log</button>
+                <button class="sci-btn disabled" disabled>ln</button>
+                <button class="sci-btn disabled" disabled>e<sup>x</sup></button>
+                <button class="sci-btn disabled" disabled>π</button>
+                <button class="sci-btn disabled" disabled>e</button>
+            </div>
+
+            <!-- Row 4: Memory Functions -->
+            <div class="function-row memory-row">
+                <button class="mem-btn disabled" disabled>MC</button>
+                <button class="mem-btn disabled" disabled>MR</button>
+                <button class="mem-btn disabled" disabled>M+</button>
+                <button class="mem-btn disabled" disabled>M−</button>
+                <button class="mem-btn disabled" disabled>MS</button>
+            </div>
+        </div>
+
+        </div><!-- End Controls Wrapper -->
+
+        </div><!-- End Ochre Grounding Card -->
+
+        <!-- Version Info -->
+        <div class="version-info">
+            <p>Round8 Calculator v0.0.11</p>
+            <p>+7% Bit Packing Efficiency at 16-bits vs Hexed Binary</p>
+            <p>Theoretical 10x Bit Packing Efficiency due to not using Binary Operands</p>
+            <p>Binary Operands are the Attack Vector of Shor's Factorization Attack</p>
+        </div>
+            </div> <!-- Close calculator-container -->
+        </div> <!-- Close calculator-layer-inner -->
+    </div> <!-- Close calculator-overlay-layer -->
+
+    <!-- Screen Filter Overlay (Activates in reader mode, z-index 90) -->
+    <div id="screen-filter" class="reader-mode-screen-filter"></div>
+
+    <!-- Close Button (Reader Mode Only, z-index 150) -->
+    <button id="close-reader" class="close-reader-button" aria-label="Close reader mode">×</button>
+
+    <!-- Layer Control Script (Static HTML, no markdown rendering needed) -->
+    <script type="module" src="js/layer-controller.js"></script>
+
+    <!-- Round8 Calculator IIFE Bundle (includes UI logic via import) -->
+    <script src="calculator.global.js"></script>
+
+</body>
+</html>
