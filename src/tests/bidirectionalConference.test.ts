@@ -421,9 +421,12 @@ describe('Phase 2: Standard Cases - Round8 Format Validation', () => {
     test('8.2: Invalid 8 at Position 21 - Full-Twist Off', () => {
       const input = '823456781234567812348'; // 21 positions, last = '8' (invalid)
       const buffer = parseStringToRound8(input)!;
+      const output = getWrungStringRepresentation(buffer);
 
-      // Should return undefined (Position 21 cannot be '8' unless Full Twist)
-      expect(getWrungStringRepresentation(buffer)).toBe('788888888888888888888');
+      // Should return a Full Twist Value (Position 21 cannot be '8' unless Full Twist)
+      expect(output).toBe('788888888888888888888');
+      // What's this? What's THIS!!!
+      expect(buffer.toString().length).toBeLessThan(output.length);
     });
   });
 });
