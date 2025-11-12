@@ -193,6 +193,7 @@ function createCalculator() {
   function handleSigned(): void {
     const inputState = state[state.activeInput];
     const flipped = r8_.terminology.flipSignBit(inputState.buffer);
+    console.log('DOES THIS FLIP', flipped);
     inputState.buffer = flipped;
     inputState.binary = r8_.createBufferDisplay(flipped);
     inputState.value = r8_.createRoundDisplay(flipped);

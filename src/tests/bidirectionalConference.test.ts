@@ -418,7 +418,7 @@ describe('Phase 2: Standard Cases - Round8 Format Validation', () => {
       expect(rotation21).toBe(1); // Round8 symbol '7' (shifted position)
     });
 
-    test('8.2: Invalid 8 at Position 21 - Non-Full-Twist', () => {
+    test('8.2: Invalid 8 at Position 21 - Full-Twist Off', () => {
       const input = '823456781234567812348'; // 21 positions, last = '8' (invalid)
       const buffer = parseStringToRound8(input)!;
 
