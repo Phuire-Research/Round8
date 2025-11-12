@@ -120,9 +120,9 @@ function createCalculator() {
 
   function handleZero(): void {
     const inputState = state[state.activeInput];
-    inputState.value = '0';
+    inputState.value = r8_.createRoundDisplay(0n);
     inputState.buffer = 0n;
-    inputState.binary = inputState.buffer.toString();
+    inputState.binary = r8_.createBufferDisplay(0n);
   }
 
   function handleOperation(operation: '+' | '-'): void {

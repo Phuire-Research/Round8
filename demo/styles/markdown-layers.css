@@ -1,0 +1,555 @@
+/* ===================================================================
+   Markdown Layer Architecture - Two-Pane Website System
+   Layer 1 (Front Default): Calculator Overlay (z-index 50)
+   Layer 2 (Back Default): Markdown Background (z-index 1)
+
+   When toggled: Layer 2 → Front Reader (z-index 100)
+                Layer 1 → Shadow Box Back (z-index 10, opacity 0.1)
+   =================================================================== */
+
+/* ===================================================================
+   LAYER 2: MARKDOWN BACKGROUND/READER LAYER
+   =================================================================== */
+
+.markdown-background-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  font-family: 'Space Mono', monospace;
+
+  /* Smooth transitions between modes */
+  transition:
+    z-index 0s 0.6s,     /* Delay z-index until opacity transitions complete */
+    opacity 0.6s ease,
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Background Mode (Default): Space-Like Decoration --- */
+.markdown-background-layer[data-mode="background"] {
+  z-index: 1;
+  pointer-events: all; /* Enable interaction for click-to-reader mode */
+  opacity: 1;
+  cursor: pointer; /* Indicate clickability */
+
+  /* Space-like faded text color with Viridian tint (8% brighter, green-shifted) */
+  color: rgba(74, 166, 133, 0.17); /* Viridian base: #4aa685 at 17% opacity (8% increase) */
+
+  /* Depth illusion through layered shadows with Viridian emphasis */
+  text-shadow:
+    0 0 20px rgba(74, 166, 133, 0.08),      /* Viridian glow (8% increase) */
+    0 0 40px rgba(94, 191, 157, 0.06);      /* Viridian-light tint (8% increase) */
+}
+
+.markdown-background-layer[data-mode="background"] .markdown-scroll-wrapper {
+  position: absolute;
+  right: 0; /* Fixed to right edge when in background decoration mode */
+  top: 0;
+  height: 100%;
+  width: 50%; /* Half-width for right-side decoration */
+  padding: 2rem;
+  overflow: hidden; /* No scroll in background mode */
+}
+
+.markdown-background-layer[data-mode="background"] .markdown-content-renderer {
+  max-width: 90rem;
+  margin: 0 auto;
+  text-align: right; /* Right-justify all text in background decoration mode */
+}
+
+/* Background mode typography - 16% brighter with Viridian tint (two 8% increases) */
+.markdown-background-layer[data-mode="background"] p,
+.markdown-background-layer[data-mode="background"] li,
+.markdown-background-layer[data-mode="background"] blockquote,
+.markdown-background-layer[data-mode="background"] pre {
+  opacity: 0.24; /* 16% total: 0.08 → 0.16 → 0.24 */
+  line-height: 1.4; /* Compressed for decoration */
+  margin-bottom: 0.5rem;
+}
+
+.markdown-background-layer[data-mode="background"] h1 {
+  opacity: 0.31; /* 16% total: 0.15 → 0.23 → 0.31 */
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 2rem 0 1rem 0;
+  letter-spacing: 0.02em;
+}
+
+.markdown-background-layer[data-mode="background"] h2 {
+  opacity: 0.28; /* 16% total: 0.12 → 0.20 → 0.28 */
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.75rem 0;
+}
+
+.markdown-background-layer[data-mode="background"] h3 {
+  opacity: 0.26; /* 16% total: 0.10 → 0.18 → 0.26 */
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem 0;
+}
+
+.markdown-background-layer[data-mode="background"] code {
+  font-family: 'Courier New', 'Consolas', monospace;
+  opacity: 0.22; /* 16% total: 0.06 → 0.14 → 0.22 */
+  background: rgba(74, 166, 133, 0.04); /* Viridian tint background */
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}
+
+.markdown-background-layer[data-mode="background"] pre {
+  background: rgba(74, 166, 133, 0.08); /* Viridian tint background */
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  opacity: 0.22; /* 16% total: 0.06 → 0.14 → 0.22 */
+  overflow-x: hidden;
+}
+
+.markdown-background-layer[data-mode="background"] strong,
+.markdown-background-layer[data-mode="background"] b {
+  font-weight: 700;
+  opacity: 0.28; /* 16% total: 0.12 → 0.20 → 0.28 */
+}
+
+/* Hover states - 30% brightness increase on background mode */
+.markdown-background-layer[data-mode="background"]:hover p,
+.markdown-background-layer[data-mode="background"]:hover li,
+.markdown-background-layer[data-mode="background"]:hover blockquote,
+.markdown-background-layer[data-mode="background"]:hover pre {
+  opacity: 0.312; /* 30% increase: 0.24 * 1.3 */
+  transition: opacity 0.3s ease;
+}
+
+.markdown-background-layer[data-mode="background"]:hover h1 {
+  opacity: 0.403; /* 30% increase: 0.31 * 1.3 */
+  transition: opacity 0.3s ease;
+}
+
+.markdown-background-layer[data-mode="background"]:hover h2 {
+  opacity: 0.364; /* 30% increase: 0.28 * 1.3 */
+  transition: opacity 0.3s ease;
+}
+
+.markdown-background-layer[data-mode="background"]:hover h3 {
+  opacity: 0.338; /* 30% increase: 0.26 * 1.3 */
+  transition: opacity 0.3s ease;
+}
+
+.markdown-background-layer[data-mode="background"]:hover code {
+  opacity: 0.286; /* 30% increase: 0.22 * 1.3 */
+  transition: opacity 0.3s ease;
+}
+
+.markdown-background-layer[data-mode="background"]:hover strong,
+.markdown-background-layer[data-mode="background"]:hover b {
+  opacity: 0.364; /* 30% increase: 0.28 * 1.3 */
+  transition: opacity 0.3s ease;
+}
+
+/* --- Reader Mode: Full Contrast HiFi Typography --- */
+.markdown-background-layer[data-mode="reader"] {
+  z-index: 100;
+  pointer-events: all; /* Fully interactive */
+  opacity: 1;
+
+  /* Readable text with HiFi styling */
+  color: #e2e8f0; /* Full contrast white-gray */
+
+  /* HiFi dimensional text shadow */
+  text-shadow: 1px 1px #00ffc9bf;
+
+  /* HiFi dimensional border frame */
+  border: 3px solid;
+  border-top-color: rgba(123, 173, 39, 0.6);    /* Lime-green */
+  border-right-color: rgba(123, 173, 39, 0.6);
+  border-bottom-color: rgba(0, 255, 201, 0.6);   /* Cyan */
+  border-left-color: rgba(0, 255, 201, 0.6);
+
+  /* Glossy background matching calculator aesthetic */
+  background: linear-gradient(
+    135deg,
+    rgba(26, 26, 26, 0.98) 0%,
+    rgba(10, 10, 10, 0.98) 50%,
+    rgba(0, 0, 0, 0.99) 100%
+  );
+
+  /* HiFi shadow matching calculator card */
+  box-shadow:
+    0 8px 32px rgba(154, 154, 49, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(232, 213, 85, 0.2);
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-scroll-wrapper {
+  padding: 3rem;
+  overflow-y: auto; /* Enable scroll in reader mode */
+  overflow-x: hidden;
+  height: 100%;
+
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-content-renderer {
+  max-width: 65rem;
+  margin: 0 auto;
+  text-align: left; /* Left-justified text in reader mode */
+}
+
+/* Reader mode typography - full readability */
+.markdown-background-layer[data-mode="reader"] p,
+.markdown-background-layer[data-mode="reader"] li {
+  opacity: 1;
+  line-height: 1.8; /* Expanded for readability */
+  margin-bottom: 1.25rem;
+  font-size: 1rem;
+}
+
+.markdown-background-layer[data-mode="reader"] blockquote {
+  border-left: 4px solid var(--color-viridian);
+  padding-left: 1.5rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.markdown-background-layer[data-mode="reader"] ul,
+.markdown-background-layer[data-mode="reader"] ol {
+  padding-left: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.markdown-background-layer[data-mode="reader"] li {
+  margin-bottom: 0.75rem;
+}
+
+.markdown-background-layer[data-mode="reader"] hr {
+  border: none;
+  border-top: 2px solid rgba(123, 173, 39, 0.3);
+  margin: 2.5rem 0;
+}
+
+/* HiFi Section-Based Heading Colors (Reader Mode) */
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="maroon"] h1,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="maroon"] h2,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="maroon"] h3 {
+  color: var(--color-maroon-light);
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="rust"] h1,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="rust"] h2,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="rust"] h3 {
+  color: var(--color-rust-light);
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="ochre"] h1,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="ochre"] h2,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="ochre"] h3 {
+  color: var(--color-ochre-light);
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="viridian"] h1,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="viridian"] h2,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="viridian"] h3 {
+  color: var(--color-viridian-light);
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="cobalt"] h1,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="cobalt"] h2,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="cobalt"] h3 {
+  color: var(--color-cobalt-light);
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="amethyst"] h1,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="amethyst"] h2,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="amethyst"] h3 {
+  color: var(--color-amethyst-light);
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="rose"] h1,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="rose"] h2,
+.markdown-background-layer[data-mode="reader"] .markdown-section[data-suite="rose"] h3 {
+  color: var(--color-rose-light);
+}
+
+/* Reader mode heading sizes */
+.markdown-background-layer[data-mode="reader"] h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 3rem 0 1.5rem 0;
+  letter-spacing: 0.02em;
+}
+
+.markdown-background-layer[data-mode="reader"] h2 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin: 2.5rem 0 1.25rem 0;
+}
+
+.markdown-background-layer[data-mode="reader"] h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem 0;
+}
+
+/* Code blocks in reader mode */
+.markdown-background-layer[data-mode="reader"] code {
+  font-family: 'Courier New', 'Consolas', monospace;
+  background: rgba(123, 173, 39, 0.15);
+  color: rgba(0, 255, 201, 0.9);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.markdown-background-layer[data-mode="reader"] pre {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(123, 173, 39, 0.3);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.markdown-background-layer[data-mode="reader"] pre code {
+  background: none;
+  padding: 0;
+  color: #e2e8f0;
+  text-shadow: none;
+}
+
+.markdown-background-layer[data-mode="reader"] strong,
+.markdown-background-layer[data-mode="reader"] b {
+  font-weight: 700;
+  color: rgba(0, 255, 201, 0.95); /* Cyan emphasis */
+}
+
+/* Custom Scrollbar for Reader Mode */
+.markdown-background-layer[data-mode="reader"] .markdown-scroll-wrapper::-webkit-scrollbar {
+  width: 10px;
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-scroll-wrapper::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 5px;
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: var(--color-viridian);
+  border-radius: 5px;
+
+  /* HiFi dimensional effect */
+  border-top: 1px solid var(--color-viridian-border-dark);
+  border-right: 1px solid var(--color-viridian-border-dark);
+  border-bottom: 1px solid var(--color-viridian-border-light);
+  border-left: 1px solid var(--color-viridian-border-light);
+}
+
+.markdown-background-layer[data-mode="reader"] .markdown-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--color-viridian-light);
+}
+
+/* ===================================================================
+   LAYER 1: CALCULATOR OVERLAY LAYER
+   =================================================================== */
+
+.calculator-overlay-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50; /* Front by default */
+
+  /* Center calculator horizontally, align to top for scrolling */
+  display: flex;
+  align-items: flex-start; /* Top-aligned to allow scrolling */
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto; /* Enable vertical scrolling */
+
+  pointer-events: none; /* Only calculator receives clicks, not wrapper */
+
+  /* Smooth transitions */
+  transition:
+    z-index 0s 0.6s,
+    opacity 0.6s ease,
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.calculator-overlay-layer .calculator-layer-inner {
+  pointer-events: all; /* Calculator itself is clickable */
+
+  /* Constrain to viewport height with scrolling */
+  max-height: calc(100vh - 2rem); /* Account for padding */
+  overflow-y: auto; /* Enable vertical scrolling within calculator */
+
+  /* Hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+
+  /* Smooth transitions for shadow box mode */
+  transition:
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.6s ease;
+}
+
+/* Hide scrollbar for Webkit browsers */
+.calculator-overlay-layer .calculator-layer-inner::-webkit-scrollbar {
+  display: none;
+}
+
+/* Shadow Box Mode (When reader is active) */
+.calculator-overlay-layer.shadow-box-mode {
+  z-index: 10; /* Behind markdown reader */
+  opacity: 0.1; /* 10% visibility */
+}
+
+.calculator-overlay-layer.shadow-box-mode .calculator-layer-inner {
+  transform: scale(0.85); /* Slight scale down for shadow box effect */
+  pointer-events: none; /* Cannot interact when in shadow mode */
+}
+
+/* ===================================================================
+   SCREEN FILTER OVERLAY
+   =================================================================== */
+
+.reader-mode-screen-filter {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 90; /* Between calculator (10) and markdown (100) in reader mode */
+
+  pointer-events: none;
+  opacity: 0;
+
+  transition: opacity 0.6s ease;
+
+  /* Dark vignette + subtle blur when active */
+  background:
+    radial-gradient(
+      ellipse 60% 50% at 50% 50%,
+      transparent 0%,
+      rgba(0, 0, 0, 0.25) 50%,
+      rgba(0, 0, 0, 0.6) 100%
+    );
+
+  backdrop-filter: blur(2px);
+}
+
+.reader-mode-screen-filter.active {
+  opacity: 1;
+  pointer-events: all; /* Clickable to exit reader mode */
+  cursor: pointer;
+}
+
+/* ===================================================================
+   CLOSE READER BUTTON (Reader Mode Only)
+   =================================================================== */
+
+.close-reader-button {
+  position: fixed;
+  top: 33px;
+  right: 33px;
+  z-index: 150; /* Above markdown layer (100) */
+
+  /* Hidden by default (background mode) */
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+
+  /* Minimal HiFi styling */
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(
+    135deg,
+    rgba(26, 26, 26, 0.95) 0%,
+    rgba(10, 10, 10, 0.95) 50%,
+    rgba(0, 0, 0, 0.98) 100%
+  );
+
+  border: 2px solid;
+  border-top-color: var(--color-viridian-light);
+  border-right-color: var(--color-viridian-light);
+  border-bottom-color: var(--color-viridian-dark);
+  border-left-color: var(--color-viridian-dark);
+
+  border-radius: 50%;
+  box-shadow:
+    0 4px 16px rgba(74, 166, 133, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(94, 191, 157, 0.15);
+
+  color: var(--color-viridian-light);
+  font-family: 'Space Mono', monospace;
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: 1;
+
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Show in reader mode */
+.close-reader-button.active {
+  opacity: 1 !important;
+  pointer-events: all !important;
+  transform: scale(1) !important;
+}
+
+.close-reader-button.active:hover {
+  transform: scale(1.1) !important;
+  box-shadow:
+    0 6px 20px rgba(74, 166, 133, 0.3),
+    0 3px 10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(94, 191, 157, 0.25);
+
+  border-top-color: var(--color-viridian);
+  border-right-color: var(--color-viridian);
+}
+
+.close-reader-button.active:active {
+  transform: scale(0.95) !important;
+  box-shadow:
+    0 2px 8px rgba(74, 166, 133, 0.2),
+    0 1px 4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(94, 191, 157, 0.1);
+}
+
+/* ===================================================================
+   RESPONSIVE ADJUSTMENTS
+   =================================================================== */
+
+@media (max-width: 768px) {
+  .markdown-background-layer[data-mode="reader"] .markdown-scroll-wrapper {
+    padding: 1.5rem;
+  }
+
+  .markdown-background-layer[data-mode="reader"] h1 {
+    font-size: 2rem;
+  }
+
+  .markdown-background-layer[data-mode="reader"] h2 {
+    font-size: 1.5rem;
+  }
+
+  .markdown-background-layer[data-mode="reader"] h3 {
+    font-size: 1.25rem;
+  }
+
+  .calculator-overlay-layer.shadow-box-mode .calculator-layer-inner {
+    transform: scale(0.75); /* More reduction on mobile */
+  }
+}

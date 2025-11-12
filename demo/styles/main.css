@@ -7,6 +7,9 @@
 /* 1. Import HiFi base colors FIRST (defines utility classes) */
 @import "./hifi-base.css";
 
+/* 1.5. Import Markdown Layer Architecture System */
+@import "./markdown-layers.css";
+
 /* 2. Import Tailwind v4 (without preflight reset) */
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
@@ -15,10 +18,10 @@
 }
 /* 3. HiFi-specific calculator components */
 @layer components {
-  /* Calculator Container - 10% wider */
+  /* Calculator Container - Fixed Width */
   .calculator-container {
-    @apply w-full;
-    max-width: 46.2rem; /* 42rem (max-w-2xl) + 10% = 46.2rem */
+    width: 587px;
+    max-width: 587px;
   }
 
   /* Calculator Card - Glossy Black with Golden-Green Shine (Enhanced) */
@@ -312,7 +315,7 @@
       var(--pattern-cobalt),
       radial-gradient(circle at 87.5% 12.5%, var(--color-cobalt) 0%, #151d1e 88%);
     background-repeat: repeat, no-repeat;
-    background-size: 100px 100px, 100% 100%;
+    background-size: 30px 30px, 100% 100%;
     background-position: 0 0, 0 0;
     border-top: 2px solid var(--color-cobalt-border-dark);
     border-right: 2px solid var(--color-cobalt-border-dark);
@@ -347,7 +350,7 @@
       var(--pattern-rust),
       radial-gradient(circle at 87.5% 12.5%, var(--color-rust) 0%, #1e1915 88%);
     background-repeat: repeat, no-repeat;
-    background-size: 100px 100px, 100% 100%;
+    background-size: 30px 30px, 100% 100%;
     background-position: 0 0, 0 0;
     border-top: 2px solid var(--color-rust-border-dark);
     border-right: 2px solid var(--color-rust-border-dark);
@@ -382,7 +385,7 @@
       var(--pattern-rose),
       radial-gradient(circle at 87.5% 12.5%, var(--color-rose) 0%, #1e151d 88%);
     background-repeat: repeat, no-repeat;
-    background-size: 100px 100px, 100% 100%;
+    background-size: 30px 30px, 100% 100%;
     background-position: 0 0, 0 0;
     border-top: 2px solid var(--color-rose-border-dark);
     border-right: 2px solid var(--color-rose-border-dark);
@@ -417,7 +420,7 @@
       var(--pattern-maroon),
       radial-gradient(circle at 87.5% 12.5%, var(--color-maroon) 0%, #1e1515 88%);
     background-repeat: repeat, no-repeat;
-    background-size: 100px 100px, 100% 100%;
+    background-size: 30px 30px, 100% 100%;
     background-position: 0 0, 0 0;
     border-top: 2px solid var(--color-maroon-border-dark);
     border-right: 2px solid var(--color-maroon-border-dark);
@@ -452,7 +455,7 @@
       var(--pattern-amethyst),
       radial-gradient(circle at 87.5% 12.5%, var(--color-amethyst) 0%, #1a151e 88%);
     background-repeat: repeat, no-repeat;
-    background-size: 100px 100px, 100% 100%;
+    background-size: 30px 30px, 100% 100%;
     background-position: 0 0, 0 0;
     border-top: 2px solid var(--color-amethyst-border-dark);
     border-right: 2px solid var(--color-amethyst-border-dark);
@@ -476,6 +479,13 @@
     border-left: 2px solid var(--color-amethyst-border-dark);
   }
 
+  /* Backspace Symbol Sizing and Positioning */
+  .backspace-symbol {
+    display: inline-block;
+    font-size: 46px;
+    transform: translate3d(-5px, -19px, 0);
+  }
+
   /* Signed Toggle Button: Ochre/Drafting */
   .hifi-btn-signed {
     @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
@@ -487,7 +497,7 @@
       var(--pattern-ochre),
       radial-gradient(circle at 87.5% 12.5%, var(--color-ochre) 0%, #1e1d15 88%);
     background-repeat: repeat, no-repeat;
-    background-size: 100px 100px, 100% 100%;
+    background-size: 30px 30px, 100% 100%;
     background-position: 0 0, 0 0;
     border-top: 2px solid var(--color-ochre-border-dark);
     border-right: 2px solid var(--color-ochre-border-dark);
@@ -522,7 +532,7 @@
       var(--pattern-viridian),
       radial-gradient(circle at 87.5% 12.5%, var(--color-viridian) 0%, #1d1e15 88%);
     background-repeat: repeat, no-repeat;
-    background-size: 100px 100px, 100% 100%;
+    background-size: 30px 30px, 100% 100%;
     background-position: 0 0, 0 0;
     border-top: 2px solid var(--color-viridian-border-dark);
     border-right: 2px solid var(--color-viridian-border-dark);
@@ -557,7 +567,7 @@
       var(--pattern-red),
       radial-gradient(circle at 87.5% 12.5%, var(--color-red) 0%, #1e1515 88%);
     background-repeat: repeat, no-repeat;
-    background-size: 100px 100px, 100% 100%;
+    background-size: 30px 30px, 100% 100%;
     background-position: 0 0, 0 0;
     border-top: 2px solid var(--color-red-border-dark);
     border-right: 2px solid var(--color-red-border-dark);
@@ -579,6 +589,210 @@
     border-right: 2px solid var(--color-red-border-light);
     border-bottom: 2px solid var(--color-red-border-dark);
     border-left: 2px solid var(--color-red-border-dark);
+  }
+
+  /* Equals Button: Rose/System (Completion) */
+  .hifi-btn-equals {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Space Mono', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-rose),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-rose) 0%, #1e151d 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 30px 30px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-rose-border-dark);
+    border-right: 2px solid var(--color-rose-border-dark);
+    border-bottom: 2px solid var(--color-rose-border-light);
+    border-left: 2px solid var(--color-rose-border-light);
+    box-shadow: -8px 8px 32px var(--color-rose-shadow);
+  }
+
+  .hifi-btn-equals:hover {
+    background-image:
+      var(--pattern-rose),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-rose-light) 0%, #1e151d 88%);
+    box-shadow: -6px 6px 24px var(--color-rose-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-equals:active {
+    border-top: 2px solid var(--color-rose-border-light);
+    border-right: 2px solid var(--color-rose-border-light);
+    border-bottom: 2px solid var(--color-rose-border-dark);
+    border-left: 2px solid var(--color-rose-border-dark);
+  }
+
+  /* Calculate Button: Viridian/Instillment (Execution) */
+  .hifi-btn-calculate {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Space Mono', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-viridian),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-viridian) 0%, #1d1e15 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 30px 30px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-viridian-border-dark);
+    border-right: 2px solid var(--color-viridian-border-dark);
+    border-bottom: 2px solid var(--color-viridian-border-light);
+    border-left: 2px solid var(--color-viridian-border-light);
+    box-shadow: -8px 8px 32px var(--color-viridian-shadow);
+  }
+
+  .hifi-btn-calculate:hover {
+    background-image:
+      var(--pattern-viridian),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-viridian-light) 0%, #1d1e15 88%);
+    box-shadow: -6px 6px 24px var(--color-viridian-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-calculate:active {
+    border-top: 2px solid var(--color-viridian-border-light);
+    border-right: 2px solid var(--color-viridian-border-light);
+    border-bottom: 2px solid var(--color-viridian-border-dark);
+    border-left: 2px solid var(--color-viridian-border-dark);
+  }
+
+  /* Comparison Buttons: Amethyst/Operations (Logical Connections) */
+  .hifi-btn-compare {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Space Mono', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-amethyst),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-amethyst) 0%, #1a151e 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 30px 30px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-amethyst-border-dark);
+    border-right: 2px solid var(--color-amethyst-border-dark);
+    border-bottom: 2px solid var(--color-amethyst-border-light);
+    border-left: 2px solid var(--color-amethyst-border-light);
+    box-shadow: -8px 8px 32px var(--color-amethyst-shadow);
+  }
+
+  .hifi-btn-compare:hover {
+    background-image:
+      var(--pattern-amethyst),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-amethyst-light) 0%, #1a151e 88%);
+    box-shadow: -6px 6px 24px var(--color-amethyst-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-compare:active {
+    border-top: 2px solid var(--color-amethyst-border-light);
+    border-right: 2px solid var(--color-amethyst-border-light);
+    border-bottom: 2px solid var(--color-amethyst-border-dark);
+    border-left: 2px solid var(--color-amethyst-border-dark);
+  }
+
+  /* Multiply Button: Viridian/Instillment (Growth) */
+  .hifi-btn-multiply {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Space Mono', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-viridian),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-viridian) 0%, #1d1e15 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 30px 30px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-viridian-border-dark);
+    border-right: 2px solid var(--color-viridian-border-dark);
+    border-bottom: 2px solid var(--color-viridian-border-light);
+    border-left: 2px solid var(--color-viridian-border-light);
+    box-shadow: -8px 8px 32px var(--color-viridian-shadow);
+  }
+
+  .hifi-btn-multiply:hover:not(:disabled) {
+    background-image:
+      var(--pattern-viridian),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-viridian-light) 0%, #1d1e15 88%);
+    box-shadow: -6px 6px 24px var(--color-viridian-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-multiply:active:not(:disabled) {
+    border-top: 2px solid var(--color-viridian-border-light);
+    border-right: 2px solid var(--color-viridian-border-light);
+    border-bottom: 2px solid var(--color-viridian-border-dark);
+    border-left: 2px solid var(--color-viridian-border-dark);
+  }
+
+  /* Divide Button: Ochre/Drafting (Partition) */
+  .hifi-btn-divide {
+    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    @apply transform text-white;
+    font-family: 'Space Mono', monospace;
+    width: 100%;
+    height: 100%;
+    background-image:
+      var(--pattern-ochre),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-ochre) 0%, #1e1d15 88%);
+    background-repeat: repeat, no-repeat;
+    background-size: 30px 30px, 100% 100%;
+    background-position: 0 0, 0 0;
+    border-top: 2px solid var(--color-ochre-border-dark);
+    border-right: 2px solid var(--color-ochre-border-dark);
+    border-bottom: 2px solid var(--color-ochre-border-light);
+    border-left: 2px solid var(--color-ochre-border-light);
+    box-shadow: -8px 8px 32px var(--color-ochre-shadow);
+  }
+
+  .hifi-btn-divide:hover:not(:disabled) {
+    background-image:
+      var(--pattern-ochre),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-ochre-light) 0%, #1e1d15 88%);
+    box-shadow: -6px 6px 24px var(--color-ochre-shadow);
+    transform: scale(0.96);
+  }
+
+  .hifi-btn-divide:active:not(:disabled) {
+    border-top: 2px solid var(--color-ochre-border-light);
+    border-right: 2px solid var(--color-ochre-border-light);
+    border-bottom: 2px solid var(--color-ochre-border-dark);
+    border-left: 2px solid var(--color-ochre-border-dark);
+  }
+
+  /* Disabled state for v0.0.2 buttons */
+  .hifi-btn-multiply:disabled,
+  .hifi-btn-divide:disabled,
+  .hifi-btn-add:disabled,
+  .hifi-btn-subtract:disabled,
+  .hifi-btn-compare:disabled,
+  .hifi-btn-calculate:disabled,
+  .hifi-btn-equals:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Version tag for future features */
+  .version-tag {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 1px 4px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Space Mono', monospace;
+    pointer-events: none;
+    z-index: 10;
   }
 
 }
@@ -605,22 +819,25 @@
 /* === VIRIDIAN STRUCTURAL CORRECTIONS === */
 /* Suite 4 Viridian + Suite 3 Ochre Component Styles */
 
-/* 1. Accessibility-Safe Cursor Blink (2s cycle, fade not disappear) */
+/* 1. Accessibility-Safe Cursor Blink (DISABLED - Not Used) */
 @keyframes blink {
   0%, 49% { opacity: 1; }
   50%, 100% { opacity: 0.2; }  /* Fade, not disappear */
 }
 
 .input-cursor {
+  /* Cursor disabled - hidden permanently */
+  display: none;
   width: 2px;
   height: 28px;
   background-color: var(--color-ochre);
-  animation: blink 2s infinite;  /* 0.5Hz instead of 1Hz */
+  animation: none;  /* No animation */
   opacity: 0;
 }
 
 .input-row-active .input-cursor {
-  opacity: 1;
+  display: none;  /* Keep hidden even when row is active */
+  opacity: 0;
 }
 
 /* 2. Hover State Isolation (Touch vs Mouse Devices) */
