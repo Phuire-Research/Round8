@@ -504,9 +504,11 @@ describe('Phase 4: Advanced Features - Columnar Format & Dual-Buffer', () => {
     });
 
     test('10.2: Columnar Output Formatting - getFormattedColumnarWrungRepresentation', () => {
-      const buffer = parseStringToRound8('12345')!;
+      const str = '12345';
+      const buffer = parseStringToRound8(str)!;
+      const interop = getWrungStringRepresentation(buffer);
       const columnar = getFormattedColumnarWrungRepresentation(buffer);
-
+      expect(str).toBe(interop);
       expect(columnar).toBe('1,23,45');
     });
 

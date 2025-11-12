@@ -79,15 +79,15 @@ function createCalculator() {
 
   function handleDigitEntry(digit: number): void {
     const inputState = state[state.activeInput];
-    // Build sequence in reverse order (newest first)
+    // Build sequence in typed order (oldest first)
     const currentSequence = inputState.rawSequence;
-    // Prepend new digit to front (reverse order)
-    const newSequence = currentSequence ? `${digit}${currentSequence}` : `${digit}`;
+    // Append new digit to end (typed order)
+    const newSequence = currentSequence ? `${currentSequence}${digit}` : `${digit}`;
 
     // Update raw sequence
     inputState.rawSequence = newSequence;
 
-    // Parse directly (already in reversed order)
+    // Parse directly (in typed order)
     const buffer = r8_.parseStringToBuffer(newSequence);
     if (buffer) {
       const binary = r8_.createBufferDisplay(buffer);
@@ -113,9 +113,8 @@ function createCalculator() {
       inputState.buffer = 0n;
       inputState.binary = inputState.buffer.toLocaleString();
     } else {
-      // Reverse the sequence before parsing (same as handleDigitEntry)
-      const reversedSequence = newSequence.split('').reverse().join('');
-      const buffer = r8_.parseStringToBuffer(reversedSequence);
+      // Parse directly (in typed order)
+      const buffer = r8_.parseStringToBuffer(newSequence);
       const binary = buffer?.toString();
 
       inputState.buffer = buffer ? buffer : 0n;
