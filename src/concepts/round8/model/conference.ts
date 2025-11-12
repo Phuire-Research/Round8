@@ -98,6 +98,13 @@ export const getWrungStringRepresentation = (buffer: bigint): string => {
   if (marqueeState.isAbsoluteZero) {
     return '0';
   }
+  if (marqueeState.isFinalTwist) {
+    if (marqueeState.isNegative) {
+      return '-788888888888888888888';
+    } else {
+      return '788888888888888888888';
+    }
+  }
 
   // Normal case: Scan from Position 1 up to Marquee delimiter
   const firstValid = marqueeState.firstValidRotation ?? 1;
