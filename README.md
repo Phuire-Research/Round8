@@ -7,7 +7,7 @@
 
 **Pure Binary Calculator - Quantum-Resistant Architecture Demonstration**
 
-Round8 is a proof-of-concept demonstrating spool-based indexed lookups for binary operations. This PoC validates that the underlying binary system is operational and proven. All foundational operations work - it's now just pushing the boulder up the hill with incremental feature releases.
+Round8 is a proof-of-concept demonstrating spool-based indexed lookups for binary operations. (Similar to Lattice Boltzmann Method or LBM) This PoC validates that the underlying binary system is operational and proven. All foundational operations work - it's now just pushing the boulder up the hill with incremental feature releases.
 
 ## Installation
 
@@ -33,70 +33,7 @@ This proof-of-concept validates:
 
 **Try the Live Demo**: [https://phuire-research.github.io/Round8/](https://phuire-research.github.io/Round8/)
 
-The interactive calculator demonstrates the binary system functioning as designed. Digit entry updates both Round8 and binary displays in real-time.
-
-## API Reference (v0.0.11)
-
-Current PoC exports the calculator factory and core display functions:
-
-### Calculator Factory
-
-```typescript
-import { r8_ } from 'round8';
-
-// Create calculator instance
-const calculator = r8_.createCalculator();
-
-// Access state
-calculator.getState();        // Full calculator state
-calculator.getInput1();       // Input 1 state
-calculator.getInput2();       // Input 2 state
-calculator.getOutput();       // Output state
-
-// Calculator operations
-calculator.handleDigitEntry(5);   // Enter digit
-calculator.handleBackspace();     // Remove last digit
-calculator.handleZero();          // Enter zero
-calculator.handleClear();         // Clear active input
-```
-
-### Display Functions
-
-```typescript
-// Parse Round8 string to buffer
-const buffer = r8_.parseStringToBuffer("1,2,3");
-
-// Create Round8 display from buffer
-const round8Display = r8_.createRoundDisplay(buffer);  // "1,2,3"
-
-// Create Round8 string (no commas)
-const round8String = r8_.createRoundString(buffer);    // "123"
-
-// Create binary display from buffer
-const binaryDisplay = r8_.createBufferDisplay(buffer); // "1|001|010|011|..."
-```
-
-### Types
-
-```typescript
-export type OperationType = '+' | '-' | null;
-export type Positions = 1 | 2 | 3 | ... | 21;  // Position identifiers
-
-export interface InputState {
-  value: string;      // Round8 display ("1,2,3")
-  buffer: bigint;     // 64-bit buffer
-  binary: string;     // Binary display ("1|001|010|011|...")
-}
-
-export interface CalculatorState {
-  input1: InputState;
-  input2: InputState;
-  output: InputState;
-  operation: OperationType;
-  activeInput: 'input1' | 'input2';
-  darkMode: boolean;
-}
-```
+The interactive calculator demonstrates the binary system functioning as designed. Digit entry updates both Round8 and binary displays in real-time. Storing the Round8 Number only in Binary for all Operations.
 
 ## Energy Efficiency Proof
 
@@ -106,17 +43,15 @@ At 16-bit precision, Round8 demonstrates **7% energy efficiency advantage** over
 
 **Measurable Proof**: Verifiable proven reference table is attached to this repository. Which a complete test suite for addition and subtraction alongside logical operators.
 
-**Result**: Round8 store 7% more data than hex binary operations starting at 16-bits. 
+**Result**: Round8 store 7% more data than hex binary at all bit ranges. 
 
 **Validation**: Empirically verified through controlled benchmark testing.
 
-Due to the system utilizing combinations of a Base 72 System. In theory this stores 72^11th digits. Roughly 10x more than Hex.
+Note this is not a Number replacement. We have a variant Base 100 System called RoundX. That will be extend the Series for some Time, but would exist on top of Round8.
 
-But the range between 3-15 bits, is less and Hex. Meaning the True Upper Range given current methods is Unknown.
+**Why?** What can we save if we factor in all computation and communications it factors out to a rising 6% of a nation's energy use. What is the most expensive computer operation? Accessing memory. With Round8 we Hex across the board at a minimum of 7% **More Value** in the same Space. It's clean, it's provable, and can be a drop be made a replacement for Hex. We can *UnHex Binary*.
 
-Note this is not a true counting replacement. We have a variant Base 100 System called RoundX. That will be extend the Series for some Time, but would exist on top of Round8.
-
-**How** How do we save 7% on all energy use in the world? What is the most expensive computer operation? Accessing memory. With Round8 we surpass Hex at just 16bits. It's clean, it's provable, and can be a drop be made a replacement for Hex. We can *UnHex Binary*.
+But 7% is only the beginning as the means of being Quantum resistant also brings another jaw breaking cost savings. That we cannot disclose. 
 
 ## Test Coverage
 
@@ -200,17 +135,24 @@ Note this is not a true counting replacement. We have a variant Base 100 System 
 - Special patterns (zero, negative one) properly handled
 - No regressions from string-only API implementation
 
-## v0.0.2 Roadmap
-
-The following operations are deferred to v0.0.2 pending validation:
-
-- `multiply(a, b)` - Awaiting MultiplyWrung validation
-- `divide(a, b)` - Awaiting DivideWrung validation
-- `from(decimal)` - Decimal input conversion (requires decimal bridge)
+## v0.0.14
+- `add(a, b)` - Awaiting MultiplyWrung validation
 - `increment(value)` - Single-step counting operations
+- All Logical Operations
+## v0.0.15
+- `subtract(a, b)` - Awaiting MultiplyWrung validation
 - `decrement(value)` - Single-step counting operations
+## v0.0.16
+- `multiply(a, b)` - Awaiting MultiplyWrung validation
+## v0.0.17
+- Round8 Decimals
+- `divide(a, b)` - Awaiting DivideWrung validation
 
-**Proof of Concept**: v0.0.1 establishes the string-only API pattern with proven operations (Sum & Difference). v0.0.2 will expand operations using the same validated approach.
+## v0.0.2 Roadmap
+- `from(decimal)` - Decimal input conversion (As of 0.0.14's progress have a method to handle the conversion)
+
+
+**Proof of Concept**: v0.0.1 establishes the string-only API pattern with proving our Spool Manifold Method. v0.0.14-17+ will expand operations using the same validated approach.
 
 ## License
 
