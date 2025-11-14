@@ -14,9 +14,9 @@
 1,88,88: Count of 70216 <- Round8 Surpasses Hex Binary ~7%
 
 How does Round8 Beat Hex at 16bits?
-Keep in frame our Columnar Marquee System:
+Our Columnar Marquee System:
 ```
-Round8 UnHex Binary
+Unsigned Round8 UnHexed 16Bit Binary
 0 000 000 000 001 111 = 8
 0 000 000 001 111 111 = 88
 0 000 001 111 111 111 = 8,88
@@ -44,15 +44,16 @@ MTK @ PhuirE Research
 
 (Note it is known that we are using binary operations in order to inform our modern day switches. This method is similar, but instead uses the signals relatively alongside bidirectional higher ordered compositional principles. No intended value judgement on that creates an arbitrary symbol. This demonstrates the limit perceptual scope of unidirectional associations without bidirectional conference.)
 
+# For the Brave
 ## ADDENDUM: How is this Base 72 Recursive Self Referential?
-What is unique about Round8 is that it is based on a spatial coordinate system that has only 1 0 in it's count at a Origin. While truncating the need for a 10th Place. Meaning the usual expectations of an Octal Counting System does not apply. As such still maintains a Non-Columnar Design.
+What is unique about Round8 is that it is based on a spatial coordinate system that has only 1 Zero in it's count at a Origin. While truncating the need for a 10th Place. Meaning the usual expectations of an Octal Counting System does not apply. As such still maintains a Non-Columnar Design.
 
 How?
 0 Decimal = 0 Round8 as Origin.
 8 Decimal = 8 Round8.
 9 Decimal = 11 Round8.
 
-Effectively due to the Truncation of Arbitrary Placeholder positions in the baseline we have an extra 2 count available. As once the Rotation Completes. Rather than creating an Arbitrary 10th Place. The next possible counting position activates and Adds to the Stack of Counts.
+Effectively due to the Truncation of Arbitrary Placeholder positions in the baseline we have an extra 2 extra symbol spaces available. As once the Rotation Completes. Rather than creating an Arbitrary 10th Place. The next possible counting position activates and Adds to the Stack of Counts.
 
 Likewise the Reason for this being a Spatial Coordinate System Deals with the System being Designed for Graphs. Where the Only True 0 in Reality is the Origin of the Graph. Wherein the Limitation of 8 Counts is due to how we Subdivide our Circles on a Graph.
 
@@ -66,14 +67,14 @@ This is where the Bidirectional Advent of this Counting System Comes In. We Stan
 
 Thus if we have our Degrees of a Circle Represented as 8. And we Subdivide. 8 / 2 = 4, 4 / 2 = 2, 2 / 2 = 1. It's a Whole Round Counting System. Noting that in Geometry we already acknowledge this. We don't divide our Circles into 10ths expecting to be able to divide further than 5. As once you do so, the Division is Not Round. Which is the Reason for the Distinction of the System from Base Systems as Round.
 
-So what is the Maximum Count of 64bits? The issue is our current Base Mathematics System has an Offset and does not have the ability to represent a Higher Accuracy Round Number Space, especially in the Higher Ranges. On top of that while it is Base 72 starting at Two Rotations or Two Positions of 8s. The Reason for Such is that the Base System is 8*9. Where the First 8, is the First Rotation, and then the Next 8s are the Second Rotation Counting the Number of 8s by 8. This Trend then Continues for the Entire Length. 
+So what is the Maximum Count of 64bits? The issue is our current Base Mathematics System has an Offset and does not have the ability to represent a Higher Accuracy Round Number Space, especially in the Higher Ranges that can fit on Binary. On top of that while it is Base 72 starting at Two Rotations or Two Positions of 8s. The Reason for Such is that the Base System is 8*9. Where the First 8, is the First Rotation, and then the Next 8s are the Second Rotation Counting the Number of 8s by 8. This Trend then Continues for the Entire Length. 
 
-Noting how Base Octal Systems are Limited to 70 Number Representations in the Same Space. We can see this as a Compounding Error Rate, the Higher the Ranges Go. This likewise Applies to our Base 10 System. But it is Important to Acknowledge that Base 10 still Counts to 10, still Counts to 100, but within that Same Space of Counts. There is Less Counts Possible within the Same Symbol Space.
+Noting how Base Octal Systems are Limited to 70 Number Representations in the Same Space. We can see this as a Compounding Error Rate, but in the scope of Stored Expression, and lose the same efficiency due to the extract arbitrary symbols.
 
-Base 10 < Base 72 Recursive Self Referential
-Base 16 as Hex < Base 72 Recursive Self Referential
+Decimal does not fit in Binary < Round8 Does
+Base 16 as Hex < Base 72 as Round8
 
-Where the Eventual and Aligned for our Understanding RoundX as Base 100. Will be the means of Converting from Round8 to Base 10 Decimal.
+The goal will be to translate into RoundX that is a drop in replacement for Base 10. Can easily output either.
 
 ### How to Count to 8 on one Hand.
 Note in Fingers.
