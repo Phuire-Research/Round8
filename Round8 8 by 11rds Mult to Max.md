@@ -16,7 +16,7 @@ The Issue when Attempting to Find the Range is we have to Take into Account that
 
 8r * 8r = 78r (Same Column Multiplying Column implies Undershoot into the Next Rotation)
 8r * 11r = 88r (Is just Normal Multiplication)
-8r * 1,11,11r = 8,88,88r
+8r * 1,11,11r = 8,88,88r (Cascading Multiplication Pattern)
 
 Format for the Below:
 A Round8 A Decimal
