@@ -16,7 +16,7 @@ npm install round8
 ```
 
 ## Change Log
-### v0.0.12-0.0.13
+### v0.0.1-0.0.13
 Hunted down a hallucinated tests that reversed or did not prepare our signed output properly. Now Aligned. 
 
 ## What This PoC Demonstrates
@@ -36,7 +36,6 @@ This proof-of-concept validates:
 The interactive calculator demonstrates the binary system functioning as designed. Digit entry updates both Round8 and binary displays in real-time. Storing the Round8 Number only in Binary for all Operations.
 
 ## Energy Efficiency Proof
-
 ### 16-Bit Comparison: Round8 vs Hex Binary
 
 At 16-bit precision, Round8 demonstrates **7% energy efficiency advantage** over traditional hexadecimal binary representation.
@@ -69,6 +68,11 @@ But 7% is only the beginning as the means of being Quantum resistant also brings
 
 ## v0.0.2+
 - `from(decimal)` - Decimal input conversion (As of 0.0.14's progress have a method to handle the conversion)
+
+## Supporting Documents
+1. [Three-Columns Verified](https://github.com/Phuire-Research/Round8/Three-Columns-Verified.md)
+2. [Round8 by 11rds Multiplied to Max](https://github.com/Phuire-Research/Round8/Round8_8_by_11rds_Multiplied_to_Max.md)
+3. [UnHex Binary](https://github.com/Phuire-Research/Round8/UnHex_Binary.md)
 
 
 **Proof of Concept**: v0.0.1 establishes the string-only API pattern with proving our Spool Manifold Method. v0.0.14-17+ will expand operations using the same validated approach.
