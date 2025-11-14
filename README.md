@@ -53,88 +53,7 @@ Note this is not a Number replacement. We have a variant Base 100 System called 
 
 But 7% is only the beginning as the means of being Quantum resistant also brings another jaw breaking cost savings. That we cannot disclose. 
 
-## Test Coverage
-
-### Test Suite Statistics
-
-- **Total Tests**: 180
-- **Passing**: 180 (100%)
-- **Test Suites**: 9
-- **Coverage**: Complete validation of all v0.0.1 operations
-
-### Test Categories
-
-#### 1. SumWrung (Addition) - 60 tests
-- **First Column Operations**: 20 tests
-  - Single-column addition validation
-  - Carry propagation verification
-  - Sign routing (Cases 1-4)
-- **Column Zero Operations**: 20 tests
-  - Shifted topology validation
-  - Marquee pattern handling
-  - Zero normalization
-- **Multi-Column Operations**: 20 tests
-  - Complex carry chains
-  - Full 64-position buffer validation
-  - Integration-level testing
-
-#### 2. DifferenceWrung (Subtraction) - 60 tests
-- **First Column Operations**: 20 tests
-  - Single-column subtraction validation
-  - Borrow propagation verification
-  - Sign routing (Cases 5-8)
-- **Column Zero Operations**: 20 tests
-  - Shifted topology validation
-  - Zero result normalization
-  - Negative result handling
-- **Multi-Column Operations**: 20 tests
-  - Complex borrow chains
-  - Full 64-position buffer validation
-  - Integration-level testing
-
-#### 3. Comparison Operations - 30 tests
-- **Greater-Than**: 10 tests
-  - Positive/negative comparisons
-  - Magnitude ordering
-  - Edge cases (zero, negative one)
-- **Comparison Operators**: 10 tests
-  - `compare()` function validation
-  - Return value verification (-1, 0, 1)
-  - Sign-aware comparison
-- **Logical Operators**: 10 tests
-  - `equals()` validation
-  - `min()`/`max()` functions
-  - Boolean result verification
-
-#### 4. Special Cases - 30 tests
-- **Zero Handling**: 10 tests
-  - Zero identity in addition
-  - Zero result normalization
-  - Sign bit preservation
-- **Negative One Pattern**: 10 tests
-  - Reserved pattern validation (0 111...111)
-  - Negative one arithmetic
-  - Boundary conditions
-- **Sign Routing**: 10 tests
-  - All 8 sign combination cases
-  - Bidirectional delegation validation
-  - No circular dependency verification
-
-### Test Methodology
-
-**Integration-Level Testing**: All tests validate complete 64-position buffer operations. With few isolated unit tests for specific operations - every test exercises the full operational stack.
-
-**Bidirectional Validation**: Sign routing tested in both directions:
-- SumWrung Cases 3-4 delegate to DifferenceWrung operations
-- DifferenceWrung Cases 7-8 delegate to SumWrung operations
-
-**100% Pass Rate**: All 180 tests passing confirms:
-- Addition correctness across all sign combinations
-- Subtraction correctness across all sign combinations
-- Comparison operations accurate
-- Special patterns (zero, negative one) properly handled
-- No regressions from string-only API implementation
-
+# Road Map
 ## v0.0.14
 - `add(a, b)` - Awaiting MultiplyWrung validation
 - `increment(value)` - Single-step counting operations
@@ -148,7 +67,7 @@ But 7% is only the beginning as the means of being Quantum resistant also brings
 - Round8 Decimals
 - `divide(a, b)` - Awaiting DivideWrung validation
 
-## v0.0.2 Roadmap
+## v0.0.2+
 - `from(decimal)` - Decimal input conversion (As of 0.0.14's progress have a method to handle the conversion)
 
 
