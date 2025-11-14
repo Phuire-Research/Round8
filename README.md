@@ -70,9 +70,9 @@ But 7% is only the beginning as the means of being Quantum resistant also brings
 - `from(decimal)` - Decimal input conversion (As of 0.0.14's progress have a method to handle the conversion)
 
 ## Supporting Documents
-1. [Three-Columns Verified](https://github.com/Phuire-Research/Round8/Three-Columns-Verified.md)
-2. [Round8 by 11rds Multiplied to Max](https://github.com/Phuire-Research/Round8/Round8_8_by_11rds_Multiplied_to_Max.md)
-3. [UnHex Binary](https://github.com/Phuire-Research/Round8/UnHex_Binary.md)
+1. [Three-Columns Verified](https://raw.githubusercontent.com/Phuire-Research/Round8/refs/heads/master/Three-Columns-Verified.md)
+2. [Round8 by 11rds Multiplied to Max](https://github.com/Phuire-Research/Round8/blob/master/Round8%208%20by%2011rds%20Multiplied%20to%20Max.md)
+3. [UnHex Binary](https://github.com/Phuire-Research/Round8/blob/master/UnHex%20Binary.md)
 
 
 **Proof of Concept**: v0.0.1 establishes the string-only API pattern with proving our Spool Manifold Method. v0.0.14-17+ will expand operations using the same validated approach.
