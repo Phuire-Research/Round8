@@ -10,9 +10,9 @@
 
 8r * 8r is not 88r, it would be 8r * 11r (9d) as 88 Round8 (72d).
 10d * 10d is 100 Decimal.
-Thus due to this System Noting begin a Placeholding System, but a Columnar System. The Multiplication Range is Tilted to the Next Place + 1. Which is Consistent with the Universal Offset of the Minux - 1 due to our Absolute Zero Case being the Only 0 Place.
+Thus due to this System noting being a Columnar System, not a Placeholding System. The Multiplication Range is Tilted to the Next Place + 1. Which is Consistent with the Universal Offset of the Minus - 1 due to our Absolute Zero Case being the Only 0 Place.
 
-The Issue when Attempting to Find the Range is we have to Take into Account that when we Move from 88 to 1,11 it is the same count + 1. But in the scope of perfoming long multiplication and cross referencing our 3 columns verified up to 8,88,88 Round8 as 37448. As Per Line of this File 33 for 15 bits. The Pattern Holds.
+The Issue when Attempting to Find the Range is we have to Take into Account that when we Move from 88 to 1,11 it is the same count + 1. But in the scope of performing long multiplication and cross referencing our 3 columns verified up to 8,88,88 Round8 as 37,448. As Per Line of this File 33 for 15 bits. The Pattern Holds.
 
 8r * 8r = 78r (Same Column Multiplying Column implies Undershoot into the Next Rotation)
 8r * 11r = 88r (Is just Normal Multiplication)
@@ -149,16 +149,16 @@ Percent Utilization: 114.29%
 Difference: 8,070,450,532,247,928,832
 Percent Utilization: 114.29%
 
-## Verdict Round8 still the Victory
+## Verdict: Round8 Still the Victory
 
-Noting that due to the Full Twist being some 
-7,88,88,88,88,88,88,88,88,88,88 we do does 1.7% of that Count Range leaving the Total Improve 12.5%.
+Noting that due to the Full Twist being some
+7,88,88,88,88,88,88,88,88,88,88 we do use 1.7% of that Count Range leaving the Total Improvement at 12.5%.
 
-Likewise due to the consistency of this trend we should point out that Round8 Unsigned to 64bits would only have a 7% lead over Hexed Binary at 64bits like it's 16bit prior.
+Likewise due to the consistency of this trend we should point out that Round8 Unsigned to 64 bits would only have a 7% lead over Hex Binary at 64 bits like its 16-bit prior.
 
-However when you place the Network Effect into Perspective. That is a minimum of a 7% improvement regardless of bit range that increase to 14.29% when fit to the exact range of Round8.
+However when you place the Network Effect into Perspective. That is a minimum of a 7% Performance Improvement regardless of Bit Range that increases to 14.29% when fit to the exact Range of Round8.
 
-Finally, we should note that this is just the representation space differential. What comes into view after such is the difference of calculation.
+Finally, we should note that this is just the Representation Space differential. What comes into view after such is the difference of Calculation.
 
-### 64bit Unsigned Comparison Short Rotation Case (1bit into Rotation)
-7% is the Minimum when cut off at 1bit into a range, 14.29% is the Max at Full Range Expressed (3bits per Rotation). Where 1 bit enables our Marquee to Count into the Final Range of 64bits, but would have no Final Twist Case. Would still Feature the Same 7% Performance Improvement Unsigned 16bits.
+### 64-bit Unsigned Comparison: Short Rotation Case (1 bit into Rotation)
+7% is the Minimum when cut off at 1 bit into a Range, 14.29% is the Maximum at Full Range Expressed (3 bits per Rotation). Where 1 bit enables our Marquee to Count into the Final Range of 64 bits, but would have no Final Twist Case. Would still Feature the Same 7% Performance Improvement as Unsigned 16 bits.
