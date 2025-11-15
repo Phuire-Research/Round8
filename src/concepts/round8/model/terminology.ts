@@ -8,6 +8,8 @@ export type SomeSeries = Record<string, (([0 | 1, 0 | 1, 0 | 1] | number | strin
 
 export type SpooledWrung = ([0 | 1, 0 | 1, 0 | 1] | number | string)[][][][][][][];
 
+export type BitRotationTuple = [0 | 1, 0 | 1, 0 | 1];
+
 /**
  * Round8 Special Cases Enum
  */
@@ -812,6 +814,7 @@ export const applyNumeralRotation = (value: number, buffer: bigint, position: Po
  */
 
 export type ScanCallback = (buffer: bigint, position: Positions) => boolean;
+export type ScansCallback = (wrungA: bigint, wrungB: bigint, position: Positions) => boolean;
 
 /**
  * scanUpward - Recursively scan positions upward from origin toward expansion (1 → 21)
@@ -819,19 +822,19 @@ export type ScanCallback = (buffer: bigint, position: Positions) => boolean;
  * Inverted Pyramid: Origin (simplest) → Upward (expanding possibility space)
  * Congruent with BigInt's upward expansion and Tier 0→1→2 increasing complexity
  * Stops when callback returns false or reaches end
- * @param buffer - 64-bit bigint buffer to scan
+ * @param wrung - 64-bit bigint buffer to scan
  * @param callback - Function to call for each position
  * @param position - Current position (defaults to 1 to start from near-origin)
  * @returns The position where scanning stopped, or 0 if completed all positions
  */
 
 export const scanUpward = (
-  buffer: bigint,
+  wrung: bigint,
   callback: ScanCallback,
   position: Positions = 1
 ): Positions | 0 => {
   // Execute callback for current position
-  const shouldContinue = callback(buffer, position);
+  const shouldContinue = callback(wrung, position);
   // If callback returns false, stop and return current position
   if (!shouldContinue) {
     return position;
@@ -843,28 +846,62 @@ export const scanUpward = (
   }
 
   // Recursively continue to next higher position
-  return scanUpward(buffer, callback, (position + 1) as Positions);
+  return scanUpward(wrung, callback, (position + 1) as Positions);
 };
 
+/**
+ * scanUpwards - Recursively scan positions upward from origin toward expansion (1 → 21)
+ * Counter metaphor: Tick up increases count, moving toward higher complexity
+ * Inverted Pyramid: Origin (simplest) → Upward (expanding possibility space)
+ * Congruent with BigInt's upward expansion and Tier 0→1→2 increasing complexity
+ * Stops when callback returns false or reaches end
+ * @param wrungA - 64-bit bigint buffer to scan
+ * @param wrungB - 64-bit bigint buffer to scan
+ * @param callback - Function to call for each position
+ * @param position - Current position (defaults to 1 to start from near-origin)
+ * @returns The position where scanning stopped, or 0 if completed all positions
+ */
+
+export const scanUpwards = (
+  wrungA: bigint,
+  wrungB: bigint,
+  callback: ScansCallback,
+  position: Positions = 1
+): Positions | 0 => {
+  // Execute callback for current position
+  const shouldContinue = callback(wrungA, wrungB, position);
+  // If callback returns false, stop and return current position
+  if (!shouldContinue) {
+    return position;
+  }
+
+  // If we've reached the highest position, return 0 (completed)
+  if (position === 21) {
+    return 0;
+  }
+
+  // Recursively continue to next higher position
+  return scanUpwards(wrungA, wrungB, callback, (position + 1) as Positions);
+};
 /**
  * scanDownward - Recursively scan positions downward from expansion toward origin (21 → 1)
  * Counter metaphor: Tick down decreases count, moving toward simpler state
  * Inverted Pyramid: Expansion (complex) → Downward (approaching origin simplicity)
  * Moves against BigInt's upward expansion, validating from highest complexity first
  * Stops when callback returns false or reaches beginning
- * @param buffer - 64-bit bigint buffer to scan
+ * @param wrung - 64-bit bigint buffer to scan
  * @param callback - Function to call for each position
  * @param position - Current position (defaults to 21 to start from expansion bound)
  * @returns The position where scanning stopped, or 0 if completed all positions
  */
 
 export const scanDownward = (
-  buffer: bigint,
+  wrung: bigint,
   callback: ScanCallback,
   position: Positions = 21
 ): Positions | 0 => {
   // Execute callback for current position
-  const shouldContinue = callback(buffer, position);
+  const shouldContinue = callback(wrung, position);
   // If callback returns false, stop and return current position
   if (!shouldContinue) {
     return position;
@@ -876,7 +913,42 @@ export const scanDownward = (
   }
 
   // Recursively continue to next lower position
-  return scanDownward(buffer, callback, (position - 1) as Positions);
+  return scanDownward(wrung, callback, (position - 1) as Positions);
+};
+
+/**
+ * scanDownwards - Recursively scan positions downward from expansion toward origin (21 → 1)
+ * Counter metaphor: Tick down decreases count, moving toward simpler state
+ * Inverted Pyramid: Expansion (complex) → Downward (approaching origin simplicity)
+ * Moves against BigInt's upward expansion, validating from highest complexity first
+ * Stops when callback returns false or reaches beginning
+ * @param wrungA - 64-bit bigint buffer to scan
+ * @param wrungB - 64-bit bigint buffer to scan
+ * @param callback - Function to call for each position
+ * @param position - Current position (defaults to 21 to start from expansion bound)
+ * @returns The position where scanning stopped, or 0 if completed all positions
+ */
+
+export const scanDownwards = (
+  wrungA: bigint,
+  wrungB: bigint,
+  callback: ScansCallback,
+  position: Positions = 21
+): Positions | 0 => {
+  // Execute callback for current position
+  const shouldContinue = callback(wrungA, wrungB, position);
+  // If callback returns false, stop and return current position
+  if (!shouldContinue) {
+    return position;
+  }
+
+  // If we've reached the lowest position (near origin), return 0 (completed)
+  if (position === 1) {
+    return 0;
+  }
+
+  // Recursively continue to next lower position
+  return scanDownwards(wrungA, wrungB, callback, (position - 1) as Positions);
 };
 
 /**

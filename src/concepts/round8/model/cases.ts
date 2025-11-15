@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable complexity */
 
 import { SumSeries } from './series/sum.cases';
@@ -6,7 +7,7 @@ import { DifferenceSeries } from './series/difference.cases';
 import { GreaterThanSeries } from './series/greaterThan.cases';
 import { LessThanSeries } from './series/lessThan.cases';
 import { ShiftedGreaterThanSeries } from './series/shiftedGreaterThan.cases';
-import { SomeSeries, SpooledWrung } from './terminology';
+import { BitRotationTuple, extractBitTuple, getSignBit, Positions, scanDownward, scanDownwards, SomeSeries, SpooledWrung } from './terminology';
 import { ShiftedDifferenceSeries } from './series/shiftedDifference.cases';
 
 // Initialize 6-dimensional array structure for SpooledSumSeries
@@ -98,70 +99,70 @@ export {
 
 /**
  * Greater Than (X > Y) - Direct spool lookup
- * @param columnX - 3-bit column value [bit2, bit1, bit0]
- * @param columnY - 3-bit column value [bit2, bit1, bit0]
+ * @param rotationA - 3-bit column value [bit2, bit1, bit0]
+ * @param rotationB - 3-bit column value [bit2, bit1, bit0]
  * @returns 1 if X > Y, 0 otherwise
  */
-export const greaterThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
+export const greaterThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
   // bit2_X // bit1_X // bit0_X // bit2_Y // bit1_Y // bit0_Y
   const result =
-    SpooledGreaterThanSeries[columnX[0]][columnX[1]][columnX[2]][columnY[0]][columnY[1]][columnY[2]];
+    SpooledGreaterThanSeries[rotationA[0]][rotationA[1]][rotationA[2]][rotationB[0]][rotationB[1]][rotationB[2]];
   // Result is [bit0_result, result_copy] - return first element
   return result[0] as unknown as number;
 };
 
 /**
  * Less Than (X < Y) - Direct Spool Lookup
- * @param columnX - 3-bit column value
- * @param columnY - 3-bit column value
+ * @param rotationA - 3-bit column value
+ * @param rotationB - 3-bit column value
  * @returns 1 if X < Y, 0 otherwise
  */
-export const lessThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
+export const lessThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
   // bit2_X // bit1_X // bit0_X // bit2_Y // bit1_Y // bit0_Y
   const result =
-    SpooledLessThanSeries[columnX[0]][columnX[1]][columnX[2]][columnY[0]][columnY[1]][columnY[2]];
+    SpooledLessThanSeries[rotationA[0]][rotationA[1]][rotationA[2]][rotationB[0]][rotationB[1]][rotationB[2]];
   // Result is [bit0_result, result_copy] - return first element
   return result[0] as unknown as number;
 };
 
 /**
  * Equals (X == Y) - Direct bit comparison
- * @param columnX - 3-bit column value
- * @param columnY - 3-bit column value
+ * @param rotationA - 3-bit column value
+ * @param rotationB - 3-bit column value
  * @returns 1 if X == Y, 0 otherwise
  */
-export const equals = (columnX: Uint8Array, columnY: Uint8Array): number => {
-  return columnX[0] === columnY[0] && columnX[1] === columnY[1] && columnX[2] === columnY[2] ? 1 : 0;
+export const equals = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+  return rotationA[0] === rotationB[0] && rotationA[1] === rotationB[1] && rotationA[2] === rotationB[2] ? 1 : 0;
 };
 
 /**
  * Greater Than or Equal (X >= Y) - Equals OR Greater Than
- * @param columnX - 3-bit column value
- * @param columnY - 3-bit column value
+ * @param rotationA - 3-bit column value
+ * @param rotationB - 3-bit column value
  * @returns 1 if X >= Y, 0 otherwise
  */
-export const greaterThanOrEqual = (columnX: Uint8Array, columnY: Uint8Array): number => {
-  return equals(columnX, columnY) === 1 || greaterThan(columnX, columnY) === 1 ? 1 : 0;
+export const greaterThanOrEqual = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+  return equals(rotationA, rotationB) === 1 || greaterThan(rotationA, rotationB) === 1 ? 1 : 0;
 };
 
 /**
  * Less Than or Equal (X <= Y) - Equals OR Less Than
- * @param columnX - 3-bit column value
- * @param columnY - 3-bit column value
+ * @param rotationA - 3-bit column value
+ * @param rotationB - 3-bit column value
  * @returns 1 if X <= Y, 0 otherwise
  */
-export const lessThanOrEqual = (columnX: Uint8Array, columnY: Uint8Array): number => {
-  return equals(columnX, columnY) === 1 || lessThan(columnX, columnY) === 1 ? 1 : 0;
+export const lessThanOrEqual = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+  return equals(rotationA, rotationB) === 1 || lessThan(rotationA, rotationB) === 1 ? 1 : 0;
 };
 
 /**
  * Not Equals (X != Y) - Inverted Equals
- * @param columnX - 3-bit column value
- * @param columnY - 3-bit column value
+ * @param rotationA - 3-bit column value
+ * @param rotationB - 3-bit column value
  * @returns 1 if X != Y, 0 otherwise
  */
-export const notEquals = (columnX: Uint8Array, columnY: Uint8Array): number => {
-  return equals(columnX, columnY) === 1 ? 0 : 1;
+export const notEquals = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+  return equals(rotationA, rotationB) === 1 ? 0 : 1;
 };
 
 /**
@@ -172,13 +173,13 @@ export const notEquals = (columnX: Uint8Array, columnY: Uint8Array): number => {
  *
  * Shifted Ordering: 001 < 010 < 011 < 100 < 101 < 110 < 111 < 000
  *
- * @param columnX - 3-bit column value in shifted topology
- * @param columnY - 3-bit column value in shifted topology
+ * @param rotationA - 3-bit column value in shifted topology
+ * @param rotationB - 3-bit column value in shifted topology
  * @returns 1 if X > Y in shifted topology, 0 otherwise
  */
-export const shiftedGreaterThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
+export const shiftedGreaterThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
   const result =
-    SpooledShiftedGreaterThanSeries[columnX[0]][columnX[1]][columnX[2]][columnY[0]][columnY[1]][columnY[2]];
+    SpooledShiftedGreaterThanSeries[rotationA[0]][rotationA[1]][rotationA[2]][rotationB[0]][rotationB[1]][rotationB[2]];
   return result[0] as unknown as number;
 };
 
@@ -187,12 +188,12 @@ export const shiftedGreaterThan = (columnX: Uint8Array, columnY: Uint8Array): nu
  *
  * X < Y is equivalent to Y > X in shifted topology.
  *
- * @param columnX - 3-bit column value in shifted topology
- * @param columnY - 3-bit column value in shifted topology
+ * @param rotationA - 3-bit column value in shifted topology
+ * @param rotationB - 3-bit column value in shifted topology
  * @returns 1 if X < Y in shifted topology, 0 otherwise
  */
-export const shiftedLessThan = (columnX: Uint8Array, columnY: Uint8Array): number => {
-  return shiftedGreaterThan(columnY, columnX);
+export const shiftedLessThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+  return shiftedGreaterThan(rotationB, rotationA);
 };
 
 /**
@@ -200,12 +201,12 @@ export const shiftedLessThan = (columnX: Uint8Array, columnY: Uint8Array): numbe
  *
  * Equality is topology-agnostic: same bits = equal regardless of topology.
  *
- * @param columnX - 3-bit column value
- * @param columnY - 3-bit column value
+ * @param rotationA - 3-bit column value
+ * @param rotationB - 3-bit column value
  * @returns 1 if X == Y, 0 otherwise
  */
-export const shiftedEquals = (columnX: Uint8Array, columnY: Uint8Array): number => {
-  return columnX[0] === columnY[0] && columnX[1] === columnY[1] && columnX[2] === columnY[2] ? 1 : 0;
+export const shiftedEquals = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+  return rotationA[0] === rotationB[0] && rotationA[1] === rotationB[1] && rotationA[2] === rotationB[2] ? 1 : 0;
 };
 
 /**
@@ -262,42 +263,37 @@ export const not = (a: number): number => {
  * @returns true if |wrungA| > |wrungB|, false if |wrungB| >= |wrungA|
  */
 export const compareMagnitude = (
-  wrungA: Uint8Array<ArrayBuffer>,
-  wrungB: Uint8Array<ArrayBuffer>,
-  marqueeA: number,
-  marqueeB: number
+  wrungA: bigint,
+  wrungB: bigint,
+  marqueeAPosition: number,
+  marqueeBPosition: number
 ): boolean => {
-  // Start from most significant column (smallest marquee value)
-  const startColumn = Math.min(marqueeA, marqueeB);
-
-  // Compare column-by-column from most significant to least significant
-  for (let col = startColumn; col <= 20; col++) {
-    // Extract 3-bit column values
-    const pos = 1 + col * 3;
-    const columnA = new Uint8Array([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
-    const columnB = new Uint8Array([wrungB[pos], wrungB[pos + 1], wrungB[pos + 2]]);
-
+  // Extract 3-bit column values
+  const signA = getSignBit(wrungA);
+  const signB = getSignBit(wrungB);
+  let greater = false;
+  if (signA !== signB) {return signA === 1 && signB === 0;}
+  const startPosition = marqueeAPosition > marqueeBPosition ?
+    marqueeAPosition - 1
+    :
+    marqueeBPosition - 1;
+  scanDownwards(wrungA, wrungB, (rotationsA, rotationsB, pos) => {
+    const tupleA = extractBitTuple(rotationsA, pos);
+    const tupleB = extractBitTuple(rotationsB, pos);
+    const areEqual = equals(tupleA, tupleB);
+    if (areEqual) {return true;}
     // CRITICAL: Column 0 uses shifted topology, columns 1-20 use regular topology
-    const comparisonFunc = (col === 0) ? shiftedGreaterThan : greaterThan;
+    const greaterThanSpool = (pos === 21) ? shiftedGreaterThan : greaterThan;
 
-    const aGreater = comparisonFunc(columnA, columnB);
-    if (aGreater === 1) {
-      // A has greater magnitude at this column
-      return true;
-    }
-
-    const bGreater = comparisonFunc(columnB, columnA);
-    if (bGreater === 1) {
-      // B has greater magnitude at this column
+    greater = !!greaterThanSpool(tupleA, tupleB);
+    if (greater === true) {
+      // If Equal Continue
       return false;
     }
-
     // Columns equal, continue to next less significant column
-  }
-
-  // All columns equal - B "wins" tie (return false)
-  // This ensures consistent behavior for equal magnitudes
-  return false;
+    return false;
+  }, startPosition as Positions);
+  return greater;
 };
 
 /**
@@ -305,8 +301,8 @@ export const compareMagnitude = (
  */
 type OperationRouting = {
   effectiveOp: 'sum' | 'difference';
-  minuend: Uint8Array<ArrayBuffer>;
-  subtrahend: Uint8Array<ArrayBuffer>;
+  minuend: bigint;
+  subtrahend: bigint;
   resultSign: 0 | 1;
 };
 
@@ -333,8 +329,8 @@ export const determineEffectiveOperation = (
   operation: '+' | '-',
   signA: 0 | 1,
   signB: 0 | 1,
-  wrungA: Uint8Array<ArrayBuffer>,
-  wrungB: Uint8Array<ArrayBuffer>,
+  wrungA: bigint,
+  wrungB: bigint,
   marqueeA: number,
   marqueeB: number
 ): OperationRouting => {
@@ -445,14 +441,14 @@ export const determineEffectiveOperation = (
 /**
  * SumWrung - Columnar Long Addition using SpooledSumSeries lookup tables
  *
- * Takes two 64-position Uint8Array buffers and performs columnar addition
+ * Takes two 64-position BitRotationTuple buffers and performs columnar addition
  * from right to left (column 20 → column 0), handling carries forward.
  *
  * @param wrungA - First operand buffer (64 positions)
  * @param wrungB - Second operand buffer (64 positions)
  * @returns Result buffer (64 positions)
  */
-// export const SumWrung = (wrungA: Uint8Array<ArrayBuffer>, wrungB: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> => {
+// export const SumWrung = (wrungA: BitRotationTuple<ArrayBuffer>, wrungB: BitRotationTuple<ArrayBuffer>): BitRotationTuple<ArrayBuffer> => {
 //   console.log(
 //     `SUMWRUNG START: wrungA[61-63]=[${wrungA[61]},${wrungA[62]},${wrungA[63]}] wrungB[61-63]=[${wrungB[61]},${wrungB[62]},${wrungB[63]}]`
 //   );
@@ -470,9 +466,9 @@ export const determineEffectiveOperation = (
 //     console.log('CASE 2: Both negative → negative sum (signs ignored during operation)');
 
 //     // Create positive temps for magnitude summation
-//     const tempA = new Uint8Array(wrungA);
+//     const tempA = new BitRotationTuple(wrungA);
 //     tempA[0] = 1; // Make positive
-//     const tempB = new Uint8Array(wrungB);
+//     const tempB = new BitRotationTuple(wrungB);
 //     tempB[0] = 1; // Make positive
 
 //     // Recursive call → hits Case 1 logic (both positive)
@@ -490,9 +486,9 @@ export const determineEffectiveOperation = (
 //     console.log('CASE 3: (+A) + (-B) → Difference Spool (A - abs(B))');
 
 //     // Create positive temps for magnitude operation
-//     const tempA = new Uint8Array(wrungA);
+//     const tempA = new BitRotationTuple(wrungA);
 //     tempA[0] = 1;
-//     const tempB = new Uint8Array(wrungB);
+//     const tempB = new BitRotationTuple(wrungB);
 //     tempB[0] = 1;
 
 //     // Conference for marquee detection
@@ -504,11 +500,11 @@ export const determineEffectiveOperation = (
 //     }
 
 //     // Create result buffer
-//     const result = new Uint8Array(64);
+//     const result = new BitRotationTuple(64);
 //     result[0] = 1; // Temporary positive (will be corrected below)
 
 //     // Borrow accumulator (NOT carry - this is subtraction)
-//     const borrows: Uint8Array<ArrayBuffer>[] = [];
+//     const borrows: BitRotationTuple<ArrayBuffer>[] = [];
 
 //     // EXACT EVEN PATH
 //     if (case3Conf.exactEven) {
@@ -519,28 +515,28 @@ export const determineEffectiveOperation = (
 //         const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
 
 //         // Deplete borrows into tempA
-//         let intermediate = new Uint8Array([tempA[pos], tempA[pos + 1], tempA[pos + 2]]);
+//         let intermediate = new BitRotationTuple([tempA[pos], tempA[pos + 1], tempA[pos + 2]]);
 //         while (borrows.length > 0) {
 //           const borrow = borrows.pop()!;
 //           const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | Uint8Array
+//             | BitRotationTuple
 //             | number
 //           )[];
 //           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //           } else {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //             borrows.push(newBorrow);
 //           }
 //         }
 
 //         // Subtract tempB from intermediate
 //         const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempB[pos]][tempB[pos + 1]][tempB[pos + 2]] as (
-//           | Uint8Array<ArrayBuffer>
+//           | BitRotationTuple<ArrayBuffer>
 //           | number
 //         )[];
-//         const finalResult = finalTuple[0] as Uint8Array;
+//         const finalResult = finalTuple[0] as BitRotationTuple;
 
 //         // Write result
 //         result[pos] = finalResult[0];
@@ -549,7 +545,7 @@ export const determineEffectiveOperation = (
 
 //         // Push borrow if exists
 //         if (finalTuple.length === 2) {
-//           const finalBorrow = finalTuple[1] as Uint8Array<ArrayBuffer>;
+//           const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
 //           borrows.push(finalBorrow);
 //         }
 //       }
@@ -566,35 +562,35 @@ export const determineEffectiveOperation = (
 //         const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
 
 //         // Deplete borrows
-//         let intermediate = new Uint8Array([tempA[pos], tempA[pos + 1], tempA[pos + 2]]);
+//         let intermediate = new BitRotationTuple([tempA[pos], tempA[pos + 1], tempA[pos + 2]]);
 //         while (borrows.length > 0) {
 //           const borrow = borrows.pop()!;
 //           const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | Uint8Array
+//             | BitRotationTuple
 //             | number
 //           )[];
 //           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //           } else {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //             borrows.push(newBorrow);
 //           }
 //         }
 
 //         // Subtract tempB
 //         const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempB[pos]][tempB[pos + 1]][tempB[pos + 2]] as (
-//           | Uint8Array<ArrayBuffer>
+//           | BitRotationTuple<ArrayBuffer>
 //           | number
 //         )[];
-//         const finalResult = finalTuple[0] as Uint8Array;
+//         const finalResult = finalTuple[0] as BitRotationTuple;
 
 //         result[pos] = finalResult[0];
 //         result[pos + 1] = finalResult[1];
 //         result[pos + 2] = finalResult[2];
 
 //         if (finalTuple.length === 2) {
-//           const finalBorrow = finalTuple[1] as Uint8Array<ArrayBuffer>;
+//           const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
 //           borrows.push(finalBorrow);
 //         }
 //       }
@@ -608,19 +604,19 @@ export const determineEffectiveOperation = (
 //           const pos = 1 + column * 3;
 //           const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
 
-//           let intermediate = new Uint8Array([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
+//           let intermediate = new BitRotationTuple([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
 //           while (borrows.length > 0) {
 //             const borrow = borrows.pop()!;
 //             const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//               | Uint8Array
+//               | BitRotationTuple
 //               | number
 //             )[];
 //             // eslint-disable-next-line max-depth
 //             if (borrowTuple.length === 1) {
-//               intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//               intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //             } else {
-//               intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//               const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//               intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//               const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //               borrows.push(newBorrow);
 //             }
 //           }
@@ -642,19 +638,19 @@ export const determineEffectiveOperation = (
 
 //       for (let column = earliestColumn - 1; column >= 0; column--) {
 //         const pos = 1 + column * 3;
-//         let intermediate = new Uint8Array([0, 0, 0]);
+//         let intermediate = new BitRotationTuple([0, 0, 0]);
 
 //         while (borrows.length > 0) {
 //           const borrow = borrows.pop()!;
 //           const borrowTuple = SpooledDifferenceSeries[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | Uint8Array
+//             | BitRotationTuple
 //             | number
 //           )[];
 //           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //           } else {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //             borrows.push(newBorrow);
 //           }
 //         }
@@ -707,9 +703,9 @@ export const determineEffectiveOperation = (
 //     console.log('CASE 4: (-A) + (+B) → Difference Spool (B - abs(A))');
 
 //     // Create positive temps for magnitude operation
-//     const tempA = new Uint8Array(wrungA);
+//     const tempA = new BitRotationTuple(wrungA);
 //     tempA[0] = 1;
-//     const tempB = new Uint8Array(wrungB);
+//     const tempB = new BitRotationTuple(wrungB);
 //     tempB[0] = 1;
 
 //     // Conference for marquee detection
@@ -721,11 +717,11 @@ export const determineEffectiveOperation = (
 //     }
 
 //     // Create result buffer
-//     const result = new Uint8Array(64);
+//     const result = new BitRotationTuple(64);
 //     result[0] = 1; // Temporary positive (will be corrected below)
 
 //     // Borrow accumulator (NOT carry - this is subtraction)
-//     const borrows: Uint8Array<ArrayBuffer>[] = [];
+//     const borrows: BitRotationTuple<ArrayBuffer>[] = [];
 
 //     // EXACT EVEN PATH
 //     if (case4Conf.exactEven) {
@@ -736,28 +732,28 @@ export const determineEffectiveOperation = (
 //         const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
 
 //         // Deplete borrows into tempB (minuend in Case 4)
-//         let intermediate = new Uint8Array([tempB[pos], tempB[pos + 1], tempB[pos + 2]]);
+//         let intermediate = new BitRotationTuple([tempB[pos], tempB[pos + 1], tempB[pos + 2]]);
 //         while (borrows.length > 0) {
 //           const borrow = borrows.pop()!;
 //           const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | Uint8Array
+//             | BitRotationTuple
 //             | number
 //           )[];
 //           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //           } else {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //             borrows.push(newBorrow);
 //           }
 //         }
 
 //         // Subtract tempA from intermediate (B - A)
 //         const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempA[pos]][tempA[pos + 1]][tempA[pos + 2]] as (
-//           | Uint8Array<ArrayBuffer>
+//           | BitRotationTuple<ArrayBuffer>
 //           | number
 //         )[];
-//         const finalResult = finalTuple[0] as Uint8Array;
+//         const finalResult = finalTuple[0] as BitRotationTuple;
 
 //         // Write result
 //         result[pos] = finalResult[0];
@@ -766,7 +762,7 @@ export const determineEffectiveOperation = (
 
 //         // Push borrow if exists
 //         if (finalTuple.length === 2) {
-//           const finalBorrow = finalTuple[1] as Uint8Array<ArrayBuffer>;
+//           const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
 //           borrows.push(finalBorrow);
 //         }
 //       }
@@ -783,35 +779,35 @@ export const determineEffectiveOperation = (
 //         const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
 
 //         // Deplete borrows into tempB
-//         let intermediate = new Uint8Array([tempB[pos], tempB[pos + 1], tempB[pos + 2]]);
+//         let intermediate = new BitRotationTuple([tempB[pos], tempB[pos + 1], tempB[pos + 2]]);
 //         while (borrows.length > 0) {
 //           const borrow = borrows.pop()!;
 //           const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | Uint8Array
+//             | BitRotationTuple
 //             | number
 //           )[];
 //           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //           } else {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //             borrows.push(newBorrow);
 //           }
 //         }
 
 //         // Subtract tempA (B - A)
 //         const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempA[pos]][tempA[pos + 1]][tempA[pos + 2]] as (
-//           | Uint8Array<ArrayBuffer>
+//           | BitRotationTuple<ArrayBuffer>
 //           | number
 //         )[];
-//         const finalResult = finalTuple[0] as Uint8Array;
+//         const finalResult = finalTuple[0] as BitRotationTuple;
 
 //         result[pos] = finalResult[0];
 //         result[pos + 1] = finalResult[1];
 //         result[pos + 2] = finalResult[2];
 
 //         if (finalTuple.length === 2) {
-//           const finalBorrow = finalTuple[1] as Uint8Array<ArrayBuffer>;
+//           const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
 //           borrows.push(finalBorrow);
 //         }
 //       }
@@ -825,19 +821,19 @@ export const determineEffectiveOperation = (
 //           const pos = 1 + column * 3;
 //           const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
 
-//           let intermediate = new Uint8Array([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
+//           let intermediate = new BitRotationTuple([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
 //           while (borrows.length > 0) {
 //             const borrow = borrows.pop()!;
 //             const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//               | Uint8Array
+//               | BitRotationTuple
 //               | number
 //             )[];
 //             // eslint-disable-next-line max-depth
 //             if (borrowTuple.length === 1) {
-//               intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//               intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //             } else {
-//               intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//               const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//               intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//               const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //               borrows.push(newBorrow);
 //             }
 //           }
@@ -859,19 +855,19 @@ export const determineEffectiveOperation = (
 
 //       for (let column = earliestColumn - 1; column >= 0; column--) {
 //         const pos = 1 + column * 3;
-//         let intermediate = new Uint8Array([0, 0, 0]);
+//         let intermediate = new BitRotationTuple([0, 0, 0]);
 
 //         while (borrows.length > 0) {
 //           const borrow = borrows.pop()!;
 //           const borrowTuple = SpooledDifferenceSeries[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | Uint8Array
+//             | BitRotationTuple
 //             | number
 //           )[];
 //           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //           } else {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //             borrows.push(newBorrow);
 //           }
 //         }
@@ -931,11 +927,11 @@ export const determineEffectiveOperation = (
 //     return SPECIAL_CASE_STORE.ZERO_CASE;
 //   }
 //   // Create output buffer
-//   const result = new Uint8Array(64);
+//   const result = new BitRotationTuple(64);
 //   // Copy sign from wrungA (position 0) - for now, assume same sign
 //   result[0] = wrungA[0];
-//   // Carry accumulator - array of Uint8Array[3] carries
-//   const carries: Uint8Array<ArrayBuffer>[] = [];
+//   // Carry accumulator - array of BitRotationTuple[3] carries
+//   const carries: BitRotationTuple<ArrayBuffer>[] = [];
 
 //   // SPECIAL CASE: Sign = 1, No Marquee Present (all 000)
 //   // Only column 20 valid, no backward propagation allowed
@@ -949,8 +945,8 @@ export const determineEffectiveOperation = (
 //     // Add wrungA[20] + wrungB[20]
 //     const finalTuple = SpooledSumSeries[wrungA[pos20]][wrungA[pos20 + 1]][wrungA[pos20 + 2]][wrungB[pos20]][wrungB[pos20 + 1]][
 //       wrungB[pos20 + 2]
-//     ] as (Uint8Array<ArrayBuffer> | number)[];
-//     const finalResult = finalTuple[0] as Uint8Array;
+//     ] as (BitRotationTuple<ArrayBuffer> | number)[];
+//     const finalResult = finalTuple[0] as BitRotationTuple;
 //     result[pos20] = finalResult[0];
 //     result[pos20 + 1] = finalResult[1];
 //     result[pos20 + 2] = finalResult[2];
@@ -973,19 +969,19 @@ export const determineEffectiveOperation = (
 //     for (let column = 20; column >= conferredState.sharedValidColumn; column--) {
 //       const pos = 1 + column * 3;
 //       // FIRST WRUNG: Deplete accumulated carries into wrungA
-//       let intermediate = new Uint8Array([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
+//       let intermediate = new BitRotationTuple([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
 //       while (carries.length > 0) {
 //         const carry = carries.pop()!;
 //         const activeSpool = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
 //         const carryTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][carry[0]][carry[1]][carry[2]] as (
-//           | Uint8Array
+//           | BitRotationTuple
 //           | number
 //         )[];
 //         if (carryTuple.length === 1) {
-//           intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
 //         } else {
-//           intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
-//           const newCarry = carryTuple[1] as Uint8Array<ArrayBuffer>;
+//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
+//           const newCarry = carryTuple[1] as BitRotationTuple<ArrayBuffer>;
 //           carries.push(newCarry);
 //         }
 //       }
@@ -997,10 +993,10 @@ export const determineEffectiveOperation = (
 //       );
 //       const activeSpool2 = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
 //       const finalTuple = activeSpool2[intermediate[0]][intermediate[1]][intermediate[2]][wrungB[pos]][wrungB[pos + 1]][wrungB[pos + 2]] as (
-//         | Uint8Array<ArrayBuffer>
+//         | BitRotationTuple<ArrayBuffer>
 //         | number
 //       )[];
-//       const finalResult = finalTuple[0] as Uint8Array;
+//       const finalResult = finalTuple[0] as BitRotationTuple;
 //       console.log(`Column ${column}: finalResult=[${finalResult[0]},${finalResult[1]},${finalResult[2]}]`);
 //       // Write result
 //       result[pos] = finalResult[0];
@@ -1008,7 +1004,7 @@ export const determineEffectiveOperation = (
 //       result[pos + 2] = finalResult[2];
 //       // Push carry if exists
 //       if (finalTuple.length === 2) {
-//         const finalCarry = finalTuple[1] as Uint8Array<ArrayBuffer>;
+//         const finalCarry = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
 //         carries.push(finalCarry);
 //       }
 //     }
@@ -1022,34 +1018,34 @@ export const determineEffectiveOperation = (
 //     for (let column = 20; column >= conferredState.sharedValidColumn; column--) {
 //       const pos = 1 + column * 3;
 //       // Deplete carries into wrungA
-//       let intermediate = new Uint8Array([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
+//       let intermediate = new BitRotationTuple([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
 //       while (carries.length > 0) {
 //         const carry = carries.pop()!;
 //         const activeSpool = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
 //         const carryTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][carry[0]][carry[1]][carry[2]] as (
-//           | Uint8Array
+//           | BitRotationTuple
 //           | number
 //         )[];
 //         if (carryTuple.length === 1) {
-//           intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
 //         } else {
-//           intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
-//           const newCarry = carryTuple[1] as Uint8Array<ArrayBuffer>;
+//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
+//           const newCarry = carryTuple[1] as BitRotationTuple<ArrayBuffer>;
 //           carries.push(newCarry);
 //         }
 //       }
 //       // Add wrungB
 //       const activeSpool2 = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
 //       const finalTuple = activeSpool2[intermediate[0]][intermediate[1]][intermediate[2]][wrungB[pos]][wrungB[pos + 1]][wrungB[pos + 2]] as (
-//         | Uint8Array<ArrayBuffer>
+//         | BitRotationTuple<ArrayBuffer>
 //         | number
 //       )[];
-//       const finalResult = finalTuple[0] as Uint8Array;
+//       const finalResult = finalTuple[0] as BitRotationTuple;
 //       result[pos] = finalResult[0];
 //       result[pos + 1] = finalResult[1];
 //       result[pos + 2] = finalResult[2];
 //       if (finalTuple.length === 2) {
-//         const finalCarry = finalTuple[1] as Uint8Array<ArrayBuffer>;
+//         const finalCarry = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
 //         carries.push(finalCarry);
 //       }
 //     }
@@ -1060,19 +1056,19 @@ export const determineEffectiveOperation = (
 //       for (let column = conferredState.sharedValidColumn - 1; column >= earlierMarquee; column--) {
 //         const pos = 1 + column * 3;
 //         // Deplete carries into the exclusive operand
-//         let intermediate = new Uint8Array([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
+//         let intermediate = new BitRotationTuple([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
 //         while (carries.length > 0) {
 //           const carry = carries.pop()!;
 //           const activeSpool = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
 //           const carryTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][carry[0]][carry[1]][carry[2]] as (
-//             | Uint8Array
+//             | BitRotationTuple
 //             | number
 //           )[];
 //           if (carryTuple.length === 1) {
-//             intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+//             intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
 //           } else {
-//             intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
-//             const newCarry = carryTuple[1] as Uint8Array<ArrayBuffer>;
+//             intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
+//             const newCarry = carryTuple[1] as BitRotationTuple<ArrayBuffer>;
 //             carries.push(newCarry);
 //           }
 //         }
@@ -1094,18 +1090,18 @@ export const determineEffectiveOperation = (
 //     for (let column = earliestColumn - 1; column >= 0; column--) {
 //       const pos = 1 + column * 3;
 //       // Start with placeholder 000
-//       let intermediate = new Uint8Array([0, 0, 0]);
+//       let intermediate = new BitRotationTuple([0, 0, 0]);
 //       while (carries.length > 0) {
 //         const carry = carries.pop()!;
 //         const carryTuple = SpooledSumSeries[intermediate[0]][intermediate[1]][intermediate[2]][carry[0]][carry[1]][carry[2]] as (
-//           | Uint8Array
+//           | BitRotationTuple
 //           | number
 //         )[];
 //         if (carryTuple.length === 1) {
-//           intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
+//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
 //         } else {
-//           intermediate = carryTuple[0] as Uint8Array<ArrayBuffer>;
-//           const newCarry = carryTuple[1] as Uint8Array<ArrayBuffer>;
+//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
+//           const newCarry = carryTuple[1] as BitRotationTuple<ArrayBuffer>;
 //           carries.push(newCarry);
 //         }
 //       }
@@ -1131,9 +1127,9 @@ export const determineEffectiveOperation = (
 // };
 
 // export const DifferenceWrung = (
-//   wrungA: Uint8Array<ArrayBuffer>,
-//   wrungB: Uint8Array<ArrayBuffer>
-// ): Uint8Array<ArrayBuffer> => {
+//   wrungA: BitRotationTuple<ArrayBuffer>,
+//   wrungB: BitRotationTuple<ArrayBuffer>
+// ): BitRotationTuple<ArrayBuffer> => {
 //   console.log(
 //     'DIFFERENCEWRUNG START: ' +
 //       `wrungA col0=[${wrungA[1]},${wrungA[2]},${wrungA[3]}] col20=[${wrungA[61]},${wrungA[62]},${wrungA[63]}] ` +
@@ -1222,11 +1218,11 @@ export const determineEffectiveOperation = (
 //     return SPECIAL_CASE_STORE.ZERO_CASE;
 //   }
 //   // Phase 3: Create result buffer
-//   const result = new Uint8Array(64);
+//   const result = new BitRotationTuple(64);
 //   // Temporarily copy sign from minuend (will be replaced with routing.resultSign at end)
 //   result[0] = routing.resultSign;
-//   // Phase 4: Borrow accumulator - array of Uint8Array[3] borrows
-//   const borrows: Uint8Array<ArrayBuffer>[] = [];
+//   // Phase 4: Borrow accumulator - array of BitRotationTuple[3] borrows
+//   const borrows: BitRotationTuple<ArrayBuffer>[] = [];
 
 //   // Phase 6: SPECIAL CASE - No Marquee Present (Sign = 1, all 000)
 //   // Only column 20 valid, no backward propagation allowed
@@ -1249,8 +1245,8 @@ export const determineEffectiveOperation = (
 //     // Subtract minuend[20] - subtrahend[20]
 //     const finalTuple = activeSpool[minuend[pos20]][minuend[pos20 + 1]][minuend[pos20 + 2]][subtrahend[pos20]][subtrahend[pos20 + 1]][
 //       subtrahend[pos20 + 2]
-//     ] as (Uint8Array<ArrayBuffer> | number)[];
-//     const finalResult = finalTuple[0] as Uint8Array;
+//     ] as (BitRotationTuple<ArrayBuffer> | number)[];
+//     const finalResult = finalTuple[0] as BitRotationTuple;
 //     result[pos20] = finalResult[0];
 //     result[pos20 + 1] = finalResult[1];
 //     result[pos20 + 2] = finalResult[2];
@@ -1300,18 +1296,18 @@ export const determineEffectiveOperation = (
 //         activeSpool = SpooledDifferenceSeries; // Regular difference
 //       }
 //       // FIRST WRUNG: Deplete accumulated borrows into minuend
-//       let intermediate = new Uint8Array([minuend[pos], minuend[pos + 1], minuend[pos + 2]]);
+//       let intermediate = new BitRotationTuple([minuend[pos], minuend[pos + 1], minuend[pos + 2]]);
 //       while (borrows.length > 0) {
 //         const borrow = borrows.pop()!;
 //         const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//           | Uint8Array
+//           | BitRotationTuple
 //           | number
 //         )[];
 //         if (borrowTuple.length === 1) {
-//           intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //         } else {
-//           intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//           const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//           const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //           borrows.push(newBorrow);
 //         }
 //       }
@@ -1321,10 +1317,10 @@ export const determineEffectiveOperation = (
 //           `subtrahend=[${subtrahend[pos]},${subtrahend[pos + 1]},${subtrahend[pos + 2]}]`
 //       );
 //       const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][subtrahend[pos]][subtrahend[pos + 1]][subtrahend[pos + 2]] as ( // Same spool as First Wrung
-//         | Uint8Array<ArrayBuffer>
+//         | BitRotationTuple<ArrayBuffer>
 //         | number
 //       )[];
-//       const finalResult = finalTuple[0] as Uint8Array;
+//       const finalResult = finalTuple[0] as BitRotationTuple;
 //       console.log(`Column ${column}: finalResult=[${finalResult[0]},${finalResult[1]},${finalResult[2]}]`);
 //       // Write result
 //       result[pos] = finalResult[0];
@@ -1332,7 +1328,7 @@ export const determineEffectiveOperation = (
 //       result[pos + 2] = finalResult[2];
 //       // Push borrow if exists
 //       if (finalTuple.length === 2) {
-//         const finalBorrow = finalTuple[1] as Uint8Array<ArrayBuffer>;
+//         const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
 //         borrows.push(finalBorrow);
 //       }
 //     }
@@ -1357,32 +1353,32 @@ export const determineEffectiveOperation = (
 //         activeSpool = SpooledDifferenceSeries; // Regular difference
 //       }
 //       // Deplete borrows into minuend
-//       let intermediate = new Uint8Array([minuend[pos], minuend[pos + 1], minuend[pos + 2]]);
+//       let intermediate = new BitRotationTuple([minuend[pos], minuend[pos + 1], minuend[pos + 2]]);
 //       while (borrows.length > 0) {
 //         const borrow = borrows.pop()!;
 //         const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//           | Uint8Array
+//           | BitRotationTuple
 //           | number
 //         )[];
 //         if (borrowTuple.length === 1) {
-//           intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //         } else {
-//           intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//           const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//           const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //           borrows.push(newBorrow);
 //         }
 //       }
 //       // Subtract subtrahend
 //       const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][subtrahend[pos]][subtrahend[pos + 1]][subtrahend[pos + 2]] as ( // Same spool as First Wrung
-//         | Uint8Array<ArrayBuffer>
+//         | BitRotationTuple<ArrayBuffer>
 //         | number
 //       )[];
-//       const finalResult = finalTuple[0] as Uint8Array;
+//       const finalResult = finalTuple[0] as BitRotationTuple;
 //       result[pos] = finalResult[0];
 //       result[pos + 1] = finalResult[1];
 //       result[pos + 2] = finalResult[2];
 //       if (finalTuple.length === 2) {
-//         const finalBorrow = finalTuple[1] as Uint8Array<ArrayBuffer>;
+//         const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
 //         borrows.push(finalBorrow);
 //       }
 //     }
@@ -1404,18 +1400,18 @@ export const determineEffectiveOperation = (
 //           activeSpool = SpooledDifferenceSeries; // Regular difference
 //         }
 //         // Deplete borrows into the exclusive operand
-//         let intermediate = new Uint8Array([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
+//         let intermediate = new BitRotationTuple([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
 //         while (borrows.length > 0) {
 //           const borrow = borrows.pop()!;
 //           const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | Uint8Array
+//             | BitRotationTuple
 //             | number
 //           )[];
 //           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //           } else {
-//             intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //             borrows.push(newBorrow);
 //           }
 //         }
@@ -1437,18 +1433,18 @@ export const determineEffectiveOperation = (
 //     for (let column = earliestColumn - 1; column >= 0; column--) {
 //       const pos = 1 + column * 3;
 //       // Start with placeholder 000
-//       let intermediate = new Uint8Array([0, 0, 0]);
+//       let intermediate = new BitRotationTuple([0, 0, 0]);
 //       while (borrows.length > 0) {
 //         const borrow = borrows.pop()!;
 //         const borrowTuple = SpooledDifferenceSeries[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//           | Uint8Array
+//           | BitRotationTuple
 //           | number
 //         )[];
 //         if (borrowTuple.length === 1) {
-//           intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
+//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
 //         } else {
-//           intermediate = borrowTuple[0] as Uint8Array<ArrayBuffer>;
-//           const newBorrow = borrowTuple[1] as Uint8Array<ArrayBuffer>;
+//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
+//           const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
 //           borrows.push(newBorrow);
 //         }
 //       }
