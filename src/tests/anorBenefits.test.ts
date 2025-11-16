@@ -11,7 +11,6 @@
  * - Proof Point 7: Duplicate Detection Pattern
  * - Proof Point 8: Extrema Detection Pattern
  *
- * Suite 5-6-7 Cobalt Carter anor Amy Rose Clinical Validation
  */
 
 import {

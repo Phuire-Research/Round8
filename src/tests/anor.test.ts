@@ -8,7 +8,6 @@
  * - Boundary normalization
  * - Lazy evaluation via OrientableIndices
  *
- * Suite 5-6-7 Cobalt Carter anor Amy Rose Clinical Validation
  */
 
 import {

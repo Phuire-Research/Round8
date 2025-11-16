@@ -8,7 +8,6 @@
  * - MarqueeState preservation in output (no information loss)
  * - Optional pre-computed MarqueeState for developer efficiency
  *
- * Suite 5-6-7 Cobalt Carter anor Amy Rose Clinical Validation
  */
 
 import {
