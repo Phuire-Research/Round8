@@ -24,13 +24,14 @@ import {
 import { BidirectionalConference, MarqueeState } from '../concepts/round8/model/bidirectional';
 
 describe('AnorWrung SuperSet - Self-Referencing Marquee Discovery', () => {
-  const createWrung = (values: number[], positive: boolean = true): bigint => {
+  const createWrung = (values: number[], positive = true): bigint => {
     let buffer = createBuffer();
     if (positive) {
       buffer = setSignBit(buffer);
     }
     values.forEach((val, idx) => {
       if (idx < 21) {
+        // eslint-disable-next-line max-len
         buffer = applyNumeralRotation(val, buffer, (idx + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21);
       }
     });
@@ -317,10 +318,11 @@ describe('AnorWrung SuperSet - Self-Referencing Marquee Discovery', () => {
       const wrungA = createWrung([5]);
       const wrungB = createWrung([3]);
 
-      const marqueeA = BidirectionalConference(wrungA).firstValidRotation ?? 21;
-      const marqueeB = BidirectionalConference(wrungB).firstValidRotation ?? 21;
+      // Quality-First: Pass full MarqueeState objects
+      const marqueeStateA = BidirectionalConference(wrungA);
+      const marqueeStateB = BidirectionalConference(wrungB);
 
-      const comparison = compareMagnitude(wrungA, wrungB, marqueeA, marqueeB);
+      const comparison = compareMagnitude(wrungA, wrungB, marqueeStateA, marqueeStateB);
       expect(comparison).toBe(1);
     });
 
@@ -328,10 +330,11 @@ describe('AnorWrung SuperSet - Self-Referencing Marquee Discovery', () => {
       const wrungA = createWrung([4]);
       const wrungB = createWrung([4]);
 
-      const marqueeA = BidirectionalConference(wrungA).firstValidRotation ?? 21;
-      const marqueeB = BidirectionalConference(wrungB).firstValidRotation ?? 21;
+      // Quality-First: Pass full MarqueeState objects
+      const marqueeStateA = BidirectionalConference(wrungA);
+      const marqueeStateB = BidirectionalConference(wrungB);
 
-      const comparison = compareMagnitude(wrungA, wrungB, marqueeA, marqueeB);
+      const comparison = compareMagnitude(wrungA, wrungB, marqueeStateA, marqueeStateB);
       expect(comparison).toBeNull();
     });
 
@@ -339,10 +342,11 @@ describe('AnorWrung SuperSet - Self-Referencing Marquee Discovery', () => {
       const positiveWrung = createWrung([5], true);
       const negativeWrung = createWrung([5], false);
 
-      const marqueeA = BidirectionalConference(positiveWrung).firstValidRotation ?? 21;
-      const marqueeB = BidirectionalConference(negativeWrung).firstValidRotation ?? 21;
+      // Quality-First: Pass full MarqueeState objects
+      const marqueeStateA = BidirectionalConference(positiveWrung);
+      const marqueeStateB = BidirectionalConference(negativeWrung);
 
-      const comparison = compareMagnitude(positiveWrung, negativeWrung, marqueeA, marqueeB);
+      const comparison = compareMagnitude(positiveWrung, negativeWrung, marqueeStateA, marqueeStateB);
       expect(comparison).toBe(1);
     });
   });
@@ -378,6 +382,130 @@ describe('AnorWrung SuperSet - Self-Referencing Marquee Discovery', () => {
         expect(state.anor).toBe(true);
         expect(state.marqueeState.firstValidRotation).toBeDefined();
       });
+    });
+  });
+
+  describe('Quality-First Short-Circuit Comparisons', () => {
+    const createAbsoluteZero = (): bigint => {
+      // All positions [0,0,0] - no data set
+      return createBuffer();
+    };
+
+    const createFinalTwist = (positive = true): bigint => {
+      // Position 21 = [0,0,0] (max in shifted), all others [1,1,1]
+      let buffer = createBuffer();
+      if (positive) {
+        buffer = setSignBit(buffer);
+      }
+      // Set positions 1-20 to value 7 ([1,1,1])
+      for (let i = 1; i <= 20; i++) {
+        // eslint-disable-next-line max-len
+        buffer = applyNumeralRotation(7, buffer, i as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21);
+      }
+      // Position 21 is left as [0,0,0] (default)
+      return buffer;
+    };
+
+    test('AbsoluteZero vs AbsoluteZero returns equal (null)', () => {
+      const zero = createAbsoluteZero();
+      const marqueeState = BidirectionalConference(zero);
+
+      expect(marqueeState.isAbsoluteZero).toBe(true);
+      const comparison = compareMagnitude(zero, zero, marqueeState, marqueeState);
+      expect(comparison).toBeNull(); // Both minimum → Equal
+    });
+
+    test('FinalTwist vs FinalTwist returns equal (null)', () => {
+      const finalTwist = createFinalTwist();
+      const marqueeState = BidirectionalConference(finalTwist);
+
+      expect(marqueeState.isFinalTwist).toBe(true);
+      const comparison = compareMagnitude(finalTwist, finalTwist, marqueeState, marqueeState);
+      expect(comparison).toBeNull(); // Both maximum → Equal
+    });
+
+    test('AbsoluteZero vs FinalTwist returns AbsoluteZero lesser (0)', () => {
+      const zero = createAbsoluteZero();
+      const finalTwist = createFinalTwist();
+      const zeroState = BidirectionalConference(zero);
+      const twistState = BidirectionalConference(finalTwist);
+
+      expect(zeroState.isAbsoluteZero).toBe(true);
+      expect(twistState.isFinalTwist).toBe(true);
+
+      const comparison = compareMagnitude(zero, finalTwist, zeroState, twistState);
+      expect(comparison).toBe(0); // Minimum < Maximum
+    });
+
+    test('FinalTwist vs AbsoluteZero returns FinalTwist greater (1)', () => {
+      const zero = createAbsoluteZero();
+      const finalTwist = createFinalTwist();
+      const zeroState = BidirectionalConference(zero);
+      const twistState = BidirectionalConference(finalTwist);
+
+      const comparison = compareMagnitude(finalTwist, zero, twistState, zeroState);
+      expect(comparison).toBe(1); // Maximum > Minimum
+    });
+
+    test('AbsoluteZero vs Between returns AbsoluteZero lesser (0)', () => {
+      const zero = createAbsoluteZero();
+      const between = createWrung([4]); // Standard wrung
+      const zeroState = BidirectionalConference(zero);
+      const betweenState = BidirectionalConference(between);
+
+      expect(zeroState.isAbsoluteZero).toBe(true);
+      expect(betweenState.isAbsoluteZero).toBeFalsy();
+      expect(betweenState.isFinalTwist).toBeFalsy();
+
+      const comparison = compareMagnitude(zero, between, zeroState, betweenState);
+      expect(comparison).toBe(0); // Minimum < Any
+    });
+
+    test('Between vs AbsoluteZero returns Between greater (1)', () => {
+      const zero = createAbsoluteZero();
+      const between = createWrung([4]);
+      const zeroState = BidirectionalConference(zero);
+      const betweenState = BidirectionalConference(between);
+
+      const comparison = compareMagnitude(between, zero, betweenState, zeroState);
+      expect(comparison).toBe(1); // Any > Minimum
+    });
+
+    test('FinalTwist vs Between returns FinalTwist greater (1)', () => {
+      const finalTwist = createFinalTwist();
+      const between = createWrung([4]);
+      const twistState = BidirectionalConference(finalTwist);
+      const betweenState = BidirectionalConference(between);
+
+      expect(twistState.isFinalTwist).toBe(true);
+
+      const comparison = compareMagnitude(finalTwist, between, twistState, betweenState);
+      expect(comparison).toBe(1); // Maximum > Any
+    });
+
+    test('Between vs FinalTwist returns Between lesser (0)', () => {
+      const finalTwist = createFinalTwist();
+      const between = createWrung([4]);
+      const twistState = BidirectionalConference(finalTwist);
+      const betweenState = BidirectionalConference(between);
+
+      const comparison = compareMagnitude(between, finalTwist, betweenState, twistState);
+      expect(comparison).toBe(0); // Any < Maximum
+    });
+
+    test('Quality-First short-circuits avoid spool lookup', () => {
+      // This test validates that special cases don't enter the spool comparison
+      // by testing that AbsoluteZero (which has no valid bits) compares correctly
+      const zero = createAbsoluteZero();
+      const between = createWrung([3]);
+      const zeroState = BidirectionalConference(zero);
+      const betweenState = BidirectionalConference(between);
+
+      // If this test passes, it proves short-circuit works because:
+      // AbsoluteZero has no valid rotation bits, so spool comparison would fail
+      // But Quality-First logic catches it before spool is accessed
+      const comparison = compareMagnitude(zero, between, zeroState, betweenState);
+      expect(comparison).toBe(0); // Quality-First: AbsoluteZero < Between
     });
   });
 });

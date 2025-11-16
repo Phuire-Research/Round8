@@ -819,7 +819,7 @@ export type ScansCallback = (wrungA: bigint, wrungB: bigint, position: Positions
  * Congruent with BigInt's upward expansion and Tier 0→1→2 increasing complexity
  * Stops when callback returns false or reaches end
  * @param wrung - 64-bit bigint buffer to scan
- * @param callback - Function to call for each position
+ * @param callback - (buffer: bigint, position: Positions) => boolean;
  * @param position - Current position (defaults to 1 to start from near-origin)
  * @returns The position where scanning stopped, or 0 if completed all positions
  */
@@ -853,7 +853,7 @@ export const scanUpward = (
  * Stops when callback returns false or reaches end
  * @param wrungA - 64-bit bigint buffer to scan
  * @param wrungB - 64-bit bigint buffer to scan
- * @param callback - Function to call for each position
+ * @param callback - (wrungA: bigint, wrungB: bigint, position: Positions) => boolean;
  * @param position - Current position (defaults to 1 to start from near-origin)
  * @returns The position where scanning stopped, or 0 if completed all positions
  */
@@ -886,7 +886,7 @@ export const scanUpwards = (
  * Moves against BigInt's upward expansion, validating from highest complexity first
  * Stops when callback returns false or reaches beginning
  * @param wrung - 64-bit bigint buffer to scan
- * @param callback - Function to call for each position
+ * @param callback - (buffer: bigint, position: Positions) => boolean;
  * @param position - Current position (defaults to 21 to start from expansion bound)
  * @returns The position where scanning stopped, or 0 if completed all positions
  */
@@ -920,7 +920,7 @@ export const scanDownward = (
  * Stops when callback returns false or reaches beginning
  * @param wrungA - 64-bit bigint buffer to scan
  * @param wrungB - 64-bit bigint buffer to scan
- * @param callback - Function to call for each position
+ * @param callback - (wrungA: bigint, wrungB: bigint, position: Positions) => boolean;
  * @param position - Current position (defaults to 21 to start from expansion bound)
  * @returns The position where scanning stopped, or 0 if completed all positions
  */

@@ -358,39 +358,85 @@ const createOrientableWrung = (indices: number[], sourceWrungs: bigint[]): Orien
 };
 
 /**
- * Compare Magnitudes - Column-aware comparison using topology-appropriate operators
+ * Compare Magnitudes - Quality-First Column-aware comparison
  *
- * Compares absolute values of two wrungs from most significant to least significant column.
- * Uses COLUMN-AWARE comparison:
+ * Compares absolute values of two wrungs using Quality-First Muxification pattern.
+ * Recognizes special qualities (AbsoluteZero, FinalTwist) before quantitative spool lookup.
+ *
+ * Quality-First Short-Circuit Cases:
+ * - AbsoluteZero vs AbsoluteZero → Equal (both minimum)
+ * - FinalTwist vs FinalTwist → Equal (both maximum)
+ * - AbsoluteZero vs Any → AbsoluteZero lesser (minimum < all)
+ * - FinalTwist vs Any → FinalTwist greater (maximum > all)
+ *
+ * Quantitative Fallback (Between vs Between):
  * - Column 0: shiftedGreaterThan() for shifted topology (Display 0-7, Full Twist maximum)
  * - Columns 1-20: greaterThan() for regular topology (Display 1-8)
  *
  * @param wrungA - First operand buffer (64 positions)
  * @param wrungB - Second operand buffer (64 positions)
- * @param marqueeA - First valid column index for wrungA (0-20)
- * @param marqueeB - First valid column index for wrungB (0-20)
- * @returns true as 1 if |wrungA| > |wrungB|, false as 0 if |wrungB| > |wrungA| and null if wrungA and wrungB are equal
+ * @param marqueeStateA - MarqueeState for wrungA (Quality container)
+ * @param marqueeStateB - MarqueeState for wrungB (Quality container)
+ * @returns 1 if |wrungA| > |wrungB|, 0 if |wrungB| > |wrungA|, null if equal
  */
 export const compareMagnitude = (
   wrungA: bigint,
   wrungB: bigint,
-  marqueeAPosition: number,
-  marqueeBPosition: number
+  marqueeStateA: MarqueeState,
+  marqueeStateB: MarqueeState
 ): TrueFalse | null => {
-  // Extract 3-bit column values
+  // QUALITY-FIRST: Check special cases before quantitative comparison
+
+  // Case 1: Both AbsoluteZero → Equal (both minimum)
+  if (marqueeStateA.isAbsoluteZero && marqueeStateB.isAbsoluteZero) {
+    return null;
+  }
+
+  // Case 2: Both FinalTwist → Equal (both maximum)
+  if (marqueeStateA.isFinalTwist && marqueeStateB.isFinalTwist) {
+    return null;
+  }
+
+  // Case 3: A is AbsoluteZero (minimum) → A < B
+  if (marqueeStateA.isAbsoluteZero) {
+    return 0;
+  }
+
+  // Case 4: B is AbsoluteZero (minimum) → A > B
+  if (marqueeStateB.isAbsoluteZero) {
+    return 1;
+  }
+
+  // Case 5: A is FinalTwist (maximum) → A > B
+  if (marqueeStateA.isFinalTwist) {
+    return 1;
+  }
+
+  // Case 6: B is FinalTwist (maximum) → A < B
+  if (marqueeStateB.isFinalTwist) {
+    return 0;
+  }
+
+  // QUANTITATIVE FALLBACK: Both are "Between" - use spool lookup
   const signA = getSignBit(wrungA);
   const signB = getSignBit(wrungB);
   let greater: TrueFalse | null = null;
-  if (signA !== signB) {return signA === 1 && signB === 0 ? 1 : 0;}
+
+  if (signA !== signB) {
+    return signA === 1 && signB === 0 ? 1 : 0;
+  }
+
+  // Extract quantitative positions from Quality containers
+  const marqueeAPosition = marqueeStateA.firstValidRotation ?? 21;
+  const marqueeBPosition = marqueeStateB.firstValidRotation ?? 21;
 
   // Start from the higher marquee position (most significant column)
-  // marqueePosition indicates the column index (1-21), we scan FROM that column downward
   const startPosition = marqueeAPosition > marqueeBPosition ?
     marqueeAPosition
     :
     marqueeBPosition;
 
-  // If startPosition is beyond valid range (e.g., 21 when no valid rotations), both are zero
+  // If startPosition is beyond valid range, both are zero (should be caught by AbsoluteZero check)
   if (startPosition > 21 || startPosition < 1) {
     return null;
   }
@@ -540,8 +586,8 @@ export const anorWrung = (
   wrungA: bigint,
   wrungB: bigint,
   wrungs: bigint[],
-  marqueeStateA?: MarqueeState,
-  marqueeStateB?: MarqueeState,
+  _marqueeStateA?: MarqueeState,
+  _marqueeStateB?: MarqueeState,
   wrungMarqueeStates?: MarqueeState[]
 ): AnorWrungState[] | null => {
   if (wrungs.length === 0) {
@@ -549,32 +595,28 @@ export const anorWrung = (
   }
 
   // Self-referencing marquee discovery via BidirectionalConference (or use pre-computed)
-  const resolvedMarqueeStateA = marqueeStateA ?? BidirectionalConference(wrungA);
-  const resolvedMarqueeStateB = marqueeStateB ?? BidirectionalConference(wrungB);
-
-  // Extract marquee positions (firstValidRotation indicates column position)
-  const marqueeA = resolvedMarqueeStateA.firstValidRotation ?? 21;
-  const marqueeB = resolvedMarqueeStateB.firstValidRotation ?? 21;
+  const marqueeStateA = _marqueeStateA ?? BidirectionalConference(wrungA) as MarqueeState;
+  const marqueeStateB = _marqueeStateB ?? BidirectionalConference(wrungB) as MarqueeState;
 
   // Discover marquee states for all wrungs (or use pre-computed)
   const resolvedWrungMarqueeStates: MarqueeState[] = wrungMarqueeStates
     ? wrungMarqueeStates
     : wrungs.map((wrung) => BidirectionalConference(wrung));
 
-  const marqueePositions: number[] = resolvedWrungMarqueeStates.map(
-    (state) => state.firstValidRotation ?? 21
-  );
-
-  const aGreaterThanB = compareMagnitude(wrungA, wrungB, marqueeA, marqueeB);
-  const [lower, upper, lowerMarquee, upperMarquee] =
-    aGreaterThanB === 1 ? [wrungB, wrungA, marqueeB, marqueeA] : [wrungA, wrungB, marqueeA, marqueeB];
+  // Quality-First: Pass full MarqueeState objects to compareMagnitude
+  const aGreaterThanB = compareMagnitude(wrungA, wrungB, marqueeStateA, marqueeStateB);
+  const [lower, upper, lowerMarqueeState, upperMarqueeState] =
+    aGreaterThanB === 1
+      ? [wrungB, wrungA, marqueeStateB, marqueeStateA]
+      : [wrungA, wrungB, marqueeStateA, marqueeStateB];
 
   const inRangeIndices: number[] = [];
   wrungs.forEach((wrung, idx) => {
-    const wrungMarquee = marqueePositions[idx];
+    const wrungMarqueeState = resolvedWrungMarqueeStates[idx];
 
-    const lowerComparison = compareMagnitude(wrung, lower, wrungMarquee, lowerMarquee);
-    const upperComparison = compareMagnitude(wrung, upper, wrungMarquee, upperMarquee);
+    // Quality-First: Pass MarqueeState objects, not positions
+    const lowerComparison = compareMagnitude(wrung, lower, wrungMarqueeState, lowerMarqueeState);
+    const upperComparison = compareMagnitude(wrung, upper, wrungMarqueeState, upperMarqueeState);
 
     const isGreaterOrEqualLower = lowerComparison === 1 || lowerComparison === null;
     const isLessOrEqualUpper = upperComparison === 0 || upperComparison === null;
@@ -607,7 +649,6 @@ export const anorWrung = (
       const equalIndices: number[] = [];
       const greaterIndices: number[] = [];
       const lesserIndices: number[] = [];
-      const wrungMarquee = marqueePositions[idx];
 
       inRangeIndices.forEach((otherIdx) => {
         if (idx === otherIdx) {
@@ -615,8 +656,9 @@ export const anorWrung = (
         }
 
         const otherWrung = wrungs[otherIdx];
-        const otherMarquee = marqueePositions[otherIdx];
-        const comparison = compareMagnitude(otherWrung, wrung, otherMarquee, wrungMarquee);
+        const otherMarqueeState = resolvedWrungMarqueeStates[otherIdx];
+        // Quality-First: Pass MarqueeState objects for peer comparison
+        const comparison = compareMagnitude(otherWrung, wrung, otherMarqueeState, wrungMarqueeState);
 
         if (comparison === null) {
           equalIndices.push(otherIdx);
@@ -639,146 +681,4 @@ export const anorWrung = (
   });
 
   return states;
-};
-
-/**
- * Operation Routing Result - Structured data for sign routing
- */
-type OperationRouting = {
-  effectiveOp: 'sum' | 'difference';
-  minuend: bigint;
-  subtrahend: bigint;
-  resultSign: 0 | 1;
-};
-
-/**
- * Determine Effective Operation - Route to Sum or Difference based on operation+sign combination
- *
- * Analyzes operation type and operand signs to determine which spool to use (Sum or Difference)
- * and what the result sign should be. Handles all 8 operation+sign combinations:
- * - Addition: 4 cases (++, --, +-, -+)
- * - Subtraction: 4 cases (++, --, +-, -+)
- *
- * Uses compareMagnitude() for cases where result sign depends on magnitude comparison.
- *
- * @param operation - Operation type ('+' for addition, '-' for subtraction)
- * @param signA - Sign of wrungA (0 = negative, 1 = positive)
- * @param signB - Sign of wrungB (0 = negative, 1 = positive)
- * @param wrungA - First operand buffer (64 positions)
- * @param wrungB - Second operand buffer (64 positions)
- * @param marqueeA - First valid column index for wrungA (0-20)
- * @param marqueeB - First valid column index for wrungB (0-20)
- * @returns Routing object with effectiveOp, operand order, and result sign
- */
-export const determineEffectiveOperation = (
-  operation: '+' | '-',
-  signA: 0 | 1,
-  signB: 0 | 1,
-  wrungA: bigint,
-  wrungB: bigint,
-  marqueeA: number,
-  marqueeB: number
-): OperationRouting => {
-  // ADDITION OPERATIONS (operation === '+')
-  if (operation === '+') {
-    // Case 1: (+A) + (+B) → Sum, result positive
-    if (signA === 1 && signB === 1) {
-      console.log('ROUTING CASE 1: (+A) + (+B) → Sum, result positive');
-      return {
-        effectiveOp: 'sum',
-        minuend: wrungA,
-        subtrahend: wrungB,
-        resultSign: 1,
-      };
-    }
-
-    // Case 2: (-A) + (-B) → Sum, result negative
-    if (signA === 0 && signB === 0) {
-      console.log('ROUTING CASE 2: (-A) + (-B) → Sum, result negative');
-      return {
-        effectiveOp: 'sum',
-        minuend: wrungA,
-        subtrahend: wrungB,
-        resultSign: 0,
-      };
-    }
-
-    // Case 3: (+A) + (-B) → Difference (A - B), sign depends on magnitude
-    if (signA === 1 && signB === 0) {
-      const aGreater = compareMagnitude(wrungA, wrungB, marqueeA, marqueeB);
-      console.log(`ROUTING CASE 3: (+A) + (-B) → Difference, aGreater=${aGreater}, resultSign=${aGreater ? 1 : 0}`);
-      return {
-        effectiveOp: 'difference',
-        minuend: aGreater ? wrungA : wrungB,
-        subtrahend: aGreater ? wrungB : wrungA,
-        resultSign: aGreater ? 1 : 0, // Positive if A > B, negative if B > A
-      };
-    }
-
-    // Case 4: (-A) + (+B) → Difference (B - A), sign depends on magnitude
-    if (signA === 0 && signB === 1) {
-      const bGreater = compareMagnitude(wrungB, wrungA, marqueeB, marqueeA);
-      console.log(`ROUTING CASE 4: (-A) + (+B) → Difference, bGreater=${bGreater}, resultSign=${bGreater ? 1 : 0}`);
-      return {
-        effectiveOp: 'difference',
-        minuend: bGreater ? wrungB : wrungA,
-        subtrahend: bGreater ? wrungA : wrungB,
-        resultSign: bGreater ? 1 : 0, // Positive if B > A, negative if A > B
-      };
-    }
-  }
-
-  // SUBTRACTION OPERATIONS (operation === '-')
-  if (operation === '-') {
-    // Case 5: (+A) - (+B) → Difference (A - B), sign depends on magnitude
-    if (signA === 1 && signB === 1) {
-      const aGreater = compareMagnitude(wrungA, wrungB, marqueeA, marqueeB);
-      console.log(`ROUTING CASE 5: (+A) - (+B) → Difference, aGreater=${aGreater}, resultSign=${aGreater ? 1 : 0}`);
-      return {
-        effectiveOp: 'difference',
-        minuend: aGreater ? wrungA : wrungB,
-        subtrahend: aGreater ? wrungB : wrungA,
-        resultSign: aGreater ? 1 : 0, // Positive if A > B, negative if B > A
-      };
-    }
-
-    // Case 6: (-A) - (-B) → Difference (B - A), sign FLIPPED
-    if (signA === 0 && signB === 0) {
-      const aGreater = compareMagnitude(wrungA, wrungB, marqueeA, marqueeB);
-      console.log(`ROUTING CASE 6: (-A) - (-B) → Difference, aGreater=${aGreater}, resultSign=${aGreater ? 0 : 1} [SIGN FLIPPED]`);
-      return {
-        effectiveOp: 'difference',
-        minuend: aGreater ? wrungA : wrungB,
-        subtrahend: aGreater ? wrungB : wrungA,
-        resultSign: aGreater ? 0 : 1, // FLIPPED: negative if |A| > |B|, positive if |B| > |A|
-      };
-    }
-
-    // Case 7: (+A) - (-B) → Sum (A + B), result positive
-    if (signA === 1 && signB === 0) {
-      console.log('ROUTING CASE 7: (+A) - (-B) → Sum (subtracting negative = adding), result positive');
-      return {
-        effectiveOp: 'sum',
-        minuend: wrungA,
-        subtrahend: wrungB,
-        resultSign: 1,
-      };
-    }
-
-    // Case 8: (-A) - (+B) → Sum (A + B), result negative
-    if (signA === 0 && signB === 1) {
-      console.log('ROUTING CASE 8: (-A) - (+B) → Sum (adding negatives), result negative');
-      return {
-        effectiveOp: 'sum',
-        minuend: wrungA,
-        subtrahend: wrungB,
-        resultSign: 0,
-      };
-    }
-  }
-
-  // Fallback - should never reach if all cases covered
-  throw new Error(
-    `determineEffectiveOperation: Unhandled combination - operation=${operation}, signA=${signA}, signB=${signB}`
-  );
 };

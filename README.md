@@ -57,12 +57,11 @@ But 7% is only the beginning as the means of being Quantum resistant also brings
 - `add(a, b)` - Awaiting MultiplyWrung validation
 - `increment(value)` - Single-step counting operations
 - All Logical Operations
-## v0.0.15
 - `subtract(a, b)` - Awaiting MultiplyWrung validation
 - `decrement(value)` - Single-step counting operations
-## v0.0.16
+## v0.0.15
 - `multiply(a, b)` - Awaiting MultiplyWrung validation
-## v0.0.17
+## v0.0.16
 - Round8 Decimals
 - `divide(a, b)` - Awaiting DivideWrung validation
 
@@ -70,9 +69,10 @@ But 7% is only the beginning as the means of being Quantum resistant also brings
 - `from(decimal)` - Decimal input conversion (As of 0.0.14's progress have a method to handle the conversion)
 
 ## Supporting Documents
-1. [Three-Columns Verified](https://raw.githubusercontent.com/Phuire-Research/Round8/refs/heads/master/Three-Columns-Verified.md)
-2. [Round8 by 11rds Multiplied to Max](https://github.com/Phuire-Research/Round8/blob/master/Round8%208%20by%2011rds%20Multiplied%20to%20Max.md)
-3. [UnHex Binary](https://github.com/Phuire-Research/Round8/blob/master/UnHex%20Binary.md)
+1. [ANOR and Muxification: Foundation of Stratimuxian Mathematics](https://github.com/Phuire-Research/Round8/blob/master/ANOR-MUXIFICATION-STRATIMUXIAN-MATHEMATICS-FOUNDATION.md) - Quality-First mathematical foundation
+2. [Three-Columns Verified](https://raw.githubusercontent.com/Phuire-Research/Round8/refs/heads/master/Three-Columns-Verified.md)
+3. [Round8 by 11rds Multiplied to Max](https://github.com/Phuire-Research/Round8/blob/master/Round8%208%20by%2011rds%20Multiplied%20to%20Max.md)
+4. [UnHex Binary](https://github.com/Phuire-Research/Round8/blob/master/UnHex%20Binary.md)
 
 
 **Proof of Concept**: v0.0.1 establishes the string-only API pattern with proving our Spool Manifold Method. v0.0.14-17+ will expand operations using the same validated approach.
