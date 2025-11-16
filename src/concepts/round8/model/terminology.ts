@@ -1,19 +1,15 @@
-// Position 0 is Pruned and is our Signed Single Bit
-
 // Each Position is 3 Bits as a Rotation
-
 export type Positions = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21;
 
 export type SomeSeries = Record<string, (([0 | 1, 0 | 1, 0 | 1] | number | string)[] | number)[]>;
 
-export type SpooledWrung = ([0 | 1, 0 | 1, 0 | 1] | number | string)[][][][][][][];
+export type SpooledWrung<T = void> = (T extends void ? [0 | 1, 0 | 1, 0 | 1] | number | string : T)[][][][][][][];
 
 export type BitRotationTuple = [0 | 1, 0 | 1, 0 | 1];
 
 /**
  * Round8 Special Cases Enum
  */
-
 // eslint-disable-next-line no-shadow
 export enum Round8Cases {
   ZERO_CASE = 0,
@@ -990,33 +986,3 @@ export const extractRotationsDownward = (buffer: bigint): number[] => {
 
   return rotations;
 };
-
-/**
- * ═══════════════════════════════════════════════════════════════════════════
- * PARSING FUNCTIONS MOVED TO Round8.conference.ts
- * ═══════════════════════════════════════════════════════════════════════════
- *
- * The following functions now reside in Round8.conference.ts for Marquee-aware parsing:
- * - getWrungStringRepresentation(buffer: bigint): string
- * - getWrungNumberRepresentation(buffer: bigint): number
- * - getFormattedColumnarWrungRepresentation(buffer: bigint): string
- *
- * These functions use BidirectionalConference to establish halting delimiters.
- * Marquee positions (000 holding states) are excluded from representations.
- *
- * Import from Round8.conference.ts instead:
- * ```typescript
- * import {
- *   getWrungStringRepresentation,
- *   getWrungNumberRepresentation,
- *   getFormattedColumnarWrungRepresentation
- * } from './Round8.conference';
- * ```
- *
- * Rationale for Separation:
- * - Dependency Management: Parsing depends on BidirectionalConference (avoid circular imports)
- * - Conceptual Clarity: "Conference" = coordination between scan directions
- * - Marquee Awareness: All parsing must respect delimiter halting
- * - Layer Architecture: Terminology → Bidirectional → Conference (clear dependency stack)
- * ═══════════════════════════════════════════════════════════════════════════
- */

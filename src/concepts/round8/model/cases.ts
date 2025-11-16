@@ -9,10 +9,11 @@ import { LessThanSeries } from './series/lessThan.cases';
 import { ShiftedGreaterThanSeries } from './series/shiftedGreaterThan.cases';
 import { BitRotationTuple, extractBitTuple, getSignBit, Positions, scanDownward, scanDownwards, SomeSeries, SpooledWrung } from './terminology';
 import { ShiftedDifferenceSeries } from './series/shiftedDifference.cases';
+import { BidirectionalConference, MarqueeState } from './bidirectional';
 
 // Initialize 6-dimensional array structure for SpooledSumSeries
-export const initializeSpooledWrung = (): SpooledWrung => {
-  const arr: SpooledWrung = [];
+export const initializeSpooledWrung = <T>(): SpooledWrung<T> => {
+  const arr: SpooledWrung<T> = [];
   for (let i = 0; i < 2; i++) {
     arr[i] = [];
     for (let j = 0; j < 2; j++) {
@@ -37,9 +38,9 @@ const SpooledDifferenceSeries: SpooledWrung = initializeSpooledWrung();
 const SpooledShiftedDifferenceSeries: SpooledWrung = initializeSpooledWrung();
 
 // Logical Comparison Spools (return boolean 0 or 1)
-const SpooledGreaterThanSeries: SpooledWrung = initializeSpooledWrung();
-const SpooledLessThanSeries: SpooledWrung = initializeSpooledWrung();
-const SpooledShiftedGreaterThanSeries: SpooledWrung = initializeSpooledWrung();
+const SpooledGreaterThanSeries: SpooledWrung<TrueFalse> = initializeSpooledWrung<TrueFalse>();
+const SpooledLessThanSeries: SpooledWrung<TrueFalse> = initializeSpooledWrung<TrueFalse>();
+const SpooledShiftedGreaterThanSeries: SpooledWrung<TrueFalse> = initializeSpooledWrung<TrueFalse>();
 
 const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
   let count = 0;
@@ -88,6 +89,15 @@ export {
   SpooledShiftedGreaterThanSeries,
 };
 
+// ANOR Types and Functions are exported via their declarations:
+// - TrueFalse (type)
+// - OrientableRotationIndices (type)
+// - OrientableWrungIndices (type)
+// - AnorState (type)
+// - AnorWrungState (type)
+// - anor (function)
+// - anorWrung (function)
+
 /**
  * Logical Comparison Helper Functions - Column-Level Boolean Operations
  *
@@ -97,18 +107,74 @@ export {
  * Return Values: 0 (False) or 1 (True)
  */
 
+export type TrueFalse = 1 | 0;
+
+/**
+ * OrientableRotationIndices - Enhanced Array with Lazy Evaluation Method
+ *
+ * Maintains closure over source rotations for on-demand resolution.
+ * Stores indices (cheap) + resolves to full BitRotationTuples only when .orientate() called.
+ */
+export type OrientableRotationIndices = number[] & {
+  orientate(): BitRotationTuple[];
+};
+
+/**
+ * OrientableWrungIndices - Enhanced Array with Lazy Evaluation Method
+ *
+ * Maintains closure over source wrungs for on-demand resolution.
+ * Stores indices (cheap) + resolves to full bigints only when .orientate() called.
+ */
+export type OrientableWrungIndices = number[] & {
+  orientate(): bigint[];
+};
+
+/**
+ * AnorState - Rotation-Level Range Membership + Relational Analysis
+ *
+ * For each rotation in input array:
+ * - anor: Is this rotation within bounds [A, B]?
+ * - equal/greater/lesser: How does it relate to OTHER in-range rotations?
+ *
+ * Self-Referencing Higher-Order Bidirectional Data Structure
+ */
+export type AnorState = {
+  rotation: BitRotationTuple;
+  anor: boolean;
+  equal: OrientableRotationIndices | null;
+  greater: OrientableRotationIndices | null;
+  lesser: OrientableRotationIndices | null;
+};
+
+/**
+ * AnorWrungState - Wrung-Level Magnitude Range Membership + Relational Analysis
+ *
+ * Superset operating on full wrungs (bigint) instead of rotations.
+ * Uses compareMagnitude for topology-aware comparison.
+ *
+ * Self-Referencing Higher-Order Bidirectional Data Structure
+ */
+export type AnorWrungState = {
+  wrung: bigint;
+  marqueeState: MarqueeState;
+  anor: boolean;
+  equal: OrientableWrungIndices | null;
+  greater: OrientableWrungIndices | null;
+  lesser: OrientableWrungIndices | null;
+};
+
 /**
  * Greater Than (X > Y) - Direct spool lookup
  * @param rotationA - 3-bit column value [bit2, bit1, bit0]
  * @param rotationB - 3-bit column value [bit2, bit1, bit0]
  * @returns 1 if X > Y, 0 otherwise
  */
-export const greaterThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+export const greaterThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): TrueFalse => {
   // bit2_X // bit1_X // bit0_X // bit2_Y // bit1_Y // bit0_Y
   const result =
     SpooledGreaterThanSeries[rotationA[0]][rotationA[1]][rotationA[2]][rotationB[0]][rotationB[1]][rotationB[2]];
   // Result is [bit0_result, result_copy] - return first element
-  return result[0] as unknown as number;
+  return result[0];
 };
 
 /**
@@ -117,12 +183,12 @@ export const greaterThan = (rotationA: BitRotationTuple, rotationB: BitRotationT
  * @param rotationB - 3-bit column value
  * @returns 1 if X < Y, 0 otherwise
  */
-export const lessThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+export const lessThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): TrueFalse => {
   // bit2_X // bit1_X // bit0_X // bit2_Y // bit1_Y // bit0_Y
   const result =
     SpooledLessThanSeries[rotationA[0]][rotationA[1]][rotationA[2]][rotationB[0]][rotationB[1]][rotationB[2]];
   // Result is [bit0_result, result_copy] - return first element
-  return result[0] as unknown as number;
+  return result[0];
 };
 
 /**
@@ -131,7 +197,7 @@ export const lessThan = (rotationA: BitRotationTuple, rotationB: BitRotationTupl
  * @param rotationB - 3-bit column value
  * @returns 1 if X == Y, 0 otherwise
  */
-export const equals = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+export const equals = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): TrueFalse => {
   return rotationA[0] === rotationB[0] && rotationA[1] === rotationB[1] && rotationA[2] === rotationB[2] ? 1 : 0;
 };
 
@@ -141,7 +207,7 @@ export const equals = (rotationA: BitRotationTuple, rotationB: BitRotationTuple)
  * @param rotationB - 3-bit column value
  * @returns 1 if X >= Y, 0 otherwise
  */
-export const greaterThanOrEqual = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+export const greaterThanOrEqual = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): TrueFalse => {
   return equals(rotationA, rotationB) === 1 || greaterThan(rotationA, rotationB) === 1 ? 1 : 0;
 };
 
@@ -151,7 +217,7 @@ export const greaterThanOrEqual = (rotationA: BitRotationTuple, rotationB: BitRo
  * @param rotationB - 3-bit column value
  * @returns 1 if X <= Y, 0 otherwise
  */
-export const lessThanOrEqual = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+export const lessThanOrEqual = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): TrueFalse => {
   return equals(rotationA, rotationB) === 1 || lessThan(rotationA, rotationB) === 1 ? 1 : 0;
 };
 
@@ -161,7 +227,7 @@ export const lessThanOrEqual = (rotationA: BitRotationTuple, rotationB: BitRotat
  * @param rotationB - 3-bit column value
  * @returns 1 if X != Y, 0 otherwise
  */
-export const notEquals = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+export const notEquals = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): TrueFalse => {
   return equals(rotationA, rotationB) === 1 ? 0 : 1;
 };
 
@@ -177,10 +243,10 @@ export const notEquals = (rotationA: BitRotationTuple, rotationB: BitRotationTup
  * @param rotationB - 3-bit column value in shifted topology
  * @returns 1 if X > Y in shifted topology, 0 otherwise
  */
-export const shiftedGreaterThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+export const shiftedGreaterThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): TrueFalse => {
   const result =
     SpooledShiftedGreaterThanSeries[rotationA[0]][rotationA[1]][rotationA[2]][rotationB[0]][rotationB[1]][rotationB[2]];
-  return result[0] as unknown as number;
+  return result[0];
 };
 
 /**
@@ -192,7 +258,7 @@ export const shiftedGreaterThan = (rotationA: BitRotationTuple, rotationB: BitRo
  * @param rotationB - 3-bit column value in shifted topology
  * @returns 1 if X < Y in shifted topology, 0 otherwise
  */
-export const shiftedLessThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+export const shiftedLessThan = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): TrueFalse => {
   return shiftedGreaterThan(rotationB, rotationA);
 };
 
@@ -205,7 +271,7 @@ export const shiftedLessThan = (rotationA: BitRotationTuple, rotationB: BitRotat
  * @param rotationB - 3-bit column value
  * @returns 1 if X == Y, 0 otherwise
  */
-export const shiftedEquals = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): number => {
+export const shiftedEquals = (rotationA: BitRotationTuple, rotationB: BitRotationTuple): TrueFalse => {
   return rotationA[0] === rotationB[0] && rotationA[1] === rotationB[1] && rotationA[2] === rotationB[2] ? 1 : 0;
 };
 
@@ -215,7 +281,7 @@ export const shiftedEquals = (rotationA: BitRotationTuple, rotationB: BitRotatio
  * @param b - Boolean value (0 or 1)
  * @returns 1 if both a AND b are 1, otherwise 0
  */
-export const and = (a: number, b: number): number => {
+export const and = (a: TrueFalse, b: TrueFalse): TrueFalse => {
   return a === 1 && b === 1 ? 1 : 0;
 };
 
@@ -225,7 +291,7 @@ export const and = (a: number, b: number): number => {
  * @param b - Boolean value (0 or 1)
  * @returns 1 if a OR b (or both) are 1, otherwise 0
  */
-export const or = (a: number, b: number): number => {
+export const or = (a: TrueFalse, b: TrueFalse): TrueFalse => {
   return a === 1 || b === 1 ? 1 : 0;
 };
 
@@ -235,7 +301,7 @@ export const or = (a: number, b: number): number => {
  * @param b - Boolean value (0 or 1)
  * @returns 1 if exactly one of a or b is 1, otherwise 0
  */
-export const xor = (a: number, b: number): number => {
+export const xor = (a: TrueFalse, b: TrueFalse): TrueFalse => {
   return (a === 1 || b === 1) && a !== b ? 1 : 0;
 };
 
@@ -244,8 +310,51 @@ export const xor = (a: number, b: number): number => {
  * @param a - Boolean value (0 or 1)
  * @returns 1 if a is 0, otherwise 0
  */
-export const not = (a: number): number => {
+export const inversion = (a: TrueFalse): TrueFalse => {
   return a === 1 ? 0 : 1;
+};
+
+/**
+ * Create OrientableRotationIndices - Factory for Lazy Evaluation Pattern
+ *
+ * Creates an enhanced number array that maintains closure over source rotations.
+ * The .orientate() method resolves indices to BitRotationTuples on-demand.
+ *
+ * @param indices - Array of indices into source rotations
+ * @param sourceRotations - Original rotation array (captured in closure)
+ * @returns OrientableRotationIndices with .orientate() method
+ */
+const createOrientableRotation = (
+  indices: number[],
+  sourceRotations: BitRotationTuple[]
+): OrientableRotationIndices => {
+  const orientable = indices as OrientableRotationIndices;
+
+  orientable.orientate = function (): BitRotationTuple[] {
+    return this.map((idx) => sourceRotations[idx]);
+  };
+
+  return orientable;
+};
+
+/**
+ * Create OrientableWrungIndices - Factory for Lazy Evaluation Pattern
+ *
+ * Creates an enhanced number array that maintains closure over source wrungs.
+ * The .orientate() method resolves indices to bigints on-demand.
+ *
+ * @param indices - Array of indices into source wrungs
+ * @param sourceWrungs - Original wrung array (captured in closure)
+ * @returns OrientableWrungIndices with .orientate() method
+ */
+const createOrientableWrung = (indices: number[], sourceWrungs: bigint[]): OrientableWrungIndices => {
+  const orientable = indices as OrientableWrungIndices;
+
+  orientable.orientate = function (): bigint[] {
+    return this.map((idx) => sourceWrungs[idx]);
+  };
+
+  return orientable;
 };
 
 /**
@@ -260,23 +369,32 @@ export const not = (a: number): number => {
  * @param wrungB - Second operand buffer (64 positions)
  * @param marqueeA - First valid column index for wrungA (0-20)
  * @param marqueeB - First valid column index for wrungB (0-20)
- * @returns true if |wrungA| > |wrungB|, false if |wrungB| >= |wrungA|
+ * @returns true as 1 if |wrungA| > |wrungB|, false as 0 if |wrungB| > |wrungA| and null if wrungA and wrungB are equal
  */
 export const compareMagnitude = (
   wrungA: bigint,
   wrungB: bigint,
   marqueeAPosition: number,
   marqueeBPosition: number
-): boolean => {
+): TrueFalse | null => {
   // Extract 3-bit column values
   const signA = getSignBit(wrungA);
   const signB = getSignBit(wrungB);
-  let greater = false;
-  if (signA !== signB) {return signA === 1 && signB === 0;}
+  let greater: TrueFalse | null = null;
+  if (signA !== signB) {return signA === 1 && signB === 0 ? 1 : 0;}
+
+  // Start from the higher marquee position (most significant column)
+  // marqueePosition indicates the column index (1-21), we scan FROM that column downward
   const startPosition = marqueeAPosition > marqueeBPosition ?
-    marqueeAPosition - 1
+    marqueeAPosition
     :
-    marqueeBPosition - 1;
+    marqueeBPosition;
+
+  // If startPosition is beyond valid range (e.g., 21 when no valid rotations), both are zero
+  if (startPosition > 21 || startPosition < 1) {
+    return null;
+  }
+
   scanDownwards(wrungA, wrungB, (rotationsA, rotationsB, pos) => {
     const tupleA = extractBitTuple(rotationsA, pos);
     const tupleB = extractBitTuple(rotationsB, pos);
@@ -285,15 +403,242 @@ export const compareMagnitude = (
     // CRITICAL: Column 0 uses shifted topology, columns 1-20 use regular topology
     const greaterThanSpool = (pos === 21) ? shiftedGreaterThan : greaterThan;
 
-    greater = !!greaterThanSpool(tupleA, tupleB);
-    if (greater === true) {
-      // If Equal Continue
+    // Return TrueFalse (0 | 1), not boolean
+    greater = greaterThanSpool(tupleA, tupleB) ? 1 : 0;
+    if (greater === 1) {
+      // A is greater, stop scanning
       return false;
     }
-    // Columns equal, continue to next less significant column
+    // A is less than B, stop scanning
     return false;
   }, startPosition as Positions);
   return greater;
+};
+
+/**
+ * Anor - Rotation-Level Range Membership and Relational Analysis
+ *
+ * Self-Referencing Higher-Order Bidirectional Data Structure with Lazy Evaluation.
+ *
+ * For each rotation in the input array:
+ * 1. Tests if rotation is within [A, B] inclusive range
+ * 2. If in range, analyzes relationships to ALL OTHER in-range rotations
+ * 3. Returns indices with .orientate() method for on-demand resolution
+ *
+ * Returns null if NO rotations are within the specified range.
+ *
+ * @param rotationA - First boundary of range (3-bit column value)
+ * @param rotationB - Second boundary of range (3-bit column value)
+ * @param rotations - Array of rotations to test
+ * @returns AnorState[] if any rotations in range, null otherwise
+ */
+export const anor = (
+  rotationA: BitRotationTuple,
+  rotationB: BitRotationTuple,
+  rotations: BitRotationTuple[]
+): AnorState[] | null => {
+  if (rotations.length === 0) {
+    return null;
+  }
+
+  const [lower, upper] =
+    greaterThan(rotationA, rotationB) === 1 ? [rotationB, rotationA] : [rotationA, rotationB];
+
+  const inRangeIndices: number[] = [];
+  rotations.forEach((rot, idx) => {
+    const isGreaterOrEqualLower = greaterThanOrEqual(rot, lower) === 1;
+    const isLessOrEqualUpper = lessThanOrEqual(rot, upper) === 1;
+
+    if (isGreaterOrEqualLower && isLessOrEqualUpper) {
+      inRangeIndices.push(idx);
+    }
+  });
+
+  if (inRangeIndices.length === 0) {
+    return null;
+  }
+
+  const states: AnorState[] = [];
+
+  rotations.forEach((rot, idx) => {
+    const isInRange = inRangeIndices.includes(idx);
+
+    if (!isInRange) {
+      states.push({
+        rotation: rot,
+        anor: false,
+        equal: null,
+        greater: null,
+        lesser: null,
+      });
+    } else {
+      const equalIndices: number[] = [];
+      const greaterIndices: number[] = [];
+      const lesserIndices: number[] = [];
+
+      inRangeIndices.forEach((otherIdx) => {
+        if (idx === otherIdx) {
+          return;
+        }
+
+        const otherRot = rotations[otherIdx];
+        const isEqual = equals(rot, otherRot) === 1;
+
+        if (isEqual) {
+          equalIndices.push(otherIdx);
+        } else {
+          const isGreater = greaterThan(otherRot, rot) === 1;
+          if (isGreater) {
+            greaterIndices.push(otherIdx);
+          } else {
+            lesserIndices.push(otherIdx);
+          }
+        }
+      });
+
+      states.push({
+        rotation: rot,
+        anor: true,
+        equal: createOrientableRotation(equalIndices, rotations),
+        greater: createOrientableRotation(greaterIndices, rotations),
+        lesser: createOrientableRotation(lesserIndices, rotations),
+      });
+    }
+  });
+
+  return states;
+};
+
+/**
+ * AnorWrung - Wrung-Level Magnitude Range Membership and Relational Analysis
+ *
+ * Self-Referencing Higher-Order Bidirectional Data Structure with Lazy Evaluation.
+ * Superset of Anor operating on full wrungs (bigint) instead of rotations.
+ *
+ * For each wrung in the input array:
+ * 1. Discovers marquee position via BidirectionalConference (or uses pre-computed)
+ * 2. Tests if wrung magnitude is within [A, B] inclusive range
+ * 3. If in range, analyzes magnitude relationships to ALL OTHER in-range wrungs
+ * 4. Returns indices with .orientate() method for on-demand resolution
+ * 5. Preserves MarqueeState in output to avoid information loss
+ *
+ * Uses compareMagnitude for topology-aware comparison (shifted column 0, regular columns 1-20).
+ * Returns null if NO wrungs are within the specified magnitude range.
+ *
+ * Optional MarqueeState parameters allow developers to avoid redundant BidirectionalConference calls
+ * when they have already computed the states. The MarqueeState is preserved in the output.
+ *
+ * @param wrungA - First boundary of magnitude range (bigint)
+ * @param wrungB - Second boundary of magnitude range (bigint)
+ * @param wrungs - Array of wrungs to test
+ * @param marqueeStateA - Optional pre-computed MarqueeState for wrungA
+ * @param marqueeStateB - Optional pre-computed MarqueeState for wrungB
+ * @param wrungMarqueeStates - Optional pre-computed MarqueeStates for wrungs array (parallel)
+ * @returns AnorWrungState[] if any wrungs in range, null otherwise
+ */
+export const anorWrung = (
+  wrungA: bigint,
+  wrungB: bigint,
+  wrungs: bigint[],
+  marqueeStateA?: MarqueeState,
+  marqueeStateB?: MarqueeState,
+  wrungMarqueeStates?: MarqueeState[]
+): AnorWrungState[] | null => {
+  if (wrungs.length === 0) {
+    return null;
+  }
+
+  // Self-referencing marquee discovery via BidirectionalConference (or use pre-computed)
+  const resolvedMarqueeStateA = marqueeStateA ?? BidirectionalConference(wrungA);
+  const resolvedMarqueeStateB = marqueeStateB ?? BidirectionalConference(wrungB);
+
+  // Extract marquee positions (firstValidRotation indicates column position)
+  const marqueeA = resolvedMarqueeStateA.firstValidRotation ?? 21;
+  const marqueeB = resolvedMarqueeStateB.firstValidRotation ?? 21;
+
+  // Discover marquee states for all wrungs (or use pre-computed)
+  const resolvedWrungMarqueeStates: MarqueeState[] = wrungMarqueeStates
+    ? wrungMarqueeStates
+    : wrungs.map((wrung) => BidirectionalConference(wrung));
+
+  const marqueePositions: number[] = resolvedWrungMarqueeStates.map(
+    (state) => state.firstValidRotation ?? 21
+  );
+
+  const aGreaterThanB = compareMagnitude(wrungA, wrungB, marqueeA, marqueeB);
+  const [lower, upper, lowerMarquee, upperMarquee] =
+    aGreaterThanB === 1 ? [wrungB, wrungA, marqueeB, marqueeA] : [wrungA, wrungB, marqueeA, marqueeB];
+
+  const inRangeIndices: number[] = [];
+  wrungs.forEach((wrung, idx) => {
+    const wrungMarquee = marqueePositions[idx];
+
+    const lowerComparison = compareMagnitude(wrung, lower, wrungMarquee, lowerMarquee);
+    const upperComparison = compareMagnitude(wrung, upper, wrungMarquee, upperMarquee);
+
+    const isGreaterOrEqualLower = lowerComparison === 1 || lowerComparison === null;
+    const isLessOrEqualUpper = upperComparison === 0 || upperComparison === null;
+
+    if (isGreaterOrEqualLower && isLessOrEqualUpper) {
+      inRangeIndices.push(idx);
+    }
+  });
+
+  if (inRangeIndices.length === 0) {
+    return null;
+  }
+
+  const states: AnorWrungState[] = [];
+
+  wrungs.forEach((wrung, idx) => {
+    const isInRange = inRangeIndices.includes(idx);
+    const wrungMarqueeState = resolvedWrungMarqueeStates[idx];
+
+    if (!isInRange) {
+      states.push({
+        wrung: wrung,
+        marqueeState: wrungMarqueeState,
+        anor: false,
+        equal: null,
+        greater: null,
+        lesser: null,
+      });
+    } else {
+      const equalIndices: number[] = [];
+      const greaterIndices: number[] = [];
+      const lesserIndices: number[] = [];
+      const wrungMarquee = marqueePositions[idx];
+
+      inRangeIndices.forEach((otherIdx) => {
+        if (idx === otherIdx) {
+          return;
+        }
+
+        const otherWrung = wrungs[otherIdx];
+        const otherMarquee = marqueePositions[otherIdx];
+        const comparison = compareMagnitude(otherWrung, wrung, otherMarquee, wrungMarquee);
+
+        if (comparison === null) {
+          equalIndices.push(otherIdx);
+        } else if (comparison === 1) {
+          greaterIndices.push(otherIdx);
+        } else {
+          lesserIndices.push(otherIdx);
+        }
+      });
+
+      states.push({
+        wrung: wrung,
+        marqueeState: wrungMarqueeState,
+        anor: true,
+        equal: createOrientableWrung(equalIndices, wrungs),
+        greater: createOrientableWrung(greaterIndices, wrungs),
+        lesser: createOrientableWrung(lesserIndices, wrungs),
+      });
+    }
+  });
+
+  return states;
 };
 
 /**
@@ -437,1084 +782,3 @@ export const determineEffectiveOperation = (
     `determineEffectiveOperation: Unhandled combination - operation=${operation}, signA=${signA}, signB=${signB}`
   );
 };
-
-/**
- * SumWrung - Columnar Long Addition using SpooledSumSeries lookup tables
- *
- * Takes two 64-position BitRotationTuple buffers and performs columnar addition
- * from right to left (column 20 → column 0), handling carries forward.
- *
- * @param wrungA - First operand buffer (64 positions)
- * @param wrungB - Second operand buffer (64 positions)
- * @returns Result buffer (64 positions)
- */
-// export const SumWrung = (wrungA: BitRotationTuple<ArrayBuffer>, wrungB: BitRotationTuple<ArrayBuffer>): BitRotationTuple<ArrayBuffer> => {
-//   console.log(
-//     `SUMWRUNG START: wrungA[61-63]=[${wrungA[61]},${wrungA[62]},${wrungA[63]}] wrungB[61-63]=[${wrungB[61]},${wrungB[62]},${wrungB[63]}]`
-//   );
-
-//   // PHASE 1: SIGN ROUTING
-//   const signA = wrungA[0] as 0 | 1;
-//   const signB = wrungB[0] as 0 | 1;
-//   console.log(
-//     `SIGN ROUTING: signA=${signA} (${signA === 1 ? 'Positive' : 'Unsigned'}), ` +
-//     `signB=${signB} (${signB === 1 ? 'Positive' : 'Unsigned'}), operation='+'`
-//   );
-
-//   // CASE 2: Both negative → normal sum, apply negative sign
-//   if (signA === 0 && signB === 0) {
-//     console.log('CASE 2: Both negative → negative sum (signs ignored during operation)');
-
-//     // Create positive temps for magnitude summation
-//     const tempA = new BitRotationTuple(wrungA);
-//     tempA[0] = 1; // Make positive
-//     const tempB = new BitRotationTuple(wrungB);
-//     tempB[0] = 1; // Make positive
-
-//     // Recursive call → hits Case 1 logic (both positive)
-//     const result = SumWrung(tempA, tempB);
-
-//     // Apply negative sign as metadata
-//     result[0] = 0; // Unsigned = Negative
-//     console.log('CASE 2 COMPLETE: Applied negative sign to result');
-
-//     return result;
-//   }
-
-//   // CASE 3: (+A) + (-B) → A - B with magnitude-based sign
-//   if (signA === 1 && signB === 0) {
-//     console.log('CASE 3: (+A) + (-B) → Difference Spool (A - abs(B))');
-
-//     // Create positive temps for magnitude operation
-//     const tempA = new BitRotationTuple(wrungA);
-//     tempA[0] = 1;
-//     const tempB = new BitRotationTuple(wrungB);
-//     tempB[0] = 1;
-
-//     // Conference for marquee detection
-//     const case3Conf = ConferBidirectional(tempA, tempB);
-
-//     // Special case: both zero
-//     if (case3Conf.wrungAMarquee.isAbsoluteZero && case3Conf.wrungBMarquee.isAbsoluteZero) {
-//       return SPECIAL_CASE_STORE.ZERO_CASE;
-//     }
-
-//     // Create result buffer
-//     const result = new BitRotationTuple(64);
-//     result[0] = 1; // Temporary positive (will be corrected below)
-
-//     // Borrow accumulator (NOT carry - this is subtraction)
-//     const borrows: BitRotationTuple<ArrayBuffer>[] = [];
-
-//     // EXACT EVEN PATH
-//     if (case3Conf.exactEven) {
-//       console.log(`CASE 3 EXACT EVEN: Marquees at ${case3Conf.sharedValidColumn}`);
-
-//       for (let column = 20; column >= case3Conf.sharedValidColumn; column--) {
-//         const pos = 1 + column * 3;
-//         const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
-
-//         // Deplete borrows into tempA
-//         let intermediate = new BitRotationTuple([tempA[pos], tempA[pos + 1], tempA[pos + 2]]);
-//         while (borrows.length > 0) {
-//           const borrow = borrows.pop()!;
-//           const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | BitRotationTuple
-//             | number
-//           )[];
-//           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           } else {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//             borrows.push(newBorrow);
-//           }
-//         }
-
-//         // Subtract tempB from intermediate
-//         const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempB[pos]][tempB[pos + 1]][tempB[pos + 2]] as (
-//           | BitRotationTuple<ArrayBuffer>
-//           | number
-//         )[];
-//         const finalResult = finalTuple[0] as BitRotationTuple;
-
-//         // Write result
-//         result[pos] = finalResult[0];
-//         result[pos + 1] = finalResult[1];
-//         result[pos + 2] = finalResult[2];
-
-//         // Push borrow if exists
-//         if (finalTuple.length === 2) {
-//           const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
-//           borrows.push(finalBorrow);
-//         }
-//       }
-//     } else {
-//       // SHIFTED PATH
-//       const wrungAFirst = case3Conf.wrungAMarquee.firstValidRotation ?? 20;
-//       const wrungBFirst = case3Conf.wrungBMarquee.firstValidRotation ?? 20;
-//       const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
-//       console.log(`CASE 3 SHIFTED: tempA first=${wrungAFirst}, tempB first=${wrungBFirst}`);
-
-//       // SHARED ZONE (sharedValidColumn → 20)
-//       for (let column = 20; column >= case3Conf.sharedValidColumn; column--) {
-//         const pos = 1 + column * 3;
-//         const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
-
-//         // Deplete borrows
-//         let intermediate = new BitRotationTuple([tempA[pos], tempA[pos + 1], tempA[pos + 2]]);
-//         while (borrows.length > 0) {
-//           const borrow = borrows.pop()!;
-//           const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | BitRotationTuple
-//             | number
-//           )[];
-//           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           } else {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//             borrows.push(newBorrow);
-//           }
-//         }
-
-//         // Subtract tempB
-//         const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempB[pos]][tempB[pos + 1]][tempB[pos + 2]] as (
-//           | BitRotationTuple<ArrayBuffer>
-//           | number
-//         )[];
-//         const finalResult = finalTuple[0] as BitRotationTuple;
-
-//         result[pos] = finalResult[0];
-//         result[pos + 1] = finalResult[1];
-//         result[pos + 2] = finalResult[2];
-
-//         if (finalTuple.length === 2) {
-//           const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
-//           borrows.push(finalBorrow);
-//         }
-//       }
-
-//       // EXCLUSIVE ZONE
-//       if (case3Conf.sharedValidColumn > earlierMarquee) {
-//         const exclusiveOperand = wrungAFirst < wrungBFirst ? tempA : tempB;
-//         console.log(`CASE 3 EXCLUSIVE ZONE: columns ${case3Conf.sharedValidColumn - 1} to ${earlierMarquee}`);
-
-//         for (let column = case3Conf.sharedValidColumn - 1; column >= earlierMarquee; column--) {
-//           const pos = 1 + column * 3;
-//           const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
-
-//           let intermediate = new BitRotationTuple([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
-//           while (borrows.length > 0) {
-//             const borrow = borrows.pop()!;
-//             const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//               | BitRotationTuple
-//               | number
-//             )[];
-//             // eslint-disable-next-line max-depth
-//             if (borrowTuple.length === 1) {
-//               intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//             } else {
-//               intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//               const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//               borrows.push(newBorrow);
-//             }
-//           }
-
-//           result[pos] = intermediate[0];
-//           result[pos + 1] = intermediate[1];
-//           result[pos + 2] = intermediate[2];
-//         }
-//       }
-//     }
-
-//     // PLACEHOLDER ZONE (if borrows remain)
-//     if (borrows.length > 0) {
-//       console.log(`CASE 3 PLACEHOLDER: ${borrows.length} borrows remaining`);
-//       const earliestColumn = Math.min(
-//         case3Conf.wrungAMarquee.firstValidRotation ?? 20,
-//         case3Conf.wrungBMarquee.firstValidRotation ?? 20
-//       );
-
-//       for (let column = earliestColumn - 1; column >= 0; column--) {
-//         const pos = 1 + column * 3;
-//         let intermediate = new BitRotationTuple([0, 0, 0]);
-
-//         while (borrows.length > 0) {
-//           const borrow = borrows.pop()!;
-//           const borrowTuple = SpooledDifferenceSeries[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | BitRotationTuple
-//             | number
-//           )[];
-//           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           } else {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//             borrows.push(newBorrow);
-//           }
-//         }
-
-//         result[pos] = intermediate[0];
-//         result[pos + 1] = intermediate[1];
-//         result[pos + 2] = intermediate[2];
-
-//         if (borrows.length === 0) {break;}
-//       }
-//     }
-
-//     // Column 0 Normalization
-//     const col0Binary = [result[1], result[2], result[3]];
-//     const col1Binary = [result[4], result[5], result[6]];
-//     const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
-
-//     if (isExternalCarry) {
-//       const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
-//       if (!hasCarryToColumn1) {
-//         result[3] = 1; // Normalize to marquee
-//         console.log('CASE 3: Normalized column 0 to marquee [0,0,1]');
-//       }
-//     }
-
-//     // Magnitude comparison for sign determination
-//     // compareMagnitude returns true if A > B, false if B >= A
-//     const aGreaterThanB = compareMagnitude(
-//       tempA,
-//       tempB,
-//       case3Conf.wrungAMarquee.firstValidRotation ?? 20,
-//       case3Conf.wrungBMarquee.firstValidRotation ?? 20
-//     );
-
-//     if (!aGreaterThanB) {
-//       // B >= A: Result negative
-//       result[0] = 0; // Unsigned = Negative
-//       console.log('CASE 3: B >= A → Result sign flips to Unsigned (negative)');
-//     } else {
-//       // A > B: Result positive
-//       result[0] = 1;
-//       console.log('CASE 3: A > B → Result sign positive');
-//     }
-
-//     return result;
-//   }
-
-//   // CASE 4: (-A) + (+B) → B - A with magnitude-based sign
-//   if (signA === 0 && signB === 1) {
-//     console.log('CASE 4: (-A) + (+B) → Difference Spool (B - abs(A))');
-
-//     // Create positive temps for magnitude operation
-//     const tempA = new BitRotationTuple(wrungA);
-//     tempA[0] = 1;
-//     const tempB = new BitRotationTuple(wrungB);
-//     tempB[0] = 1;
-
-//     // Conference for marquee detection
-//     const case4Conf = ConferBidirectional(tempA, tempB);
-
-//     // Special case: both zero
-//     if (case4Conf.wrungAMarquee.isAbsoluteZero && case4Conf.wrungBMarquee.isAbsoluteZero) {
-//       return SPECIAL_CASE_STORE.ZERO_CASE;
-//     }
-
-//     // Create result buffer
-//     const result = new BitRotationTuple(64);
-//     result[0] = 1; // Temporary positive (will be corrected below)
-
-//     // Borrow accumulator (NOT carry - this is subtraction)
-//     const borrows: BitRotationTuple<ArrayBuffer>[] = [];
-
-//     // EXACT EVEN PATH
-//     if (case4Conf.exactEven) {
-//       console.log(`CASE 4 EXACT EVEN: Marquees at ${case4Conf.sharedValidColumn}`);
-
-//       for (let column = 20; column >= case4Conf.sharedValidColumn; column--) {
-//         const pos = 1 + column * 3;
-//         const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
-
-//         // Deplete borrows into tempB (minuend in Case 4)
-//         let intermediate = new BitRotationTuple([tempB[pos], tempB[pos + 1], tempB[pos + 2]]);
-//         while (borrows.length > 0) {
-//           const borrow = borrows.pop()!;
-//           const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | BitRotationTuple
-//             | number
-//           )[];
-//           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           } else {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//             borrows.push(newBorrow);
-//           }
-//         }
-
-//         // Subtract tempA from intermediate (B - A)
-//         const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempA[pos]][tempA[pos + 1]][tempA[pos + 2]] as (
-//           | BitRotationTuple<ArrayBuffer>
-//           | number
-//         )[];
-//         const finalResult = finalTuple[0] as BitRotationTuple;
-
-//         // Write result
-//         result[pos] = finalResult[0];
-//         result[pos + 1] = finalResult[1];
-//         result[pos + 2] = finalResult[2];
-
-//         // Push borrow if exists
-//         if (finalTuple.length === 2) {
-//           const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
-//           borrows.push(finalBorrow);
-//         }
-//       }
-//     } else {
-//       // SHIFTED PATH
-//       const wrungAFirst = case4Conf.wrungAMarquee.firstValidRotation ?? 20;
-//       const wrungBFirst = case4Conf.wrungBMarquee.firstValidRotation ?? 20;
-//       const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
-//       console.log(`CASE 4 SHIFTED: tempA first=${wrungAFirst}, tempB first=${wrungBFirst}`);
-
-//       // SHARED ZONE (sharedValidColumn → 20)
-//       for (let column = 20; column >= case4Conf.sharedValidColumn; column--) {
-//         const pos = 1 + column * 3;
-//         const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
-
-//         // Deplete borrows into tempB
-//         let intermediate = new BitRotationTuple([tempB[pos], tempB[pos + 1], tempB[pos + 2]]);
-//         while (borrows.length > 0) {
-//           const borrow = borrows.pop()!;
-//           const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | BitRotationTuple
-//             | number
-//           )[];
-//           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           } else {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//             borrows.push(newBorrow);
-//           }
-//         }
-
-//         // Subtract tempA (B - A)
-//         const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][tempA[pos]][tempA[pos + 1]][tempA[pos + 2]] as (
-//           | BitRotationTuple<ArrayBuffer>
-//           | number
-//         )[];
-//         const finalResult = finalTuple[0] as BitRotationTuple;
-
-//         result[pos] = finalResult[0];
-//         result[pos + 1] = finalResult[1];
-//         result[pos + 2] = finalResult[2];
-
-//         if (finalTuple.length === 2) {
-//           const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
-//           borrows.push(finalBorrow);
-//         }
-//       }
-
-//       // EXCLUSIVE ZONE
-//       if (case4Conf.sharedValidColumn > earlierMarquee) {
-//         const exclusiveOperand = wrungAFirst < wrungBFirst ? tempA : tempB;
-//         console.log(`CASE 4 EXCLUSIVE ZONE: columns ${case4Conf.sharedValidColumn - 1} to ${earlierMarquee}`);
-
-//         for (let column = case4Conf.sharedValidColumn - 1; column >= earlierMarquee; column--) {
-//           const pos = 1 + column * 3;
-//           const activeSpool = column === 0 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
-
-//           let intermediate = new BitRotationTuple([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
-//           while (borrows.length > 0) {
-//             const borrow = borrows.pop()!;
-//             const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//               | BitRotationTuple
-//               | number
-//             )[];
-//             // eslint-disable-next-line max-depth
-//             if (borrowTuple.length === 1) {
-//               intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//             } else {
-//               intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//               const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//               borrows.push(newBorrow);
-//             }
-//           }
-
-//           result[pos] = intermediate[0];
-//           result[pos + 1] = intermediate[1];
-//           result[pos + 2] = intermediate[2];
-//         }
-//       }
-//     }
-
-//     // PLACEHOLDER ZONE (if borrows remain)
-//     if (borrows.length > 0) {
-//       console.log(`CASE 4 PLACEHOLDER: ${borrows.length} borrows remaining`);
-//       const earliestColumn = Math.min(
-//         case4Conf.wrungAMarquee.firstValidRotation ?? 20,
-//         case4Conf.wrungBMarquee.firstValidRotation ?? 20
-//       );
-
-//       for (let column = earliestColumn - 1; column >= 0; column--) {
-//         const pos = 1 + column * 3;
-//         let intermediate = new BitRotationTuple([0, 0, 0]);
-
-//         while (borrows.length > 0) {
-//           const borrow = borrows.pop()!;
-//           const borrowTuple = SpooledDifferenceSeries[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | BitRotationTuple
-//             | number
-//           )[];
-//           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           } else {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//             borrows.push(newBorrow);
-//           }
-//         }
-
-//         result[pos] = intermediate[0];
-//         result[pos + 1] = intermediate[1];
-//         result[pos + 2] = intermediate[2];
-
-//         if (borrows.length === 0) {
-//           break;
-//         }
-//       }
-//     }
-
-//     // Column 0 Normalization
-//     const col0Binary = [result[1], result[2], result[3]];
-//     const col1Binary = [result[4], result[5], result[6]];
-//     const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
-
-//     if (isExternalCarry) {
-//       const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
-//       if (!hasCarryToColumn1) {
-//         result[3] = 1; // Normalize to marquee
-//         console.log('CASE 4: Normalized column 0 to marquee [0,0,1]');
-//       }
-//     }
-
-//     // Magnitude comparison for sign determination
-//     // compareMagnitude returns true if first arg > second arg
-//     const bGreaterThanA = compareMagnitude(
-//       tempB,
-//       tempA,
-//       case4Conf.wrungBMarquee.firstValidRotation ?? 20,
-//       case4Conf.wrungAMarquee.firstValidRotation ?? 20
-//     );
-
-//     if (bGreaterThanA) {
-//       // B > A: Result positive
-//       result[0] = 1; // Positive
-//       console.log('CASE 4: B > A → Result Signed as Positive');
-//     } else {
-//       // A >= B: Result negative
-//       result[0] = 0; // Unsigned = Negative
-//       console.log('CASE 4: A >= B → Result negative');
-//     }
-
-//     return result;
-//   }
-
-//   // CASE 1: Both positive → existing SumWrung logic (unchanged)
-//   console.log('CASE 1: Both positive → normal sum');
-
-//   // Phase 2: Conference both operands to determine Marquee states
-//   const conferredState = ConferBidirectional(wrungA, wrungB);
-//   // Special case: Both absolute zero
-//   if (conferredState.wrungAMarquee.isAbsoluteZero && conferredState.wrungBMarquee.isAbsoluteZero) {
-//     return SPECIAL_CASE_STORE.ZERO_CASE;
-//   }
-//   // Create output buffer
-//   const result = new BitRotationTuple(64);
-//   // Copy sign from wrungA (position 0) - for now, assume same sign
-//   result[0] = wrungA[0];
-//   // Carry accumulator - array of BitRotationTuple[3] carries
-//   const carries: BitRotationTuple<ArrayBuffer>[] = [];
-
-//   // SPECIAL CASE: Sign = 1, No Marquee Present (all 000)
-//   // Only column 20 valid, no backward propagation allowed
-//   const hasMarqueeA = conferredState.wrungAMarquee.marqueeRotation !== undefined;
-//   const hasMarqueeB = conferredState.wrungBMarquee.marqueeRotation !== undefined;
-//   const noMarqueePresent = !hasMarqueeA && !hasMarqueeB && conferredState.sharedValidColumn === 20;
-//   if (noMarqueePresent) {
-//     console.log('SPECIAL CASE: No marquee, Sign=1, processing column 20');
-//     // Process column 20 (index 20, positions 61-63)
-//     const pos20 = 1 + 20 * 3;
-//     // Add wrungA[20] + wrungB[20]
-//     const finalTuple = SpooledSumSeries[wrungA[pos20]][wrungA[pos20 + 1]][wrungA[pos20 + 2]][wrungB[pos20]][wrungB[pos20 + 1]][
-//       wrungB[pos20 + 2]
-//     ] as (BitRotationTuple<ArrayBuffer> | number)[];
-//     const finalResult = finalTuple[0] as BitRotationTuple;
-//     result[pos20] = finalResult[0];
-//     result[pos20 + 1] = finalResult[1];
-//     result[pos20 + 2] = finalResult[2];
-//     // If carry generated, SET marquee at column 19 (no addition)
-//     if (finalTuple.length === 2) {
-//       console.log('SPECIAL CASE: Carry generated, SETTING marquee');
-//       // SET column 19 to 001 (marquee marker) - this is a SET, not an ADD
-//       const pos19 = 1 + 19 * 3;
-//       result[pos19] = 0;
-//       result[pos19 + 1] = 0;
-//       result[pos19 + 2] = 1;
-//       console.log('SPECIAL CASE: Marquee SET at column 19, result at column 20');
-//     }
-//     return result;
-//   }
-//   // Phase 3: Branch based on exactEven
-//   if (conferredState.exactEven) {
-//     // EXACT EVEN PATH: Both marquees aligned, clean summation
-//     console.log(`EXACT EVEN: Both marquees at ${conferredState.sharedValidColumn}`);
-//     for (let column = 20; column >= conferredState.sharedValidColumn; column--) {
-//       const pos = 1 + column * 3;
-//       // FIRST WRUNG: Deplete accumulated carries into wrungA
-//       let intermediate = new BitRotationTuple([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
-//       while (carries.length > 0) {
-//         const carry = carries.pop()!;
-//         const activeSpool = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
-//         const carryTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][carry[0]][carry[1]][carry[2]] as (
-//           | BitRotationTuple
-//           | number
-//         )[];
-//         if (carryTuple.length === 1) {
-//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
-//         } else {
-//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           const newCarry = carryTuple[1] as BitRotationTuple<ArrayBuffer>;
-//           carries.push(newCarry);
-//         }
-//       }
-//       // SECOND WRUNG: Add wrungB to intermediate
-//       console.log(
-//         `Column ${column}: intermediate=[${intermediate[0]},${intermediate[1]},${intermediate[2]}] wrungB=[${wrungB[pos]},${
-//           wrungB[pos + 1]
-//         },${wrungB[pos + 2]}]`
-//       );
-//       const activeSpool2 = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
-//       const finalTuple = activeSpool2[intermediate[0]][intermediate[1]][intermediate[2]][wrungB[pos]][wrungB[pos + 1]][wrungB[pos + 2]] as (
-//         | BitRotationTuple<ArrayBuffer>
-//         | number
-//       )[];
-//       const finalResult = finalTuple[0] as BitRotationTuple;
-//       console.log(`Column ${column}: finalResult=[${finalResult[0]},${finalResult[1]},${finalResult[2]}]`);
-//       // Write result
-//       result[pos] = finalResult[0];
-//       result[pos + 1] = finalResult[1];
-//       result[pos + 2] = finalResult[2];
-//       // Push carry if exists
-//       if (finalTuple.length === 2) {
-//         const finalCarry = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
-//         carries.push(finalCarry);
-//       }
-//     }
-//   } else {
-//     // SHIFTED PATH: Marquees at different positions, handle exclusive zones
-//     const wrungAFirst = conferredState.wrungAMarquee.firstValidRotation ?? 20;
-//     const wrungBFirst = conferredState.wrungBMarquee.firstValidRotation ?? 20;
-//     const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
-//     console.log(`SHIFTED: wrungA first=${wrungAFirst}, wrungB first=${wrungBFirst}, shared=${conferredState.sharedValidColumn}`);
-//     // SHARED ZONE: Both operands participate (sharedValidColumn → 20)
-//     for (let column = 20; column >= conferredState.sharedValidColumn; column--) {
-//       const pos = 1 + column * 3;
-//       // Deplete carries into wrungA
-//       let intermediate = new BitRotationTuple([wrungA[pos], wrungA[pos + 1], wrungA[pos + 2]]);
-//       while (carries.length > 0) {
-//         const carry = carries.pop()!;
-//         const activeSpool = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
-//         const carryTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][carry[0]][carry[1]][carry[2]] as (
-//           | BitRotationTuple
-//           | number
-//         )[];
-//         if (carryTuple.length === 1) {
-//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
-//         } else {
-//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           const newCarry = carryTuple[1] as BitRotationTuple<ArrayBuffer>;
-//           carries.push(newCarry);
-//         }
-//       }
-//       // Add wrungB
-//       const activeSpool2 = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
-//       const finalTuple = activeSpool2[intermediate[0]][intermediate[1]][intermediate[2]][wrungB[pos]][wrungB[pos + 1]][wrungB[pos + 2]] as (
-//         | BitRotationTuple<ArrayBuffer>
-//         | number
-//       )[];
-//       const finalResult = finalTuple[0] as BitRotationTuple;
-//       result[pos] = finalResult[0];
-//       result[pos + 1] = finalResult[1];
-//       result[pos + 2] = finalResult[2];
-//       if (finalTuple.length === 2) {
-//         const finalCarry = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
-//         carries.push(finalCarry);
-//       }
-//     }
-//     // EXCLUSIVE ZONE: Only earlier marquee's operand participates
-//     if (conferredState.sharedValidColumn > earlierMarquee) {
-//       const exclusiveOperand = wrungAFirst < wrungBFirst ? wrungA : wrungB;
-//       console.log(`EXCLUSIVE ZONE: columns ${conferredState.sharedValidColumn - 1} to ${earlierMarquee}`);
-//       for (let column = conferredState.sharedValidColumn - 1; column >= earlierMarquee; column--) {
-//         const pos = 1 + column * 3;
-//         // Deplete carries into the exclusive operand
-//         let intermediate = new BitRotationTuple([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
-//         while (carries.length > 0) {
-//           const carry = carries.pop()!;
-//           const activeSpool = column === 0 ? ShiftedSpooledSumSeries : SpooledSumSeries;
-//           const carryTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][carry[0]][carry[1]][carry[2]] as (
-//             | BitRotationTuple
-//             | number
-//           )[];
-//           if (carryTuple.length === 1) {
-//             intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           } else {
-//             intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
-//             const newCarry = carryTuple[1] as BitRotationTuple<ArrayBuffer>;
-//             carries.push(newCarry);
-//           }
-//         }
-//         // Write result (no second operand addition in exclusive zone)
-//         result[pos] = intermediate[0];
-//         result[pos + 1] = intermediate[1];
-//         result[pos + 2] = intermediate[2];
-//       }
-//     }
-//   }
-
-//   // PLACEHOLDER ZONE: Deplete remaining carries into placeholder columns
-//   if (carries.length > 0) {
-//     const earliestColumn = Math.min(
-//       conferredState.wrungAMarquee.firstValidRotation ?? 20,
-//       conferredState.wrungBMarquee.firstValidRotation ?? 20
-//     );
-//     console.log(`PLACEHOLDER ZONE: columns ${earliestColumn - 1} to 0, ${carries.length} carries remaining`);
-//     for (let column = earliestColumn - 1; column >= 0; column--) {
-//       const pos = 1 + column * 3;
-//       // Start with placeholder 000
-//       let intermediate = new BitRotationTuple([0, 0, 0]);
-//       while (carries.length > 0) {
-//         const carry = carries.pop()!;
-//         const carryTuple = SpooledSumSeries[intermediate[0]][intermediate[1]][intermediate[2]][carry[0]][carry[1]][carry[2]] as (
-//           | BitRotationTuple
-//           | number
-//         )[];
-//         if (carryTuple.length === 1) {
-//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
-//         } else {
-//           intermediate = carryTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           const newCarry = carryTuple[1] as BitRotationTuple<ArrayBuffer>;
-//           carries.push(newCarry);
-//         }
-//       }
-//       // Write result
-//       result[pos] = intermediate[0];
-//       result[pos + 1] = intermediate[1];
-//       result[pos + 2] = intermediate[2];
-//       // If no more carries, we're done
-//       if (carries.length === 0) {
-//         break;
-//       }
-//     }
-//   }
-//   // If carries STILL remain after column 0, overflow occurred
-//   if (carries.length > 0) {
-//     console.log('Some Carries', carries);
-//     return result[0] === 1 ?
-//       SPECIAL_CASE_STORE.POSITIVE_1_CASE
-//       :
-//       SPECIAL_CASE_STORE.NEGATIVE_TWIST_CASE;
-//   }
-//   return result;
-// };
-
-// export const DifferenceWrung = (
-//   wrungA: BitRotationTuple<ArrayBuffer>,
-//   wrungB: BitRotationTuple<ArrayBuffer>
-// ): BitRotationTuple<ArrayBuffer> => {
-//   console.log(
-//     'DIFFERENCEWRUNG START: ' +
-//       `wrungA col0=[${wrungA[1]},${wrungA[2]},${wrungA[3]}] col20=[${wrungA[61]},${wrungA[62]},${wrungA[63]}] ` +
-//       `wrungB col0=[${wrungB[1]},${wrungB[2]},${wrungB[3]}] col20=[${wrungB[61]},${wrungB[62]},${wrungB[63]}]`
-//   );
-//   // Phase 1: Conference both operands to determine Marquee states
-//   const conferredState = ConferBidirectional(wrungA, wrungB);
-//   console.log(
-//     'CONFERENCE RESULT: ' +
-//     `wrungAMarquee.marqueeRotation=${conferredState.wrungAMarquee.marqueeRotation}, ` +
-//     `wrungBMarquee.marqueeRotation=${conferredState.wrungBMarquee.marqueeRotation}, ` +
-//     `sharedValidColumn=${conferredState.sharedValidColumn}`
-//   );
-//   // Phase 1.5: Sign routing - Determine effective operation based on signs
-//   const signA = wrungA[0] as 0 | 1;
-//   const signB = wrungB[0] as 0 | 1;
-//   console.log(`SIGN ROUTING: signA=${signA} (${signA === 1 ? '+' : '-'}), signB=${signB} (${signB === 1 ? '-' : '+'}), operation='-'`);
-
-//   const routing = determineEffectiveOperation(
-//     '-', // DifferenceWrung always performs subtraction
-//     signA,
-//     signB,
-//     wrungA,
-//     wrungB,
-//     conferredState.wrungAMarquee.firstValidRotation ?? 20,
-//     conferredState.wrungBMarquee.firstValidRotation ?? 20
-//   );
-
-//   // Log routing decision with operand information
-//   const minuendName = routing.minuend === wrungA ? 'wrungA' : 'wrungB';
-//   const subtrahendName = routing.subtrahend === wrungA ? 'wrungA' : 'wrungB';
-//   console.log(
-//     `ROUTING RESULT: effectiveOp=${routing.effectiveOp}, ` +
-//     `minuend=${minuendName}, subtrahend=${subtrahendName}, ` +
-//     `resultSign=${routing.resultSign} (${routing.resultSign === 1 ? '+' : '-'})`
-//   );
-
-//   // Phase 1.6: If routing to SUM, delegate to SumWrung with routing operands
-//   if (routing.effectiveOp === 'sum') {
-//     console.log('SIGN ROUTING: Delegating to SumWrung (subtracting negative = adding)');
-//     console.log(`  minuend col0=[${routing.minuend[1]},${routing.minuend[2]},${routing.minuend[3]}]`);
-//     console.log(`  subtrahend col0=[${routing.subtrahend[1]},${routing.subtrahend[2]},${routing.subtrahend[3]}]`);
-//     const sumResult = SumWrung(routing.minuend, routing.subtrahend);
-//     console.log(`SUMWRUNG RETURNED: col0=[${sumResult[1]},${sumResult[2]},${sumResult[3]}], col1=[${sumResult[4]},${sumResult[5]},${sumResult[6]}]`);
-//     // Apply routing result sign
-//     sumResult[0] = routing.resultSign;
-//     console.log(`SUM DELEGATION COMPLETE: resultSign=${routing.resultSign} applied`);
-
-//     // CRITICAL: Apply normalization before returning
-//     // SumWrung can return ZERO_CASE which needs column 0 normalization
-//     const col0Binary = [sumResult[1], sumResult[2], sumResult[3]];
-//     const col1Binary = [sumResult[4], sumResult[5], sumResult[6]];
-//     console.log(`SUM DELEGATION NORMALIZATION CHECK: col0=[${col0Binary}], col1=[${col1Binary}]`);
-//     const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
-
-//     if (isExternalCarry) {
-//       const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
-//       console.log(`  isExternalCarry=true, hasCarryToColumn1=${hasCarryToColumn1}`);
-//       if (!hasCarryToColumn1) {
-//         console.log('SUM DELEGATION NORMALIZATION: Column 0 [0,0,0] → [0,0,1] (zero result → marquee display)');
-//         sumResult[3] = 1;
-//       }
-//     }
-
-//     return sumResult;
-//   }
-
-//   // Phase 1.7: For DIFFERENCE operations, use routing operands for all spool lookups
-//   // routing.minuend and routing.subtrahend determine the correct operand order
-//   // CRITICAL: Use routing.minuend/subtrahend for ALL spool lookups, not wrungA/wrungB
-//   console.log(`SIGN ROUTING: Using DIFFERENCE spool with routing operands, will apply resultSign=${routing.resultSign} at end`);
-
-//   // Assign routing operands to working variables for the rest of the function
-//   const minuend = routing.minuend;
-//   const subtrahend = routing.subtrahend;
-
-//   // Track which operand is A vs B for negative one detection
-//   const minuendIsA = (minuend === wrungA);
-//   const aIsNegativeOne = conferredState.wrungAMarquee.isNegativeOne ?? false;
-//   const bIsNegativeOne = conferredState.wrungBMarquee.isNegativeOne ?? false;
-//   const minuendIsNegativeOne = minuendIsA ? aIsNegativeOne : bIsNegativeOne;
-//   const subtrahendIsNegativeOne = minuendIsA ? bIsNegativeOne : aIsNegativeOne;
-
-//   // Phase 2: Special case - both absolute zero
-//   if (conferredState.wrungAMarquee.isAbsoluteZero && conferredState.wrungBMarquee.isAbsoluteZero) {
-//     return SPECIAL_CASE_STORE.ZERO_CASE;
-//   }
-//   // Phase 3: Create result buffer
-//   const result = new BitRotationTuple(64);
-//   // Temporarily copy sign from minuend (will be replaced with routing.resultSign at end)
-//   result[0] = routing.resultSign;
-//   // Phase 4: Borrow accumulator - array of BitRotationTuple[3] borrows
-//   const borrows: BitRotationTuple<ArrayBuffer>[] = [];
-
-//   // Phase 6: SPECIAL CASE - No Marquee Present (Sign = 1, all 000)
-//   // Only column 20 valid, no backward propagation allowed
-//   const hasMarqueeA = conferredState.wrungAMarquee.marqueeRotation !== undefined;
-//   const hasMarqueeB = conferredState.wrungBMarquee.marqueeRotation !== undefined;
-//   const noMarqueePresent = !hasMarqueeA && !hasMarqueeB && conferredState.sharedValidColumn === 20;
-//   if (noMarqueePresent) {
-//     console.log('SPECIAL CASE: No marquee, processing column 20');
-//     // Process column 20 (index 20, positions 61-63)
-//     const pos20 = 1 + 20 * 3;
-//     // SPOOL SELECTION: Negative One detection for column 20
-//     let activeSpool: SpooledWrung;
-//     if (minuendIsNegativeOne && !subtrahendIsNegativeOne) {
-//       activeSpool = SpooledNegativeOneMinusSomeNumberSeries; // (-1) - X
-//     } else if (!minuendIsNegativeOne && subtrahendIsNegativeOne) {
-//       activeSpool = SpooledSomeNumberMinusNegativeOneSeries; // X - (-1)
-//     } else {
-//       activeSpool = SpooledDifferenceSeries; // Regular difference
-//     }
-//     // Subtract minuend[20] - subtrahend[20]
-//     const finalTuple = activeSpool[minuend[pos20]][minuend[pos20 + 1]][minuend[pos20 + 2]][subtrahend[pos20]][subtrahend[pos20 + 1]][
-//       subtrahend[pos20 + 2]
-//     ] as (BitRotationTuple<ArrayBuffer> | number)[];
-//     const finalResult = finalTuple[0] as BitRotationTuple;
-//     result[pos20] = finalResult[0];
-//     result[pos20 + 1] = finalResult[1];
-//     result[pos20 + 2] = finalResult[2];
-//     // If borrow generated, SET marquee at column 19 (no subtraction)
-//     if (finalTuple.length === 2) {
-//       console.log('SPECIAL CASE: Borrow generated, SETTING marquee');
-//       // SET column 19 to 001 (marquee marker) - this is a SET, not a SUBTRACT
-//       const pos19 = 1 + 19 * 3;
-//       result[pos19] = 0;
-//       result[pos19 + 1] = 0;
-//       result[pos19 + 2] = 1;
-//       console.log('SPECIAL CASE: Marquee SET at column 19, result at column 20');
-//     }
-
-//     // CRITICAL: Apply normalization before returning
-//     // The "no marquee" case can return ZERO_CASE which needs column 0 normalization
-//     // Check column 0 and normalize if needed
-//     const col0Binary = [result[1], result[2], result[3]];
-//     const col1Binary = [result[4], result[5], result[6]];
-//     const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
-
-//     if (isExternalCarry) {
-//       const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
-//       if (!hasCarryToColumn1) {
-//         console.log('SPECIAL CASE NORMALIZATION: Column 0 [0,0,0] → [0,0,1] (zero result → marquee display)');
-//         result[3] = 1;
-//       }
-//     }
-
-//     return result;
-//   }
-//   // Phase 7: Branch based on exactEven
-//   if (conferredState.exactEven) {
-//     // EXACT EVEN PATH: Both marquees aligned, clean subtraction
-//     console.log(`EXACT EVEN: Both marquees at ${conferredState.sharedValidColumn}`);
-//     for (let column = 20; column >= conferredState.sharedValidColumn; column--) {
-//       const pos = 1 + column * 3;
-//       // SPOOL SELECTION: Column 20 Negative One detection + Column 0 shifted topology
-//       let activeSpool: SpooledWrung;
-//       if (column === 20 && minuendIsNegativeOne && !subtrahendIsNegativeOne) {
-//         activeSpool = SpooledNegativeOneMinusSomeNumberSeries; // (-1) - X
-//       } else if (column === 20 && !minuendIsNegativeOne && subtrahendIsNegativeOne) {
-//         activeSpool = SpooledSomeNumberMinusNegativeOneSeries; // X - (-1)
-//       } else if (column === 0) {
-//         activeSpool = SpooledShiftedDifferenceSeries; // Column 0 shifted topology
-//       } else {
-//         activeSpool = SpooledDifferenceSeries; // Regular difference
-//       }
-//       // FIRST WRUNG: Deplete accumulated borrows into minuend
-//       let intermediate = new BitRotationTuple([minuend[pos], minuend[pos + 1], minuend[pos + 2]]);
-//       while (borrows.length > 0) {
-//         const borrow = borrows.pop()!;
-//         const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//           | BitRotationTuple
-//           | number
-//         )[];
-//         if (borrowTuple.length === 1) {
-//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//         } else {
-//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//           borrows.push(newBorrow);
-//         }
-//       }
-//       // SECOND WRUNG: Subtract subtrahend from intermediate
-//       console.log(
-//         `Column ${column}: intermediate=[${intermediate[0]},${intermediate[1]},${intermediate[2]}] ` +
-//           `subtrahend=[${subtrahend[pos]},${subtrahend[pos + 1]},${subtrahend[pos + 2]}]`
-//       );
-//       const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][subtrahend[pos]][subtrahend[pos + 1]][subtrahend[pos + 2]] as ( // Same spool as First Wrung
-//         | BitRotationTuple<ArrayBuffer>
-//         | number
-//       )[];
-//       const finalResult = finalTuple[0] as BitRotationTuple;
-//       console.log(`Column ${column}: finalResult=[${finalResult[0]},${finalResult[1]},${finalResult[2]}]`);
-//       // Write result
-//       result[pos] = finalResult[0];
-//       result[pos + 1] = finalResult[1];
-//       result[pos + 2] = finalResult[2];
-//       // Push borrow if exists
-//       if (finalTuple.length === 2) {
-//         const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
-//         borrows.push(finalBorrow);
-//       }
-//     }
-//   } else {
-//     // SHIFTED PATH: Marquees at different positions, handle exclusive zones
-//     const wrungAFirst = conferredState.wrungAMarquee.firstValidRotation ?? 20;
-//     const wrungBFirst = conferredState.wrungBMarquee.firstValidRotation ?? 20;
-//     const earlierMarquee = Math.min(wrungAFirst, wrungBFirst);
-//     console.log(`SHIFTED: wrungA first=${wrungAFirst}, wrungB first=${wrungBFirst}, shared=${conferredState.sharedValidColumn}`);
-//     // SHARED ZONE: Both operands participate (sharedValidColumn → 20)
-//     for (let column = 20; column >= conferredState.sharedValidColumn; column--) {
-//       const pos = 1 + column * 3;
-//       // SPOOL SELECTION: Column 20 Negative One detection + Column 0 shifted topology
-//       let activeSpool: SpooledWrung;
-//       if (column === 20 && minuendIsNegativeOne && !subtrahendIsNegativeOne) {
-//         activeSpool = SpooledNegativeOneMinusSomeNumberSeries; // (-1) - X
-//       } else if (column === 20 && !minuendIsNegativeOne && subtrahendIsNegativeOne) {
-//         activeSpool = SpooledSomeNumberMinusNegativeOneSeries; // X - (-1)
-//       } else if (column === 0) {
-//         activeSpool = SpooledShiftedDifferenceSeries; // Column 0 shifted topology
-//       } else {
-//         activeSpool = SpooledDifferenceSeries; // Regular difference
-//       }
-//       // Deplete borrows into minuend
-//       let intermediate = new BitRotationTuple([minuend[pos], minuend[pos + 1], minuend[pos + 2]]);
-//       while (borrows.length > 0) {
-//         const borrow = borrows.pop()!;
-//         const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//           | BitRotationTuple
-//           | number
-//         )[];
-//         if (borrowTuple.length === 1) {
-//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//         } else {
-//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//           borrows.push(newBorrow);
-//         }
-//       }
-//       // Subtract subtrahend
-//       const finalTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][subtrahend[pos]][subtrahend[pos + 1]][subtrahend[pos + 2]] as ( // Same spool as First Wrung
-//         | BitRotationTuple<ArrayBuffer>
-//         | number
-//       )[];
-//       const finalResult = finalTuple[0] as BitRotationTuple;
-//       result[pos] = finalResult[0];
-//       result[pos + 1] = finalResult[1];
-//       result[pos + 2] = finalResult[2];
-//       if (finalTuple.length === 2) {
-//         const finalBorrow = finalTuple[1] as BitRotationTuple<ArrayBuffer>;
-//         borrows.push(finalBorrow);
-//       }
-//     }
-//     // EXCLUSIVE ZONE: Only earlier marquee's operand participates
-//     if (conferredState.sharedValidColumn > earlierMarquee) {
-//       const exclusiveOperand = wrungAFirst < wrungBFirst ? wrungA : wrungB;
-//       console.log(`EXCLUSIVE ZONE: columns ${conferredState.sharedValidColumn - 1} to ${earlierMarquee}`);
-//       for (let column = conferredState.sharedValidColumn - 1; column >= earlierMarquee; column--) {
-//         const pos = 1 + column * 3;
-//         // SPOOL SELECTION: Column 20 Negative One detection + Column 0 shifted topology
-//         let activeSpool: SpooledWrung;
-//         if (column === 20 && aIsNegativeOne && !bIsNegativeOne) {
-//           activeSpool = SpooledNegativeOneMinusSomeNumberSeries; // (-1) - X
-//         } else if (column === 20 && !aIsNegativeOne && bIsNegativeOne) {
-//           activeSpool = SpooledSomeNumberMinusNegativeOneSeries; // X - (-1)
-//         } else if (column === 0) {
-//           activeSpool = SpooledShiftedDifferenceSeries; // Column 0 shifted topology
-//         } else {
-//           activeSpool = SpooledDifferenceSeries; // Regular difference
-//         }
-//         // Deplete borrows into the exclusive operand
-//         let intermediate = new BitRotationTuple([exclusiveOperand[pos], exclusiveOperand[pos + 1], exclusiveOperand[pos + 2]]);
-//         while (borrows.length > 0) {
-//           const borrow = borrows.pop()!;
-//           const borrowTuple = activeSpool[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//             | BitRotationTuple
-//             | number
-//           )[];
-//           if (borrowTuple.length === 1) {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           } else {
-//             intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//             const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//             borrows.push(newBorrow);
-//           }
-//         }
-//         // Write result (no second operand subtraction in exclusive zone)
-//         result[pos] = intermediate[0];
-//         result[pos + 1] = intermediate[1];
-//         result[pos + 2] = intermediate[2];
-//       }
-//     }
-//   }
-
-//   // Phase 8: PLACEHOLDER ZONE - Deplete remaining borrows into placeholder columns
-//   if (borrows.length > 0) {
-//     const earliestColumn = Math.min(
-//       conferredState.wrungAMarquee.firstValidRotation ?? 20,
-//       conferredState.wrungBMarquee.firstValidRotation ?? 20
-//     );
-//     console.log(`PLACEHOLDER ZONE: columns ${earliestColumn - 1} to 0, ${borrows.length} borrows remaining`);
-//     for (let column = earliestColumn - 1; column >= 0; column--) {
-//       const pos = 1 + column * 3;
-//       // Start with placeholder 000
-//       let intermediate = new BitRotationTuple([0, 0, 0]);
-//       while (borrows.length > 0) {
-//         const borrow = borrows.pop()!;
-//         const borrowTuple = SpooledDifferenceSeries[intermediate[0]][intermediate[1]][intermediate[2]][borrow[0]][borrow[1]][borrow[2]] as (
-//           | BitRotationTuple
-//           | number
-//         )[];
-//         if (borrowTuple.length === 1) {
-//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//         } else {
-//           intermediate = borrowTuple[0] as BitRotationTuple<ArrayBuffer>;
-//           const newBorrow = borrowTuple[1] as BitRotationTuple<ArrayBuffer>;
-//           borrows.push(newBorrow);
-//         }
-//       }
-//       // Write result
-//       result[pos] = intermediate[0];
-//       result[pos + 1] = intermediate[1];
-//       result[pos + 2] = intermediate[2];
-//       // If no more borrows, we're done
-//       if (borrows.length === 0) {
-//         break;
-//       }
-//     }
-//   }
-//   // If borrows STILL remain after column 0, underflow occurred
-//   if (borrows.length > 0) {
-//     throw new Error('DifferenceWrung underflow: borrow beyond column 0');
-//   }
-//   // Phase 9: Apply routing result sign (from sign routing logic)
-//   result[0] = routing.resultSign;
-
-//   // Phase 9.5: PRE-NORMALIZATION - Shifted Topology Column 0 Zero Representation
-//   // When spool returns ZERO_CASE (64-bit product, greater than 3 bits input)
-//   // Column 0 must be normalized to marquee [0,0,1] (Display "0"), not [0,0,0] (External Carry)
-//   // Exception: Full Twist (real carry to column 1) keeps [0,0,0]
-//   const col0Binary = [result[1], result[2], result[3]];
-//   const col1Binary = [result[4], result[5], result[6]];
-
-//   console.log(`NORMALIZATION CHECK: col0=[${col0Binary}], col1=[${col1Binary}]`);
-
-//   // If column 0 shows [0,0,0] (external carry encoding)
-//   const isExternalCarry = col0Binary[0] === 0 && col0Binary[1] === 0 && col0Binary[2] === 0;
-
-//   if (isExternalCarry) {
-//     // Check if column 1 is empty (no actual carry present)
-//     const hasCarryToColumn1 = col1Binary[0] !== 0 || col1Binary[1] !== 0 || col1Binary[2] !== 0;
-
-//     console.log(`  isExternalCarry=true, hasCarryToColumn1=${hasCarryToColumn1}`);
-
-//     // If NO actual carry, normalize to marquee [0,0,1]
-//     // This applies to ZERO_CASE (64-bit product from spool) and computed zeros
-//     // Does NOT apply to Full Twist (real external carry to column 1)
-//     if (!hasCarryToColumn1) {
-//       console.log('PRE-NORMALIZATION: Column 0 [0,0,0] → [0,0,1] (zero product → marquee display)');
-//       result[3] = 1; // Set bit0 to 1, creating [0,0,1] (Display "0" shifted topology)
-//     }
-//   }
-
-//   // Phase 9.6: RESULT CONFERENCE - Continuous Bidirectional Method
-//   // Re-conference the result buffer to discover actual marquee position after all operations
-//   const resultMarquee = BidirectionalConference(result);
-//   console.log(
-//     `RESULT CONFERENCE: marqueeRotation=${resultMarquee.marqueeRotation}, ` +
-//     `isAbsoluteZero=${resultMarquee.isAbsoluteZero}`
-//   );
-
-//   // Phase 9.7: STATE TRANSITION DETECTION (if normalization occurred)
-//   // Re-conference only if we normalized - detects marquee shift
-//   if (isExternalCarry && col1Binary[0] === 0 && col1Binary[1] === 0 && col1Binary[2] === 0) {
-//     const postNormalizationMarquee = BidirectionalConference(result);
-
-//     // Detect state transition with Object.is()
-//     if (!Object.is(resultMarquee, postNormalizationMarquee)) {
-//       console.log(
-//         'MARQUEE STATE TRANSITION: Post-normalization conference detected shift'
-//       );
-//       // State transition detected - enables recursive shift tracking
-//       // Future enhancement: return { result, marqueeState } tuple
-//     }
-//   }
-
-//   console.log(`DIFFERENCEWRUNG COMPLETE: Applied routing.resultSign=${routing.resultSign}`);
-//   return result;
-// };

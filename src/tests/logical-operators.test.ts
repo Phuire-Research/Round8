@@ -5,7 +5,7 @@
  * - AND (boolean conjunction)
  * - OR (boolean disjunction)
  * - XOR (boolean exclusive or)
- * - NOT (boolean negation)
+ * - inversion (boolean negation)
  *
  * All operators use 0 = False, 1 = True
  */
@@ -14,7 +14,8 @@ import {
   and,
   or,
   xor,
-  not
+  inversion,
+  TrueFalse
 } from '../concepts/round8/model/cases';
 
 describe('Logical Operators - Universal Boolean Operations', () => {
@@ -36,7 +37,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
     });
 
     test('Commutative property: and(X,Y) === and(Y,X)', () => {
-      const inputs = [0, 1];
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           const forward = and(x, y);
@@ -47,7 +48,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
     });
 
     test('Associative property: and(and(X,Y),Z) === and(X,and(Y,Z))', () => {
-      const inputs = [0, 1];
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           for (const z of inputs) {
@@ -88,7 +89,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
     });
 
     test('Commutative property: or(X,Y) === or(Y,X)', () => {
-      const inputs = [0, 1];
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           const forward = or(x, y);
@@ -99,7 +100,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
     });
 
     test('Associative property: or(or(X,Y),Z) === or(X,or(Y,Z))', () => {
-      const inputs = [0, 1];
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           for (const z of inputs) {
@@ -140,7 +141,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
     });
 
     test('Commutative property: xor(X,Y) === xor(Y,X)', () => {
-      const inputs = [0, 1];
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           const forward = xor(x, y);
@@ -151,7 +152,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
     });
 
     test('Associative property: xor(xor(X,Y),Z) === xor(X,xor(Y,Z))', () => {
-      const inputs = [0, 1];
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           for (const z of inputs) {
@@ -174,54 +175,54 @@ describe('Logical Operators - Universal Boolean Operations', () => {
     });
   });
 
-  describe('NOT - Boolean Negation', () => {
-    test('NOT 0 = 1', () => {
-      expect(not(0)).toBe(1);
+  describe('inversion - Boolean Negation', () => {
+    test('inversion 0 = 1', () => {
+      expect(inversion(0)).toBe(1);
     });
 
-    test('NOT 1 = 0', () => {
-      expect(not(1)).toBe(0);
+    test('inversion 1 = 0', () => {
+      expect(inversion(1)).toBe(0);
     });
 
-    test('Double negation: not(not(X)) === X', () => {
-      expect(not(not(0))).toBe(0);
-      expect(not(not(1))).toBe(1);
+    test('Double negation: inversion(inversion(X)) === X', () => {
+      expect(inversion(inversion(0))).toBe(0);
+      expect(inversion(inversion(1))).toBe(1);
     });
 
-    test('NOT is involution: applying twice returns original', () => {
-      const inputs = [0, 1];
+    test('inversion is involution: applying twice returns original', () => {
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
-        const doubled = not(not(x));
+        const doubled = inversion(inversion(x));
         expect(doubled).toBe(x);
       }
     });
   });
 
   describe('Boolean Algebra Laws', () => {
-    test('De Morgan\'s Law 1: not(and(X,Y)) === or(not(X),not(Y))', () => {
-      const inputs = [0, 1];
+    test('De Morgan\'s Law 1: inversion(and(X,Y)) === or(inversion(X),inversion(Y))', () => {
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
-          const left = not(and(x, y));
-          const right = or(not(x), not(y));
+          const left = inversion(and(x, y));
+          const right = or(inversion(x), inversion(y));
           expect(left).toBe(right);
         }
       }
     });
 
-    test('De Morgan\'s Law 2: not(or(X,Y)) === and(not(X),not(Y))', () => {
-      const inputs = [0, 1];
+    test('De Morgan\'s Law 2: inversion(or(X,Y)) === and(inversion(X),inversion(Y))', () => {
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
-          const left = not(or(x, y));
-          const right = and(not(x), not(y));
+          const left = inversion(or(x, y));
+          const right = and(inversion(x), inversion(y));
           expect(left).toBe(right);
         }
       }
     });
 
     test('Distributive Law 1: and(X, or(Y,Z)) === or(and(X,Y), and(X,Z))', () => {
-      const inputs = [0, 1];
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           for (const z of inputs) {
@@ -234,7 +235,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
     });
 
     test('Distributive Law 2: or(X, and(Y,Z)) === and(or(X,Y), or(X,Z))', () => {
-      const inputs = [0, 1];
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           for (const z of inputs) {
@@ -247,7 +248,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
     });
 
     test('Absorption Law 1: and(X, or(X,Y)) === X', () => {
-      const inputs = [0, 1];
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           const result = and(x, or(x, y));
@@ -257,7 +258,7 @@ describe('Logical Operators - Universal Boolean Operations', () => {
     });
 
     test('Absorption Law 2: or(X, and(X,Y)) === X', () => {
-      const inputs = [0, 1];
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           const result = or(x, and(x, y));
@@ -266,12 +267,12 @@ describe('Logical Operators - Universal Boolean Operations', () => {
       }
     });
 
-    test('XOR definition: xor(X,Y) === and(or(X,Y), not(and(X,Y)))', () => {
-      const inputs = [0, 1];
+    test('XOR definition: xor(X,Y) === and(or(X,Y), inversion(and(X,Y)))', () => {
+      const inputs: TrueFalse[] = [0, 1];
       for (const x of inputs) {
         for (const y of inputs) {
           const xorResult = xor(x, y);
-          const definition = and(or(x, y), not(and(x, y)));
+          const definition = and(or(x, y), inversion(and(x, y)));
           expect(xorResult).toBe(definition);
         }
       }
