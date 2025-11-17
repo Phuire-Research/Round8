@@ -21,7 +21,7 @@ import {
   createBuffer,
   setSignBit,
 } from '../concepts/round8/model/terminology';
-import { BidirectionalConference, MarqueeState } from '../concepts/round8/model/bidirectional';
+import { BidirectionalConference, WrungMuxity } from '../concepts/round8/model/bidirectional';
 
 describe('AnorWrung SuperSet - Self-Referencing Marquee Discovery', () => {
   const createWrung = (values: number[], positive = true): bigint => {

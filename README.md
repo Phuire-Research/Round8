@@ -68,6 +68,11 @@ But 7% is only the beginning as the means of being Quantum resistant also brings
 ## v0.0.2+
 - `from(decimal)` - Decimal input conversion (As of 0.0.14's progress have a method to handle the conversion)
 
+# Stratimux Theorem's
+1. Proportional Spherical Measurement and Round Framework  
+2. Interchangeable Thirds and Spatial Proportional Reality
+3. Stratimuxian Manifolds - Complete Circular Reference Through Type System Delimitation
+
 ## Supporting Documents
 1. [ANOR and Muxification: Foundation of Stratimuxian Mathematics](https://github.com/Phuire-Research/Round8/blob/master/ANOR-MUXIFICATION-STRATIMUXIAN-MATHEMATICS-FOUNDATION.md) - Quality-First mathematical foundation
 2. [Three-Columns Verified](https://raw.githubusercontent.com/Phuire-Research/Round8/refs/heads/master/Three-Columns-Verified.md)

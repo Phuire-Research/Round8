@@ -931,6 +931,26 @@ export type ScanCallback = (buffer: bigint, position: Positions) => boolean;
 export type ScansCallback = (wrungA: bigint, wrungB: bigint, position: Positions) => boolean;
 
 /**
+ * ResultMuxity - Forward-only computation record for Quality-First Muxification
+ * Records position results and metadata without backward scanning
+ * Enables all-8s pattern detection and sign flip analysis before buffer assembly
+ * Proto-Muxium foundation for SCS (Stratimuxian Computing System)
+ */
+export type ResultMuxity = {
+  positions: number[];                // Sequential array: index = position - 1, value = resultIndex (0-7)
+  consecutiveEightsFromStart: number; // Track all-8s pattern for difference operations
+  pendingPropagation: boolean;        // Final carry (sum) or borrow (difference)
+  resultSign: 0 | 1;                  // Sign bit for final assembly (1 = positive, 0 = negative)
+};
+
+export const createResultMuxity = (resultSign: 0 | 1 = 1): ResultMuxity => ({
+  positions: [],                      // Empty array, push sequentially
+  consecutiveEightsFromStart: 0,
+  pendingPropagation: false,
+  resultSign,
+});
+
+/**
  * scanUpward - Recursively scan positions upward from origin toward expansion (1 → 21)
  * Counter metaphor: Tick up increases count, moving toward higher complexity
  * Inverted Pyramid: Origin (simplest) → Upward (expanding possibility space)

@@ -16,7 +16,7 @@
 
 import {
   BidirectionalConference,
-  type MarqueeState
+  type WrungMuxity
 } from './bidirectional';
 
 import {

@@ -22,9 +22,14 @@ import {
 } from './terminology';
 
 /**
- * MarqueeState - Result of BidirectionalConference Marquee detection
+ * WrungMuxity - Self-Referential Quality Container for Round8 Buffers
+ *
+ * Renamed from MarqueeState to WrungMuxity as part of proto-Muxium pattern.
+ * Key enhancement: wrung property enables direct routing without inference logic.
  */
-export type MarqueeState = {
+export type WrungMuxity = {
+  /** The wrung this state pertains to (self-reference) */
+  wrung: bigint;
   /** First valid position for counting (1-21), or -1 for absolute zero */
   firstValidRotation?: number;
   /** Rotation value at Marquee position */
@@ -184,14 +189,15 @@ export const zeroAnorOne = (buffer: bigint): [boolean | undefined, boolean, Cong
  * - Otherwise, Position 21 must be 001 or greater to be valid
  *
  * @param buffer - BigInt buffer (Sign-at-Origin architecture)
- * @returns MarqueeState describing validity and counting boundaries
+ * @returns WrungMuxity describing validity and counting boundaries with self-reference
  */
-export const BidirectionalConference = (buffer: bigint): MarqueeState => {
+export const BidirectionalConference = (buffer: bigint): WrungMuxity => {
   const [m0, m1, m2] = MARQUEE_TUPLE;
   const [isNegative, isOrigin, composition] = zeroAnorOne(buffer);
   // Special case: Absolute Zero (all positions 000)
   if ((isOrigin)) {
     return {
+      wrung: buffer,
       isAbsoluteZero: true,
       firstValidRotation: 1
     };
@@ -218,6 +224,7 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
   const isFinalTwist = composition[0].congruent === false && composition[1].congruent && composition[1].order.length === 20;
   if (isFinalTwist) {
     return {
+      wrung: buffer,
       isNegative,
       isFinalTwist,
       marqueeRotation: 22,
@@ -248,6 +255,7 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
   });
 
   return {
+    wrung: buffer,
     isNegative,
     firstValidRotation: firstValidPosition === -1 || firstValidPosition === 0 ? 1 : firstValidPosition,
     marqueeRotation: marqueePosition,
@@ -288,9 +296,9 @@ export const BidirectionalConference = (buffer: bigint): MarqueeState => {
  */
 export type ConferredMarqueeState = {
   /** Marquee state for first operand (wrungA) */
-  wrungAMarquee: MarqueeState;
+  wrungAMarquee: WrungMuxity;
   /** Marquee state for second operand (wrungB) */
-  wrungBMarquee: MarqueeState;
+  wrungBMarquee: WrungMuxity;
   /**
    * Shared valid rotation boundary (rightmost Marquee position)
    * - Positions 1 to sharedValidRotation are valid in BOTH buffers

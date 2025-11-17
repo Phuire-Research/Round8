@@ -9,7 +9,7 @@ import { LessThanSeries } from './series/lessThan.cases';
 import { ShiftedGreaterThanSeries } from './series/shiftedGreaterThan.cases';
 import { BitRotationTuple, extractBitTuple, getSignBit, Positions, scanDownward, scanDownwards, SomeSeries, SpooledWrung } from './terminology';
 import { ShiftedDifferenceSeries } from './series/shiftedDifference.cases';
-import { BidirectionalConference, MarqueeState } from './bidirectional';
+import { BidirectionalConference, WrungMuxity } from './bidirectional';
 
 // Initialize 6-dimensional array structure for SpooledSumSeries
 export const initializeSpooledWrung = <T>(): SpooledWrung<T> => {
@@ -156,7 +156,7 @@ export type AnorState = {
  */
 export type AnorWrungState = {
   wrung: bigint;
-  marqueeState: MarqueeState;
+  marqueeState: WrungMuxity;
   anor: boolean;
   equal: OrientableWrungIndices | null;
   greater: OrientableWrungIndices | null;
@@ -375,15 +375,15 @@ const createOrientableWrung = (indices: number[], sourceWrungs: bigint[]): Orien
  *
  * @param wrungA - First operand buffer (64 positions)
  * @param wrungB - Second operand buffer (64 positions)
- * @param marqueeStateA - MarqueeState for wrungA (Quality container)
- * @param marqueeStateB - MarqueeState for wrungB (Quality container)
+ * @param marqueeStateA - WrungMuxity for wrungA (Quality container)
+ * @param marqueeStateB - WrungMuxity for wrungB (Quality container)
  * @returns 1 if |wrungA| > |wrungB|, 0 if |wrungB| > |wrungA|, null if equal
  */
 export const compareMagnitude = (
   wrungA: bigint,
   wrungB: bigint,
-  marqueeStateA: MarqueeState,
-  marqueeStateB: MarqueeState
+  marqueeStateA: WrungMuxity,
+  marqueeStateB: WrungMuxity
 ): TrueFalse | null => {
   // QUALITY-FIRST: Check special cases before quantitative comparison
 
@@ -430,11 +430,19 @@ export const compareMagnitude = (
   const marqueeAPosition = marqueeStateA.firstValidRotation ?? 21;
   const marqueeBPosition = marqueeStateB.firstValidRotation ?? 21;
 
-  // Start from the higher marquee position (most significant column)
-  const startPosition = marqueeAPosition > marqueeBPosition ?
-    marqueeAPosition
-    :
-    marqueeBPosition;
+  // QUALITY-FIRST: Different lengths means automatic magnitude difference
+  // More positions = larger magnitude (for same sign)
+  if (marqueeAPosition > marqueeBPosition) {
+    // A has more positions, so A > B
+    return 1;
+  }
+  if (marqueeBPosition > marqueeAPosition) {
+    // B has more positions, so A < B
+    return 0;
+  }
+
+  // Same length - must compare individual positions
+  const startPosition = marqueeAPosition;
 
   // If startPosition is beyond valid range, both are zero (should be caught by AbsoluteZero check)
   if (startPosition > 21 || startPosition < 1) {
@@ -566,57 +574,57 @@ export const anor = (
  * 2. Tests if wrung magnitude is within [A, B] inclusive range
  * 3. If in range, analyzes magnitude relationships to ALL OTHER in-range wrungs
  * 4. Returns indices with .orientate() method for on-demand resolution
- * 5. Preserves MarqueeState in output to avoid information loss
+ * 5. Preserves WrungMuxity in output to avoid information loss
  *
  * Uses compareMagnitude for topology-aware comparison (shifted column 0, regular columns 1-20).
  * Returns null if NO wrungs are within the specified magnitude range.
  *
- * Optional MarqueeState parameters allow developers to avoid redundant BidirectionalConference calls
- * when they have already computed the states. The MarqueeState is preserved in the output.
+ * Optional WrungMuxity parameters allow developers to avoid redundant BidirectionalConference calls
+ * when they have already computed the states. The WrungMuxity is preserved in the output.
  *
  * @param wrungA - First boundary of magnitude range (bigint)
  * @param wrungB - Second boundary of magnitude range (bigint)
  * @param wrungs - Array of wrungs to test
- * @param marqueeStateA - Optional pre-computed MarqueeState for wrungA
- * @param marqueeStateB - Optional pre-computed MarqueeState for wrungB
- * @param wrungMarqueeStates - Optional pre-computed MarqueeStates for wrungs array (parallel)
+ * @param marqueeStateA - Optional pre-computed WrungMuxity for wrungA
+ * @param marqueeStateB - Optional pre-computed WrungMuxity for wrungB
+ * @param wrungWrungMuxitys - Optional pre-computed WrungMuxitys for wrungs array (parallel)
  * @returns AnorWrungState[] if any wrungs in range, null otherwise
  */
 export const anorWrung = (
   wrungA: bigint,
   wrungB: bigint,
   wrungs: bigint[],
-  _marqueeStateA?: MarqueeState,
-  _marqueeStateB?: MarqueeState,
-  wrungMarqueeStates?: MarqueeState[]
+  _marqueeStateA?: WrungMuxity,
+  _marqueeStateB?: WrungMuxity,
+  wrungWrungMuxitys?: WrungMuxity[]
 ): AnorWrungState[] | null => {
   if (wrungs.length === 0) {
     return null;
   }
 
   // Self-referencing marquee discovery via BidirectionalConference (or use pre-computed)
-  const marqueeStateA = _marqueeStateA ?? BidirectionalConference(wrungA) as MarqueeState;
-  const marqueeStateB = _marqueeStateB ?? BidirectionalConference(wrungB) as MarqueeState;
+  const marqueeStateA = _marqueeStateA ?? BidirectionalConference(wrungA) as WrungMuxity;
+  const marqueeStateB = _marqueeStateB ?? BidirectionalConference(wrungB) as WrungMuxity;
 
   // Discover marquee states for all wrungs (or use pre-computed)
-  const resolvedWrungMarqueeStates: MarqueeState[] = wrungMarqueeStates
-    ? wrungMarqueeStates
+  const resolvedWrungWrungMuxitys: WrungMuxity[] = wrungWrungMuxitys
+    ? wrungWrungMuxitys
     : wrungs.map((wrung) => BidirectionalConference(wrung));
 
-  // Quality-First: Pass full MarqueeState objects to compareMagnitude
+  // Quality-First: Pass full WrungMuxity objects to compareMagnitude
   const aGreaterThanB = compareMagnitude(wrungA, wrungB, marqueeStateA, marqueeStateB);
-  const [lower, upper, lowerMarqueeState, upperMarqueeState] =
+  const [lower, upper, lowerWrungMuxity, upperWrungMuxity] =
     aGreaterThanB === 1
       ? [wrungB, wrungA, marqueeStateB, marqueeStateA]
       : [wrungA, wrungB, marqueeStateA, marqueeStateB];
 
   const inRangeIndices: number[] = [];
   wrungs.forEach((wrung, idx) => {
-    const wrungMarqueeState = resolvedWrungMarqueeStates[idx];
+    const wrungWrungMuxity = resolvedWrungWrungMuxitys[idx];
 
-    // Quality-First: Pass MarqueeState objects, not positions
-    const lowerComparison = compareMagnitude(wrung, lower, wrungMarqueeState, lowerMarqueeState);
-    const upperComparison = compareMagnitude(wrung, upper, wrungMarqueeState, upperMarqueeState);
+    // Quality-First: Pass WrungMuxity objects, not positions
+    const lowerComparison = compareMagnitude(wrung, lower, wrungWrungMuxity, lowerWrungMuxity);
+    const upperComparison = compareMagnitude(wrung, upper, wrungWrungMuxity, upperWrungMuxity);
 
     const isGreaterOrEqualLower = lowerComparison === 1 || lowerComparison === null;
     const isLessOrEqualUpper = upperComparison === 0 || upperComparison === null;
@@ -634,12 +642,12 @@ export const anorWrung = (
 
   wrungs.forEach((wrung, idx) => {
     const isInRange = inRangeIndices.includes(idx);
-    const wrungMarqueeState = resolvedWrungMarqueeStates[idx];
+    const wrungWrungMuxity = resolvedWrungWrungMuxitys[idx];
 
     if (!isInRange) {
       states.push({
         wrung: wrung,
-        marqueeState: wrungMarqueeState,
+        marqueeState: wrungWrungMuxity,
         anor: false,
         equal: null,
         greater: null,
@@ -656,9 +664,9 @@ export const anorWrung = (
         }
 
         const otherWrung = wrungs[otherIdx];
-        const otherMarqueeState = resolvedWrungMarqueeStates[otherIdx];
-        // Quality-First: Pass MarqueeState objects for peer comparison
-        const comparison = compareMagnitude(otherWrung, wrung, otherMarqueeState, wrungMarqueeState);
+        const otherWrungMuxity = resolvedWrungWrungMuxitys[otherIdx];
+        // Quality-First: Pass WrungMuxity objects for peer comparison
+        const comparison = compareMagnitude(otherWrung, wrung, otherWrungMuxity, wrungWrungMuxity);
 
         if (comparison === null) {
           equalIndices.push(otherIdx);
@@ -671,7 +679,7 @@ export const anorWrung = (
 
       states.push({
         wrung: wrung,
-        marqueeState: wrungMarqueeState,
+        marqueeState: wrungWrungMuxity,
         anor: true,
         equal: createOrientableWrung(equalIndices, wrungs),
         greater: createOrientableWrung(greaterIndices, wrungs),

@@ -197,33 +197,38 @@ describe('muxifyWrung - Quality-First Summation', () => {
     });
 
     describe('Different Lengths', () => {
-      test('5 + 123 = 238 (1 position + 3 positions)', () => {
+      test('5 + 123 = 128 (1 position + 3 positions)', () => {
         const wrungA = r8('5');
         const wrungB = r8('123');
         const result = muxifyWrung('+', wrungA, wrungB);
 
-        // 5+3=8; position 2 and 3 copy from "123"
-        expect(getWrungStringRepresentation(result)).toBe('238');
+        // Parse reversal: "123" → pos1=3, pos2=2, pos3=1
+        // Sum: pos1=(5+3)=8, pos2=2, pos3=1
+        // Stringify: "821" → reverse → "128"
+        expect(getWrungStringRepresentation(result)).toBe('128');
       });
 
-      test('1234 + 56 = 2412 (4 positions + 2 positions)', () => {
+      test('1234 + 56 = 1312 (4 positions + 2 positions)', () => {
         const wrungA = r8('1234');
         const wrungB = r8('56');
         const result = muxifyWrung('+', wrungA, wrungB);
 
-        // 4+6=10>8 → carry, result=2
-        // 3+5+1=9>8 → carry, result=1
-        // 2+0+1=3 → wait no, copy from longer wrung
-        expect(getWrungStringRepresentation(result)).toBe('2412');
+        // Parse reversal: "1234" → pos1=4, pos2=3, pos3=2, pos4=1
+        // Parse reversal: "56" → pos1=6, pos2=5
+        // Sum: pos1=(4+6)=10→2 carry1, pos2=(3+5+1)=9→1 carry1, pos3=(2+1)=3, pos4=1
+        // Stringify: "2131" → reverse → "1312"
+        expect(getWrungStringRepresentation(result)).toBe('1312');
       });
 
-      test('8 + 11 = 31 (carry extends shorter operand)', () => {
+      test('8 + 11 = 21 (carry extends shorter operand)', () => {
         const wrungA = r8('8');
         const wrungB = r8('11');
         const result = muxifyWrung('+', wrungA, wrungB);
 
-        // 8+1=9>8 → carry, result=1; 0+1+1=2
-        expect(getWrungStringRepresentation(result)).toBe('31');
+        // Parse reversal: "11" → pos1=1, pos2=1
+        // Sum: pos1=(8+1)=9→1 carry1, pos2=(0+1+1)=2
+        // Stringify: "12" → reverse → "21"
+        expect(getWrungStringRepresentation(result)).toBe('21');
       });
     });
 
@@ -310,8 +315,8 @@ describe('muxifyWrung - Quality-First Summation', () => {
       });
     });
 
-    describe('MarqueeState Validation', () => {
-      test('Result MarqueeState correctly identifies non-zero', () => {
+    describe('WrungMuxity Validation', () => {
+      test('Result WrungMuxity correctly identifies non-zero', () => {
         const result = muxifyWrung('+', r8('1'), r8('1'));
         const marqueeState = BidirectionalConference(result);
 
