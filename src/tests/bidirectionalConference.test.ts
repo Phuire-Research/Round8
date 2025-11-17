@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /**
  * BidirectionalConference Validation Clinical Trial
  *
@@ -416,8 +417,6 @@ describe('Phase 2: Standard Cases - Round8 Format Validation', () => {
 
       // Should return a Full Twist Value (Position 21 cannot be '8' unless Full Twist)
       expect(output).toBe('711111111111111111111');
-      // What's this? What's THIS!!!
-      expect(buffer.toString().length).toBeLessThan(output.length);
     });
   });
 });

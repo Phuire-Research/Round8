@@ -173,18 +173,6 @@ export type RegularRotation = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export type ShiftedRotation = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
-// PRUNED: getRegularBitRotation, getShiftedBitRotation, getMarqueeBitRotation
-// These display-specific functions are replaced by unified access:
-// - extractBitTuple provides raw bit extraction for any position
-// - Round8Numerals provides value interpretation
-// - Two-layer separation: raw bits (Layer 1) vs interpreted values (Layer 2)
-
-// PRUNED: getRegularRotation, getShiftedRotation, MarqueeRotation
-// These BigInt-returning functions are replaced by zero-allocation pattern:
-// - extractBitTuple returns raw bits without BigInt allocation
-// - getRotationValue provides unified access returning numbers
-// - Round8Numerals[0] contains the Marquee value (1)
-
 /**
  * MaskStore - Round8 Clear/Set Architecture
  * Sign bit FIXED at bit 0 (Origin Anchor)
@@ -556,6 +544,16 @@ const NumeralSeries = [
   extractValueTuple(NumeralStore.Seven), // Binary 6n → [0,1,1]
   extractValueTuple(NumeralStore.Eight), // Binary 7n → [1,1,1]
 ];
+const AlignedShiftedNumeralSeries = [
+  extractValueTuple(NumeralStore.Three),
+  extractValueTuple(NumeralStore.Four),
+  extractValueTuple(NumeralStore.Five),
+  extractValueTuple(NumeralStore.Six),
+  extractValueTuple(NumeralStore.Seven),
+  extractValueTuple(NumeralStore.Eight),
+  extractValueTuple(NumeralStore.One),
+  extractValueTuple(NumeralStore.Marquee),
+];
 const ShiftedNumeralSeries = [
   extractValueTuple(NumeralStore.Marquee),
   extractValueTuple(NumeralStore.Three),
@@ -610,7 +608,7 @@ const ShiftedStringNumerals = [
 
 ];
 
-export const initializeSpooledWrung = <T extends number | string>() => {
+export const initializeSpooledWrung = <T extends number | string | BitRotationTuple>() => {
   const arr:  T[][][] = [];
   for (let i = 0; i < 2; i++) {
     arr[i] = [];
@@ -625,6 +623,8 @@ export const spooledNumerals = initializeSpooledWrung<number>();
 export const spooledShiftedNumerals = initializeSpooledWrung<number>();
 export const spooledStringNumerals = initializeSpooledWrung<string>();
 export const spooledShiftedStringNumerals = initializeSpooledWrung<string>();
+// Only One Needed as we only Handle a Twist Case Given Some Carry Output.
+export const spooledRegularShiftedBridge = initializeSpooledWrung<BitRotationTuple>();
 
 const spool = <T>(informativeSeries: [0 | 1, 0 | 1, 0 | 1][], baseSeries: T[], spooled: T[][][]) => {
   informativeSeries.forEach((informative, i) => {
@@ -640,6 +640,7 @@ spool(NumeralSeries, Numerals, spooledNumerals);
 spool(ShiftedNumeralSeries, ShiftedNumerals, spooledShiftedNumerals);
 spool(NumeralSeries, StringNumerals, spooledStringNumerals);
 spool(ShiftedNumeralSeries, ShiftedStringNumerals, spooledShiftedStringNumerals);
+spool(NumeralSeries, AlignedShiftedNumeralSeries, spooledRegularShiftedBridge);
 
 /**
  * getRegularBitRotation - Get the bit tuple for regular positions 1-8
