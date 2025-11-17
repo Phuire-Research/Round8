@@ -23,54 +23,11 @@ import {
   scanUpward,
   getRotationString,
   type Positions,
-  NumeralStore,
-  ShiftedNumeralStore,
-  WorkingBigIntBucket,
-  getClearMaskForPosition,
-  getBitOffsetForPosition,
-  extractBitTuple,
-  getSignBit
+  getSignBit,
+  applyMarqueeAtPosition,
+  getShiftedRotationString,
+  extractBitTuple
 } from './terminology';
-
-/**
- * applyMarqueeAtPosition - Directly apply Marquee value at specified position
- *
- * Uses NumeralStore.Marquee for regular positions, ShiftedNumeralStore.Marquee for Position 21.
- * Zero-allocation: Uses pre-computed masks and Working BigIntBucket.
- *
- * @param buffer - BigInt buffer to modify
- * @param position - Position to set Marquee (1-21)
- * @param useShifted - Whether to use ShiftedNumeralStore (for Position 21 conceptual Marquee)
- * @returns Modified buffer with Marquee set at position
- */
-const applyMarqueeAtPosition = (
-  buffer: bigint,
-  position: Positions,
-  useShifted = false
-): bigint => {
-  // Get the Marquee value from appropriate store
-  const marqueeValue = useShifted
-    ? ShiftedNumeralStore.Marquee
-    : NumeralStore.Marquee;
-
-  // Use WorkingBigIntBucket for zero-allocation
-  WorkingBigIntBucket.content = marqueeValue;
-
-  // Get pre-computed clear mask and bit offset (no runtime BigInt!)
-  const clearMask = getClearMaskForPosition(position);
-  const bitOffset = getBitOffsetForPosition(position);
-
-  // Shift value to position using pre-computed offset
-  WorkingBigIntBucket.content <<= bitOffset;
-
-  // Clear position bits, then apply Marquee value (Clear and Set operation)
-  const result = (buffer & clearMask) | WorkingBigIntBucket.content;
-
-  // Reset bucket for next operation (zero-allocation pattern)
-  WorkingBigIntBucket.content = 0n;
-
-  return result;
-};
 
 /**
  * getWrungStringRepresentation - Parse buffer to Round8 string representation
@@ -100,9 +57,9 @@ export const getWrungStringRepresentation = (buffer: bigint): string => {
   }
   if (marqueeState.isFinalTwist) {
     if (marqueeState.isNegative) {
-      return '-788888888888888888888';
+      return '-711111111111111111111';
     } else {
-      return '788888888888888888888';
+      return '711111111111111111111';
     }
   }
 
@@ -117,8 +74,13 @@ export const getWrungStringRepresentation = (buffer: bigint): string => {
       return false; // Stop scanning
     }
     // Accumulate string representation for valid position
-    const rotationString = getRotationString(buf, pos);
-    result += rotationString;
+    if (pos !== 21) {
+      const rotationString = getRotationString(buf, pos);
+      result += rotationString;
+    } else {
+      const rotationString = getShiftedRotationString(buf, pos);
+      result += rotationString;
+    }
     return true; // Continue scanning
   });
 
@@ -662,6 +624,15 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
     isNegative = true;
     // Splice off '-' prefix
     preparedString = preparedString.slice(1);
+  }
+
+  if (preparedString === '711111111111111111111') {
+    return getRound8Case(
+      isNegative ?
+        Round8Cases.NEGATIVE_TWIST_CASE
+        :
+        Round8Cases.POSITIVE_TWIST_CASE
+    );
   }
 
   // Invalid case: empty string after normalization

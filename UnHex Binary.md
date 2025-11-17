@@ -21,7 +21,7 @@ Unsigned Round8 UnHexed 16Bit Binary
 0 000 000 001 111 111 = 88
 0 000 001 111 111 111 = 8,88
 0 001 111 111 111 111 = 8,88,88
-1 111 111 001 111 111 = 18,88,88 | Count of 70216
+1 111 111 111 111 111 = 18,88,88 | Count of 70216
 ```
 
 Why is the 16bit so important? Every internet pack would carry 7% More Data. Every 16bit operation would be 7% more efficient.

@@ -740,6 +740,21 @@ export const getRotationString = (buffer: bigint, position: Positions): string =
 };
 
 /**
+ * getRotationString - Unified accessor for string rotation values
+ * Zero-allocation: returns string using pre-spooled lookup
+ * @param buffer - BigInt buffer to read from
+ * @param position - Position (1-21) to extract value from
+ * @returns String value ('1'-'8') from spooled Round8 interpretation
+ */
+export const getShiftedRotationString = (buffer: bigint, position: Positions): string => {
+  // Layer 1: Extract raw bits
+  const [b0, b1, b2] = extractBitTuple(buffer, position);
+
+  // Layer 2: Direct spool lookup for strings
+  return spooledShiftedStringNumerals[b0][b1][b2];
+};
+
+/**
  * applyNumeralRotation - Clear and Set function for applying numeral values
  * Uses WorkingBigIntBucket - ZERO allocation!
  * Sign-at-Origin: Position 1 at bits 1-3, Sign at bit 0
@@ -803,12 +818,114 @@ export const applyNumeralRotation = (value: number, buffer: bigint, position: Po
 };
 
 /**
+ * applyNumeralRotation - Clear and Set function for applying numeral values
+ * Uses WorkingBigIntBucket - ZERO allocation!
+ * Sign-at-Origin: Position 1 at bits 1-3, Sign at bit 0
+ * This REPLACES the old setBinaryRotation function (pruned for zero-allocation)
+ * @param value - Number value (0-7) from Round8Numerals or elsewhere
+ * @param buffer - The bigint buffer to modify
+ * @param position - Position (1-21) to set value
+ * @returns Updated buffer with value applied at position
+ */
+export const applyShiftedNumeralRotation = (value: number, buffer: bigint, position: Positions): bigint => {
+  let finalValue: bigint;
+  // PIN - REllEK [UNREASONABLE FIND] - Here is a major built in inefficiency that a Informative Base Relationship would benefit from.
+  // Effectively because the Bits of Round8 are Relative. We would be Able to Shift 3 bits onto a Buffer of Some N Length.
+  // There is no reason to not allow this outside of feat of lost precision, but here we have Greater Precision.
+  switch (value) {
+  case 0: {
+    finalValue = ShiftedNumeralStore.One;
+    break;
+  }
+  case 1: {
+    finalValue = ShiftedNumeralStore.Two;
+    break;
+  }
+  case 2: {
+    finalValue = ShiftedNumeralStore.Three;
+    break;
+  }
+  case 3: {
+    finalValue = ShiftedNumeralStore.Four;
+    break;
+  }
+  case 4: {
+    finalValue = ShiftedNumeralStore.Five;
+    break;
+  }
+  case 5: {
+    finalValue = ShiftedNumeralStore.Six;
+    break;
+  }
+  case 6: {
+    finalValue = ShiftedNumeralStore.Seven;
+    break;
+  }
+  case 7: {
+    finalValue = ShiftedNumeralStore.Eight;
+    break;
+  }
+  default: {
+    throw 'CRITICAL';
+  }
+  }
+  WorkingBigIntBucket.content = finalValue;
+  // Get pre-computed clear mask and bit offset (no runtime BigInt!)
+  const clearMask = getClearMaskForPosition(position);
+  const bitOffset = getBitOffsetForPosition(position);
+
+  // Shift value to position using pre-computed offset
+  WorkingBigIntBucket.content <<= bitOffset;
+  // Clear position bits, then apply new value (Clear and Set operation)
+  return (buffer & clearMask) | WorkingBigIntBucket.content;
+};
+
+/**
+ * applyMarqueeAtPosition - Directly apply Marquee value at specified position
+ *
+ * Uses NumeralStore.Marquee for regular positions, ShiftedNumeralStore.Marquee for Position 21.
+ * Zero-allocation: Uses pre-computed masks and Working BigIntBucket.
+ *
+ * @param buffer - BigInt buffer to modify
+ * @param position - Position to set Marquee (1-21)
+ * @param useShifted - Whether to use ShiftedNumeralStore (for Position 21 conceptual Marquee)
+ * @returns Modified buffer with Marquee set at position
+ */
+export const applyMarqueeAtPosition = (
+  buffer: bigint,
+  position: Positions,
+  useShifted = false
+): bigint => {
+  // Get the Marquee value from appropriate store
+  const marqueeValue = useShifted
+    ? ShiftedNumeralStore.Marquee
+    : NumeralStore.Marquee;
+
+  // Use WorkingBigIntBucket for zero-allocation
+  WorkingBigIntBucket.content = marqueeValue;
+
+  // Get pre-computed clear mask and bit offset (no runtime BigInt!)
+  const clearMask = getClearMaskForPosition(position);
+  const bitOffset = getBitOffsetForPosition(position);
+
+  // Shift value to position using pre-computed offset
+  WorkingBigIntBucket.content <<= bitOffset;
+
+  // Clear position bits, then apply Marquee value (Clear and Set operation)
+  const result = (buffer & clearMask) | WorkingBigIntBucket.content;
+
+  // Reset bucket for next operation (zero-allocation pattern)
+  WorkingBigIntBucket.content = 0n;
+
+  return result;
+};
+
+/**
  * ScanCallback - Callback function type for position scanning
  * @param buffer - The 64-bit bigint buffer being scanned
  * @param position - Current position (1-21)
  * @returns true to continue scanning, false to stop
  */
-
 export type ScanCallback = (buffer: bigint, position: Positions) => boolean;
 export type ScansCallback = (wrungA: bigint, wrungB: bigint, position: Positions) => boolean;
 

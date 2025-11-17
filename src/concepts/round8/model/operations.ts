@@ -1,13 +1,19 @@
 import { BidirectionalConference, MarqueeState } from './bidirectional';
 import { compareMagnitude, SpooledDifferenceSeries, SpooledSumSeries } from './cases';
 import {
+  applyMarqueeAtPosition,
   applyNumeralRotation,
+  applyShiftedNumeralRotation,
   createBuffer,
   extractBitTuple,
+  getRound8Case,
   getSignBit,
   Positions,
+  Round8Cases,
   scanUpwards,
   setSignBit,
+  spooledNumerals,
+  spooledShiftedNumerals,
   SpooledWrung
 } from './terminology';
 
@@ -189,10 +195,13 @@ export const muxifyWrung = (operation: Operations, wrungA: bigint, wrungB: bigin
     marqueeStateB
   );
 
-  // QUALITY-FIRST: FinalTwist Overflow Check
+  // QUALITY-FIRST: FinalTwist Detection
+  // FinalTwist is the maximum value - any addition to it causes overflow
   if (effectiveOperation.effectiveOp === 'sum') {
     if (marqueeStateA.isFinalTwist || marqueeStateB.isFinalTwist) {
-      throw new Error('Overflow: Cannot add to FinalTwist');
+      return effectiveOperation.resultSign === 1
+        ? getRound8Case(Round8Cases.POSITIVE_TWIST_CASE)
+        : getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
     }
   }
 
@@ -204,12 +213,22 @@ export const muxifyWrung = (operation: Operations, wrungA: bigint, wrungB: bigin
     result = setSignBit(result);
   }
 
-  const maxPosition = Math.max(
-    marqueeStateA.firstValidRotation ?? 1,
-    marqueeStateB.firstValidRotation ?? 1
-  );
+  // Use marqueeRotation to determine actual wrung length
+  // marqueeRotation is position AFTER last numeral
+  // If undefined, wrung is 21 positions (no marquee)
+  const lengthA = marqueeStateA.marqueeRotation
+    ? marqueeStateA.marqueeRotation - 1
+    : 21;
+  const lengthB = marqueeStateB.marqueeRotation
+    ? marqueeStateB.marqueeRotation - 1
+    : 21;
+  const minPosition = Math.min(lengthA, lengthB);
+  const maxPosition = Math.max(lengthA, lengthB);
+  const longerWrung = lengthA > lengthB ? wrungA : wrungB;
 
   let pendingCarry = false;
+  let lastComputedPosition = 0;
+  let isFinalTwistDetected = false;
 
   // Provably Halting Complete Scan - Stratimuxian Computing Foundation
   scanUpwards(wrungA, wrungB, (a: bigint, b: bigint, pos: Positions) => {
@@ -218,17 +237,82 @@ export const muxifyWrung = (operation: Operations, wrungA: bigint, wrungB: bigin
       return false;
     }
 
+    lastComputedPosition = pos;
+
+    // Check if we're beyond the shorter operand's length
+    // Beyond shorter operand means we're past its end - no addition, just copy from longer
+    if (pos > minPosition && lengthA !== lengthB) {
+      // Beyond shorter operand's marquee - directly copy from longer operand
+      // No spool combination needed - extract numeral index from longer wrung
+      const [b0, b1, b2] = extractBitTuple(longerWrung, pos);
+      // Use contextually appropriate numeral spool (regular or shifted for position 21)
+      const numeralIndex = pos === 21
+        ? spooledShiftedNumerals[b0][b1][b2]
+        : spooledNumerals[b0][b1][b2];
+
+      let resultIndex = numeralIndex;
+
+      // Apply pending carry if exists
+      if (pendingCarry) {
+        resultIndex += 1;
+        if (resultIndex > 7) {
+          resultIndex = 0;
+          pendingCarry = true;
+        } else {
+          pendingCarry = false;
+        }
+      }
+
+      // Apply numeral to result position using contextually appropriate function
+      result = pos === 21
+        ? applyShiftedNumeralRotation(resultIndex, result, pos)
+        : applyNumeralRotation(resultIndex, result, pos);
+      return true;
+    }
+
+    // Both operands have valid numerals at this position - use sum spool
     const [rtA0, rtA1, rtA2] = extractBitTuple(a, pos);
     const [rtB0, rtB1, rtB2] = extractBitTuple(b, pos);
 
     // Spool indexing: [bit0_A][bit1_A][bit2_A][bit0_B][bit1_B][bit2_B]
     const spoolResult = chosenSpool[rtA0][rtA1][rtA2][rtB0][rtB1][rtB2];
+
+    // Check for FinalTwist pattern at position 21: [[0,0,0], [0,0,0]]
+    if (pos === 21 && Array.isArray(spoolResult[0])) {
+      // FinalTwist overflow detected - return FinalTwist case
+      result = effectiveOperation.resultSign === 1
+        ? getRound8Case(Round8Cases.POSITIVE_TWIST_CASE)
+        : getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
+      isFinalTwistDetected = true;
+      return false; // Stop scanning
+    }
+
     let resultIndex = spoolResult[0] as number;
     let hasNewCarry = spoolResult.length > 1;
 
+    // Position 21 carry means overflow (no position 22)
+    if (pos === 21 && hasNewCarry) {
+      // FinalTwist overflow at position 21
+      result = effectiveOperation.resultSign === 1
+        ? getRound8Case(Round8Cases.POSITIVE_TWIST_CASE)
+        : getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
+      isFinalTwistDetected = true;
+      return false; // Stop scanning
+    }
+
     if (pendingCarry) {
       resultIndex += 1;
-      if (resultIndex > 7) {
+      // For position 21, index > 6 means overflow (7 = FinalTwist)
+      const maxIndex = pos === 21 ? 6 : 7;
+      if (resultIndex > maxIndex) {
+        if (pos === 21) {
+          // FinalTwist overflow at position 21
+          result = effectiveOperation.resultSign === 1
+            ? getRound8Case(Round8Cases.POSITIVE_TWIST_CASE)
+            : getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
+          isFinalTwistDetected = true;
+          return false; // Stop scanning
+        }
         resultIndex = 0;
         hasNewCarry = true;
       }
@@ -239,18 +323,40 @@ export const muxifyWrung = (operation: Operations, wrungA: bigint, wrungB: bigin
       pendingCarry = true;
     }
 
-    result = applyNumeralRotation(resultIndex, result, pos);
+    // Use appropriate apply function for position 21
+    result = pos === 21
+      ? applyShiftedNumeralRotation(resultIndex, result, pos)
+      : applyNumeralRotation(resultIndex, result, pos);
     return true;
   });
 
+  // Early return if FinalTwist was detected during scan
+  if (isFinalTwistDetected) {
+    return result;
+  }
+
   // Handle final carry (extends marquee by one position)
   if (pendingCarry) {
-    if (maxPosition < 21) {
-      const nextPosition = (maxPosition + 1) as Positions;
-      result = applyNumeralRotation(0, result, nextPosition);
+    if (lastComputedPosition < 21) {
+      const nextPosition = (lastComputedPosition + 1) as Positions;
+      // Use appropriate apply function for position 21
+      result = nextPosition === 21
+        ? applyShiftedNumeralRotation(0, result, nextPosition)
+        : applyNumeralRotation(0, result, nextPosition);
+      lastComputedPosition = nextPosition;
     } else {
-      throw new Error('Overflow: Carry beyond position 21');
+      // Overflow: Carry beyond position 21 defaults to FinalTwist case
+      return effectiveOperation.resultSign === 1
+        ? getRound8Case(Round8Cases.POSITIVE_TWIST_CASE)
+        : getRound8Case(Round8Cases.NEGATIVE_TWIST_CASE);
     }
+  }
+
+  // Apply Marquee delimiter at position after last computed
+  if (lastComputedPosition < 21) {
+    const marqueePosition = (lastComputedPosition + 1) as Positions;
+    // Use applyMarqueeAtPosition for direct marquee pattern application
+    result = applyMarqueeAtPosition(result, marqueePosition);
   }
 
   return result;
