@@ -338,16 +338,20 @@ describe('AnorWrung SuperSet - Self-Referencing Marquee Discovery', () => {
       expect(comparison).toBeNull();
     });
 
-    test('compareMagnitude respects sign bits', () => {
-      const positiveWrung = createWrung([5], true);
-      const negativeWrung = createWrung([5], false);
+    test('compareMagnitude is sign-agnostic (magnitude = absolute value)', () => {
+      const positiveWrung = createWrung([5], true);  // Magnitude |5|
+      const negativeWrung = createWrung([5], false); // Magnitude |5|
 
       // Quality-First: Pass full MarqueeState objects
       const marqueeStateA = BidirectionalConference(positiveWrung);
       const marqueeStateB = BidirectionalConference(negativeWrung);
 
+      // FIXED (2025-11-17): compareMagnitude compares magnitudes (absolute values), not signed values
+      // |5| = |5| → null (equal magnitudes), regardless of sign bits
+      // Sign routing is handled by determineEffectiveOperation, not magnitude comparison
+      // Citation: SUITE-7-ROSE-MIXED-SIGN-EDGE-CASE-DIAGNOSIS.md
       const comparison = compareMagnitude(positiveWrung, negativeWrung, marqueeStateA, marqueeStateB);
-      expect(comparison).toBe(1);
+      expect(comparison).toBeNull(); // Equal magnitudes
     });
   });
 

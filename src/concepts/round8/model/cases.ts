@@ -418,20 +418,26 @@ export const compareMagnitude = (
   }
 
   // QUANTITATIVE FALLBACK: Both are "Between" - use spool lookup
+  // NOTE: Sign bits extracted but not used for magnitude comparison
+  // Magnitude = absolute value (sign-agnostic)
   const signA = getSignBit(wrungA);
   const signB = getSignBit(wrungB);
   let greater: TrueFalse | null = null;
 
-  if (signA !== signB) {
-    return signA === 1 && signB === 0 ? 1 : 0;
-  }
+  // BUG FIX (2025-11-17): Commented out signed value comparison
+  // This was comparing SIGNED VALUES (positive > negative) instead of MAGNITUDES (absolute values)
+  // Caused 6 edge case failures: equal magnitude short-circuit never triggered, inverted anchor/modulator
+  // Citation: SUITE-7-ROSE-MIXED-SIGN-EDGE-CASE-DIAGNOSIS.md
+  // if (signA !== signB) {
+  //   return signA === 1 && signB === 0 ? 1 : 0;
+  // }
 
   // Extract quantitative positions from Quality containers
   const marqueeAPosition = marqueeStateA.firstValidRotation ?? 21;
   const marqueeBPosition = marqueeStateB.firstValidRotation ?? 21;
 
   // QUALITY-FIRST: Different lengths means automatic magnitude difference
-  // More positions = larger magnitude (for same sign)
+  // More positions = larger magnitude (sign-agnostic)
   if (marqueeAPosition > marqueeBPosition) {
     // A has more positions, so A > B
     return 1;
