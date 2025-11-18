@@ -239,7 +239,7 @@ function createCalculator() {
     handleBackspace,
     handleZero,
     handleOperation,
-    // handleCalculate,
+    handleCalculate,
     handleSigned,
     handleIncrement,
     handleDecrement,

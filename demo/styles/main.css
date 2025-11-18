@@ -96,7 +96,11 @@
     background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.95), rgba(0, 0, 0, 0.95));
     padding: 5px;
     border-radius: 10px;
-    border: #3d1324 3px solid;
+    /* HiFi dimensional borders - maroon with 8% differential */
+    border-top: 3px solid #381121;       /* 8% darker */
+    border-right: 3px solid #381121;     /* 8% darker */
+    border-bottom: 3px solid #421527;    /* 8% lighter */
+    border-left: 3px solid #421527;      /* 8% lighter */
   }
 
   /* Calculator Header - Glossy Black with Golden-Green Shine */
@@ -626,7 +630,7 @@
     border-left: 2px solid var(--color-rose-border-dark);
   }
 
-  /* Calculate Button: Viridian/Instillment (Execution) */
+  /* Calculate Button: Cobalt/Professional (Execution) */
   .hifi-btn-calculate {
     @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
     @apply transform text-white;
@@ -634,31 +638,31 @@
     width: 100%;
     height: 100%;
     background-image:
-      var(--pattern-viridian),
-      radial-gradient(circle at 87.5% 12.5%, var(--color-viridian) 0%, #1d1e15 88%);
+      var(--pattern-cobalt),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-cobalt) 0%, #151d1e 88%);
     background-repeat: repeat, no-repeat;
     background-size: 30px 30px, 100% 100%;
     background-position: 0 0, 0 0;
-    border-top: 2px solid var(--color-viridian-border-dark);
-    border-right: 2px solid var(--color-viridian-border-dark);
-    border-bottom: 2px solid var(--color-viridian-border-light);
-    border-left: 2px solid var(--color-viridian-border-light);
-    box-shadow: -8px 8px 32px var(--color-viridian-shadow);
+    border-top: 2px solid var(--color-cobalt-border-dark);
+    border-right: 2px solid var(--color-cobalt-border-dark);
+    border-bottom: 2px solid var(--color-cobalt-border-light);
+    border-left: 2px solid var(--color-cobalt-border-light);
+    box-shadow: -8px 8px 32px var(--color-cobalt-shadow);
   }
 
   .hifi-btn-calculate:hover {
     background-image:
-      var(--pattern-viridian),
-      radial-gradient(circle at 87.5% 12.5%, var(--color-viridian-light) 0%, #1d1e15 88%);
-    box-shadow: -6px 6px 24px var(--color-viridian-shadow);
+      var(--pattern-cobalt),
+      radial-gradient(circle at 87.5% 12.5%, var(--color-cobalt-light) 0%, #151d1e 88%);
+    box-shadow: -6px 6px 24px var(--color-cobalt-shadow);
     transform: scale(0.96);
   }
 
   .hifi-btn-calculate:active {
-    border-top: 2px solid var(--color-viridian-border-light);
-    border-right: 2px solid var(--color-viridian-border-light);
-    border-bottom: 2px solid var(--color-viridian-border-dark);
-    border-left: 2px solid var(--color-viridian-border-dark);
+    border-top: 2px solid var(--color-cobalt-border-light);
+    border-right: 2px solid var(--color-cobalt-border-light);
+    border-bottom: 2px solid var(--color-cobalt-border-dark);
+    border-left: 2px solid var(--color-cobalt-border-dark);
   }
 
   /* Comparison Buttons: Amethyst/Operations (Logical Connections) */
@@ -989,7 +993,11 @@
   padding: 1.25rem;
   margin-bottom: 1.25rem;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
-  border: 3px solid rgb(63 20 83);
+  /* HiFi dimensional borders - purple-amethyst with 8% differential */
+  border-top: 3px solid #3a124d;      /* 8% darker */
+  border-right: 3px solid #3a124d;    /* 8% darker */
+  border-bottom: 3px solid #44165a;   /* 8% lighter */
+  border-left: 3px solid #44165a;     /* 8% lighter */
   position: relative;
 }
 
@@ -1068,8 +1076,12 @@
 /* Input Rows */
 .input-row {
   background-color: rgba(30, 41, 59, 0.5);
-  border-color: rgb(71 85 105);  /* slate-600 */
   cursor: pointer;
+  /* HiFi dimensional borders (inactive state only) - slate with 8% differential */
+  border-top: 2px solid #414f61;      /* 8% darker */
+  border-right: 2px solid #414f61;    /* 8% darker */
+  border-bottom: 2px solid #4d5b71;   /* 8% lighter */
+  border-left: 2px solid #4d5b71;     /* 8% lighter */
 }
 
 .input-row:hover {
@@ -1077,7 +1089,8 @@
 }
 
 .input-row-active {
-  border-color: var(--color-ochre);
+  /* Uniform border (no dimensional variation when active) */
+  border: 2px solid var(--color-ochre);
   background-color: rgba(204, 119, 34, 0.1);
   box-shadow: 0 0 0 3px rgba(204, 119, 34, 0.2);
 }
@@ -1110,6 +1123,9 @@
 
 .input-value {
   flex: 1;
+  width: 100%;
+  text-align: right;
+  padding-right: 0.5rem;
 }
 
 .input-value:empty::before {
@@ -1117,27 +1133,84 @@
   opacity: 0.3;
 }
 
-/* Operand Row */
+/* Operand Row - HiFi Treatment */
 .operand-row {
-  background-color: rgba(71, 85, 105, 0.3);
-  border: 2px solid rgba(71, 85, 105, 0.5);
   text-align: center;
-  min-height: 68px;
+  max-height: 16px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.operand-row[data-operation="add"] {
-  background-color: rgba(64, 130, 109, 0.2);
-  border-color: var(--color-viridian);
+/* Add Operation - Rust Phase (Prospector) */
+.operand-row[data-operation="+"] {
+  background-image:
+    var(--pattern-rust),
+    radial-gradient(circle at 87.5% 12.5%, var(--color-rust) 0%, #151d1e 88%);
+  background-repeat: repeat, no-repeat;
+  background-size: 30px 30px, 100% 100%;
+  border-top: 2px solid var(--color-rust-border-dark);
+  border-right: 2px solid var(--color-rust-border-dark);
+  border-bottom: 2px solid var(--color-rust-border-light);
+  border-left: 2px solid var(--color-rust-border-light);
 }
 
-.operand-row[data-operation="subtract"] {
-  background-color: rgba(0, 71, 171, 0.2);
-  border-color: var(--color-cobalt);
+/* Subtract Operation - Rose Phase (Healing) */
+.operand-row[data-operation="-"] {
+  background-image:
+    var(--pattern-rose),
+    radial-gradient(circle at 87.5% 12.5%, var(--color-rose) 0%, #151d1e 88%);
+  background-repeat: repeat, no-repeat;
+  background-size: 30px 30px, 100% 100%;
+  border-top: 2px solid var(--color-rose-border-dark);
+  border-right: 2px solid var(--color-rose-border-dark);
+  border-bottom: 2px solid var(--color-rose-border-light);
+  border-left: 2px solid var(--color-rose-border-light);
 }
 
-.operand-row[data-operation="compare"] {
-  background-color: rgba(106, 13, 173, 0.2);
-  border-color: var(--color-amethyst);
+/* Multiply Operation - Viridian Phase (Instillment) */
+.operand-row[data-operation="*"] {
+  background-image:
+    var(--pattern-viridian),
+    radial-gradient(circle at 87.5% 12.5%, var(--color-viridian) 0%, #151d1e 88%);
+  background-repeat: repeat, no-repeat;
+  background-size: 30px 30px, 100% 100%;
+  border-top: 2px solid var(--color-viridian-border-dark);
+  border-right: 2px solid var(--color-viridian-border-dark);
+  border-bottom: 2px solid var(--color-viridian-border-light);
+  border-left: 2px solid var(--color-viridian-border-light);
+}
+
+/* Divide Operation - Ochre Phase (Drafting) */
+.operand-row[data-operation="/"] {
+  background-image:
+    var(--pattern-ochre),
+    radial-gradient(circle at 87.5% 12.5%, var(--color-ochre) 0%, #151d1e 88%);
+  background-repeat: repeat, no-repeat;
+  background-size: 30px 30px, 100% 100%;
+  border-top: 2px solid var(--color-ochre-border-dark);
+  border-right: 2px solid var(--color-ochre-border-dark);
+  border-bottom: 2px solid var(--color-ochre-border-light);
+  border-left: 2px solid var(--color-ochre-border-light);
+}
+
+/* Comparison Operations - Amethyst Phase (Operations) */
+.operand-row[data-operation=">"],
+.operand-row[data-operation="<"],
+.operand-row[data-operation=">="],
+.operand-row[data-operation="<="],
+.operand-row[data-operation="=="],
+.operand-row[data-operation="!="] {
+  background-image:
+    var(--pattern-amethyst),
+    radial-gradient(circle at 87.5% 12.5%, var(--color-amethyst) 0%, #151d1e 88%);
+  background-repeat: repeat, no-repeat;
+  background-size: 30px 30px, 100% 100%;
+  border-top: 2px solid var(--color-amethyst-border-dark);
+  border-right: 2px solid var(--color-amethyst-border-dark);
+  border-bottom: 2px solid var(--color-amethyst-border-light);
+  border-left: 2px solid var(--color-amethyst-border-light);
 }
 
 .operand-label {
@@ -1154,14 +1227,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
 }
 
 .operand-symbol {
-  font-size: 2rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: rgb(241 245 249);
-  transform: rotate(90deg);
   display: inline-block;
 }
 
@@ -1175,7 +1248,11 @@
 /* Output Row */
 .output-row {
   background-color: rgba(128, 0, 32, 0.15);
-  border: 2px solid var(--color-maroon);
+  /* HiFi dimensional borders - maroon with 8% differential */
+  border-top: 2px solid var(--color-maroon-border-dark);
+  border-right: 2px solid var(--color-maroon-border-dark);
+  border-bottom: 2px solid var(--color-maroon-border-light);
+  border-left: 2px solid var(--color-maroon-border-light);
 }
 
 .output-label {
@@ -1196,6 +1273,18 @@
   min-height: 48px;
   display: flex;
   align-items: center;
+}
+
+.output-value {
+  flex: 1;
+  width: 100%;
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+.output-value:empty::before {
+  content: '0';
+  opacity: 0.3;
 }
 
 /* Error Row */

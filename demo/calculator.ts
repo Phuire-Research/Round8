@@ -77,10 +77,12 @@ function updateOperationDisplay(
 
   const symbolElement = document.getElementById('operandSymbol');
   const nameElement = document.getElementById('operandName');
+  const operandRow = document.getElementById('operandRow');
 
   if (!operation) {
     if (symbolElement) symbolElement.textContent = '';
     if (nameElement) nameElement.textContent = '';
+    if (operandRow) operandRow.removeAttribute('data-operation');
     return;
   }
 
@@ -99,6 +101,7 @@ function updateOperationDisplay(
   const display = operationMap[operation];
   if (symbolElement) symbolElement.textContent = display.symbol;
   if (nameElement) nameElement.textContent = display.name;
+  if (operandRow) operandRow.setAttribute('data-operation', operation);
 }
 
 /**
@@ -418,6 +421,19 @@ function initializeCalculator(): void {
   }
 
   // Initialize active input highlighting on load
+  updateActiveInputHighlight(calc);
+
+  // Initialize both inputs with absolute 0 and populate binary displays
+  calc.state.activeInput = 'input1';
+  calc.handleZero();
+  updateInputDisplay(calc, 1);
+
+  calc.state.activeInput = 'input2';
+  calc.handleZero();
+  updateInputDisplay(calc, 2);
+
+  // Reset to input1 as active
+  calc.state.activeInput = 'input1';
   updateActiveInputHighlight(calc);
 
   console.log('Calculator UI bindings initialized');
