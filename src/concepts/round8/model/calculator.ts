@@ -1,13 +1,14 @@
 /**
- * Round8 Calculator v0.0.11 - Binary-First Implementation
+ * Round8 Calculator v0.0.14 - Binary-First Implementation
  *
  * Quantum-Resistant Architecture:
  * - Pure spool-based lookups (no binary operands)
  * - Dual display validation (Round8 ↔ Binary correspondence)
  * - Marquee system with shifted frame at position 21
  * - Full Twist special case handling
+ * - Increment/Decrement operations (composing functions orchestrating muxifyWrung)
  *
- * @version 0.0.11
+ * @version 0.0.14
  * @purpose Compositional calculator API - create multiple instances inline
  */
 
@@ -187,6 +188,22 @@ function createCalculator() {
     inputState.value = r8_.createRoundDisplay(flipped);
   }
 
+  function handleIncrement(): void {
+    const inputState = state[state.activeInput];
+    const incremented = r8_.operations.increment(inputState.buffer);
+    inputState.buffer = incremented;
+    inputState.binary = r8_.createBufferDisplay(incremented);
+    inputState.value = r8_.createRoundDisplay(incremented);
+  }
+
+  function handleDecrement(): void {
+    const inputState = state[state.activeInput];
+    const decremented = r8_.operations.decrement(inputState.buffer);
+    inputState.buffer = decremented;
+    inputState.binary = r8_.createBufferDisplay(decremented);
+    inputState.value = r8_.createRoundDisplay(decremented);
+  }
+
   // ============================================================
   // Return Calculator Interface
   // ============================================================
@@ -201,6 +218,8 @@ function createCalculator() {
     handleOperation,
     // handleCalculate,
     handleSigned,
+    handleIncrement,
+    handleDecrement,
     handleClear,
     handleInputSwitch,
   };

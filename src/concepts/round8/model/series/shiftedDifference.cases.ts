@@ -38,7 +38,7 @@
  * This prevents Shor factorization attacks during multiplication.
  */
 
-import { getShiftedBitRotation, getRound8Case, Round8Cases, SomeSeries, getRegularBitRotation, getRegularRotation, getShiftedRotation } from '../terminology';
+import { getShiftedBitRotation, SomeSeries, getRegularRotation, getShiftedRotation } from '../terminology';
 
 export const ShiftedDifferenceSeries: SomeSeries = {
   // This would be 8, but instead Truncates the Rotation

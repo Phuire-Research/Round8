@@ -305,7 +305,7 @@ const sumWrung = (
   let isFinalTwistDetected = false;
 
   scanUpwards(routing.anchorWrung, routing.modulatorWrung, (a: bigint, b: bigint, pos: Positions) => {
-    if (pos > maxPosition) return false;
+    if (pos > maxPosition) {return false;}
 
     let resultIndex: number;
     let hasCarry = false;
@@ -354,7 +354,7 @@ const sumWrung = (
     }
 
     result.positions.push(resultIndex);  // Push sequentially (index = position - 1)
-    if (hasCarry) result.pendingPropagation = true;
+    if (hasCarry) {result.pendingPropagation = true;}
 
     return true;
   });
@@ -384,7 +384,7 @@ const differenceWrung = (
   const minPosition = lengthModulator;
 
   scanUpwards(routing.anchorWrung, routing.modulatorWrung, (a: bigint, b: bigint, pos: Positions) => {
-    if (pos > maxPosition) return false;
+    if (pos > maxPosition) {return false;}
 
     let resultIndex: number;
     let hasBorrow = false;
@@ -436,7 +436,7 @@ const differenceWrung = (
     }
     // If resultIndex is -1, position is skipped (consumed by borrow)
 
-    if (hasBorrow) result.pendingPropagation = true;
+    if (hasBorrow) {result.pendingPropagation = true;}
 
     return true;
   });
