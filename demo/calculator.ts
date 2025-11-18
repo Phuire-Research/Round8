@@ -41,6 +41,67 @@ function updateInputDisplay(
 }
 
 /**
+ * Update output display (Round8 value and binary)
+ * Reads from calculator output state and updates DOM elements
+ *
+ * @param calc - Calculator instance
+ */
+function updateOutputDisplay(
+  calc: ReturnType<typeof r8_.createCalculator>
+): void {
+  const outputState = calc.state.output;
+
+  // Update Round8 value display
+  const valueElement = document.getElementById('outputValue');
+  if (valueElement) {
+    valueElement.textContent = outputState.value || '';
+  }
+
+  // Update binary display
+  const binaryElement = document.getElementById('outputBinary');
+  if (binaryElement) {
+    binaryElement.textContent = outputState.binary || '';
+  }
+}
+
+/**
+ * Update operation display (symbol and name)
+ * Reads from calculator operation state and updates DOM elements
+ *
+ * @param calc - Calculator instance
+ */
+function updateOperationDisplay(
+  calc: ReturnType<typeof r8_.createCalculator>
+): void {
+  const operation = calc.state.operation;
+
+  const symbolElement = document.getElementById('operandSymbol');
+  const nameElement = document.getElementById('operandName');
+
+  if (!operation) {
+    if (symbolElement) symbolElement.textContent = '';
+    if (nameElement) nameElement.textContent = '';
+    return;
+  }
+
+  // Map operation to display values
+  const operationMap: Record<Exclude<OperationType, null>, { symbol: string; name: string }> = {
+    '+': { symbol: '+', name: 'Addition' },
+    '-': { symbol: '−', name: 'Subtraction' },
+    '>': { symbol: '>', name: 'Greater Than' },
+    '<': { symbol: '<', name: 'Less Than' },
+    '>=': { symbol: '≥', name: 'Greater or Equal' },
+    '<=': { symbol: '≤', name: 'Less or Equal' },
+    '==': { symbol: '=', name: 'Equals' },
+    '!=': { symbol: '≠', name: 'Not Equal' }
+  };
+
+  const display = operationMap[operation];
+  if (symbolElement) symbolElement.textContent = display.symbol;
+  if (nameElement) nameElement.textContent = display.name;
+}
+
+/**
  * Update active input highlighting (cursor and row highlight)
  * Removes all active states, then applies to current activeInput
  *
@@ -104,12 +165,60 @@ function hideError(): void {
 }
 
 /**
+ * Bind rotation button (increment/decrement) to handler and display update
+ * Helper to reduce code duplication for 4 rotation buttons
+ *
+ * @param buttonId - DOM element ID
+ * @param handler - Click handler function
+ * @param updateDisplay - Display update callback
+ */
+function bindRotationButton(
+  buttonId: string,
+  handler: () => void,
+  updateDisplay: () => void
+): void {
+  const button = document.getElementById(buttonId);
+  if (button) {
+    button.addEventListener('click', () => {
+      handler();
+      updateDisplay();
+    });
+  }
+}
+
+/**
  * Initialize calculator UI with DOM event bindings
  * Creates a new calculator instance and binds to DOM elements
  */
 function initializeCalculator(): void {
   // Create calculator instance (fresh state, not singleton)
   const calc = r8_.createCalculator();
+
+  // ============================================================
+  // Public API Exposure - Developer Console Access
+  // ============================================================
+
+  // Expose Round8 breadboard and calculator instance to console
+  if (typeof window !== 'undefined') {
+    // Check before overwriting to avoid namespace collision
+    if (!(window as any).r8) {
+      (window as any).r8 = r8_;
+      console.log('🔧 Round8 Breadboard API exposed to console');
+      console.log('   Access via: window.r8');
+      console.log('   Example: window.r8.operations.add(5n, 3n)');
+    } else {
+      console.warn('⚠️  window.r8 already exists - skipping Round8 API exposure');
+    }
+
+    if (!(window as any).calculator) {
+      (window as any).calculator = calc;
+      console.log('📊 Calculator Instance exposed to console');
+      console.log('   Access via: window.calculator');
+      console.log('   Example: window.calculator.state.input1.buffer');
+    } else {
+      console.warn('⚠️  window.calculator already exists - skipping calculator exposure');
+    }
+  }
 
   // ============================================================
   // DOM Event Bindings
@@ -157,22 +266,109 @@ function initializeCalculator(): void {
     });
   }
 
+  // Increment/Decrement rotation buttons
+  bindRotationButton(
+    'incrementInput1Btn',
+    () => {
+      calc.state.activeInput = 'input1';
+      calc.handleIncrement();
+    },
+    () => updateInputDisplay(calc, 1)
+  );
+
+  bindRotationButton(
+    'decrementInput1Btn',
+    () => {
+      calc.state.activeInput = 'input1';
+      calc.handleDecrement();
+    },
+    () => updateInputDisplay(calc, 1)
+  );
+
+  bindRotationButton(
+    'incrementInput2Btn',
+    () => {
+      calc.state.activeInput = 'input2';
+      calc.handleIncrement();
+    },
+    () => updateInputDisplay(calc, 2)
+  );
+
+  bindRotationButton(
+    'decrementInput2Btn',
+    () => {
+      calc.state.activeInput = 'input2';
+      calc.handleDecrement();
+    },
+    () => updateInputDisplay(calc, 2)
+  );
+
   // Operation buttons
   const addBtn = document.getElementById('addBtn');
   if (addBtn) {
-    addBtn.addEventListener('click', () => calc.handleOperation('+'));
+    addBtn.addEventListener('click', () => {
+      calc.handleOperation('+');
+      updateOperationDisplay(calc);
+    });
   }
 
   const subtractBtn = document.getElementById('subtractBtn');
   if (subtractBtn) {
-    subtractBtn.addEventListener('click', () => calc.handleOperation('-'));
+    subtractBtn.addEventListener('click', () => {
+      calc.handleOperation('-');
+      updateOperationDisplay(calc);
+    });
+  }
+
+  // Comparison operator buttons
+  const greaterBtn = document.getElementById('greaterBtn');
+  if (greaterBtn) {
+    greaterBtn.addEventListener('click', () => {
+      calc.handleOperation('>');
+      updateOperationDisplay(calc);
+    });
+  }
+
+  const greaterEqualBtn = document.getElementById('greaterEqualBtn');
+  if (greaterEqualBtn) {
+    greaterEqualBtn.addEventListener('click', () => {
+      calc.handleOperation('>=');
+      updateOperationDisplay(calc);
+    });
+  }
+
+  const lessBtn = document.getElementById('lessBtn');
+  if (lessBtn) {
+    lessBtn.addEventListener('click', () => {
+      calc.handleOperation('<');
+      updateOperationDisplay(calc);
+    });
+  }
+
+  const lessEqualBtn = document.getElementById('lessEqualBtn');
+  if (lessEqualBtn) {
+    lessEqualBtn.addEventListener('click', () => {
+      calc.handleOperation('<=');
+      updateOperationDisplay(calc);
+    });
+  }
+
+  const equalsBtn = document.getElementById('equalsBtn');
+  if (equalsBtn) {
+    equalsBtn.addEventListener('click', () => {
+      calc.handleOperation('==');
+      updateOperationDisplay(calc);
+    });
   }
 
   // Calculate button
-  // const calculateBtn = document.getElementById('calculateBtn');
-  // if (calculateBtn) {
-  //   calculateBtn.addEventListener('click', () => calc.());
-  // }
+  const calculateBtn = document.getElementById('calculateBtn');
+  if (calculateBtn) {
+    calculateBtn.addEventListener('click', () => {
+      calc.handleCalculate();
+      updateOutputDisplay(calc);
+    });
+  }
 
   // Clear button
   const clearBtn = document.getElementById('clearBtn');
@@ -181,6 +377,7 @@ function initializeCalculator(): void {
       calc.handleClear();
       updateInputDisplay(calc, 1);
       updateInputDisplay(calc, 2);
+      updateOperationDisplay(calc);
     });
   }
 

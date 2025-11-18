@@ -383,19 +383,35 @@ const differenceWrung = (
   const maxPosition = lengthAnchor;  // Anchor is always longer or equal (in difference)
   const minPosition = lengthModulator;
 
+  // SUITE 7 ROSE: Borrow array - depleting delimiter for halting completeness
+  const borrowArray: number[] = [];
+
   scanUpwards(routing.anchorWrung, routing.modulatorWrung, (a: bigint, b: bigint, pos: Positions) => {
     if (pos > maxPosition) {return false;}
 
     let resultIndex: number;
     let hasBorrow = false;
 
-    // Beyond modulator (shorter operand) - copy from anchor
+    // Beyond modulator (shorter operand) - use anchor value OR spool if pending borrow
     if (pos > minPosition) {
       const [b0, b1, b2] = extractBitTuple(a, pos);  // a is anchor
-      // spooledNumerals returns DISPLAY VALUE (1-8), need INDEX (0-7)
-      resultIndex = pos === 21
-        ? spooledShiftedNumerals[b0][b1][b2]  // Shifted already returns index
-        : spooledNumerals[b0][b1][b2] - 1;    // Convert display to index
+
+      // SUITE 7 ROSE PATCH: Pop from borrow array (depleting delimiter)
+      if (borrowArray.length > 0) {
+        const borrowValue = borrowArray.pop()!;  // Deplete borrow from array
+        // Borrow means subtract borrowValue from anchor - use difference spool
+        const oneTuple = extractBitTuple(BigInt(borrowValue), 1);
+        const spoolResult = SpooledDifferenceSeries[b0][b1][b2][oneTuple[0]][oneTuple[1]][oneTuple[2]];
+
+        resultIndex = spoolResult[0] as number;
+        hasBorrow = spoolResult.length > 1;
+      } else {
+        // No borrow - copy anchor value directly
+        // spooledNumerals returns DISPLAY VALUE (1-8), need INDEX (0-7)
+        resultIndex = pos === 21
+          ? spooledShiftedNumerals[b0][b1][b2]  // Shifted already returns index
+          : spooledNumerals[b0][b1][b2] - 1;    // Convert display to index
+      }
     } else {
       // Both have values - use difference spool
       const [rtA0, rtA1, rtA2] = extractBitTuple(a, pos);
@@ -405,21 +421,22 @@ const differenceWrung = (
       // spoolResult[0] is index 0-7 (getRegularRotation pattern)
       resultIndex = spoolResult[0] as number;
       hasBorrow = spoolResult.length > 1;
-    }
 
-    // Apply pending borrow (SUBTRACT from result)
-    if (result.pendingPropagation) {
-      resultIndex -= 1;
-      if (resultIndex < 0) {
-        // Position value consumed by borrow - becomes 0 (disappears)
-        // This position should NOT be included in final result
-        // Mark as -1 to indicate "skip this position"
-        // The pending borrow is SATISFIED (absorbed), not propagated
-        // Only the spool's own borrow (hasBorrow) continues
-        resultIndex = -1;
-        // hasBorrow stays as-is from spool computation
+      // SUITE 7 ROSE PATCH: Pop from borrow array if exists (depleting delimiter)
+      if (borrowArray.length > 0) {
+        const originalHasBorrow = hasBorrow;  // Save original borrow status
+        const borrowValue = borrowArray.pop()!;  // Deplete borrow from array
+        // Additional borrow on top of spool result - re-query spool with result - borrow
+        const resultValue = applyNumeralRotation(resultIndex, createBuffer(), pos);
+        const resultTuple = extractBitTuple(resultValue, pos);
+        const borrowTuple = extractBitTuple(BigInt(borrowValue), 1);
+        const borrowSpoolResult = SpooledDifferenceSeries[resultTuple[0]][resultTuple[1]][resultTuple[2]][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
+
+        resultIndex = borrowSpoolResult[0] as number;
+        const borrowApplicationHasBorrow = borrowSpoolResult.length > 1;
+        // Combine borrows: if EITHER original OR borrow application needs borrow, propagate it
+        hasBorrow = originalHasBorrow || borrowApplicationHasBorrow;
       }
-      result.pendingPropagation = false;
     }
 
     // Only record position if it has a valid value (not consumed by borrow)
@@ -436,10 +453,27 @@ const differenceWrung = (
     }
     // If resultIndex is -1, position is skipped (consumed by borrow)
 
-    if (hasBorrow) {result.pendingPropagation = true;}
+    // SUITE 7 ROSE PATCH: Push borrow to array (depleting delimiter)
+    if (hasBorrow) {
+      borrowArray.push(1);  // Push borrow value (1) to array for next position
+    }
 
     return true;
   });
+
+  // SUITE 7 ROSE: Marquee delimiter logic
+  // If there's a final borrow (borrowArray not empty), remove leading 8s equal to modulator length
+  // The modulator length determines how many positions are "underflow" from borrow cascade
+  if (borrowArray.length > 0) {
+    // Remove as many consecutive leading 8s as there are modulator positions
+    let removedCount = 0;
+    while (removedCount < lengthModulator &&
+           result.positions.length > 0 &&
+           result.positions[result.positions.length - 1] === 7) {
+      result.positions.pop();
+      removedCount++;
+    }
+  }
 
   return assembleBufferFromResultMuxity(result, routing, false, 'difference');
 };

@@ -240,6 +240,59 @@
                 1px 1px 3px rgba(0, 0, 0, 0.6),
                 -1px -1px 2px rgba(255, 255, 255, 0.4);
         }
+
+        /* Rotation Dial Styles */
+        .rotation-dial {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-left: 0.75rem;
+        }
+
+        /* Rotation Button Base */
+        .rotation-btn {
+            width: 2rem;
+            height: 2rem;
+            border: 2px solid;
+            border-radius: 0.375rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Increment Button - Viridian (Growth) */
+        .rotation-btn-increment {
+            background: linear-gradient(135deg, #4aa685 0%, #3d8f73 100%);
+            border-color: #5bc4a0;
+            color: #e8f5f1;
+        }
+
+        .rotation-btn-increment:hover {
+            background: linear-gradient(135deg, #5bc4a0 0%, #4aa685 100%);
+            border-color: #6dd4b5;
+            transform: translateY(-1px);
+        }
+
+        /* Decrement Button - Rust (Revealing) */
+        .rotation-btn-decrement {
+            background: linear-gradient(135deg, #b7410e 0%, #9a370c 100%);
+            border-color: #d4501a;
+            color: #fef3e7;
+        }
+
+        .rotation-btn-decrement:hover {
+            background: linear-gradient(135deg, #d4501a 0%, #b7410e 100%);
+            border-color: #e86020;
+            transform: translateY(-1px);
+        }
+
+        .rotation-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-800 via-slate-900 to-black min-h-screen">
@@ -521,6 +574,22 @@ MTK @ PhuirE Research</p>
                     <span class="display-label">Binary:</span>
                     <span class="binary-value" id="input1Binary"></span>
                 </div>
+
+                <!-- Rotation Dial for Input 1 -->
+                <div class="rotation-dial" data-input="input1">
+                    <button
+                        id="incrementInput1Btn"
+                        class="rotation-btn rotation-btn-increment hifi-btn-increment"
+                        title="Increment Input 1 by 1">
+                        <span class="arrow-up">↑</span>
+                    </button>
+                    <button
+                        id="decrementInput1Btn"
+                        class="rotation-btn rotation-btn-decrement hifi-btn-decrement"
+                        title="Decrement Input 1 by 1">
+                        <span class="arrow-down">↓</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Row 2: Operand Display -->
@@ -559,6 +628,22 @@ MTK @ PhuirE Research</p>
                 <div class="binary-display" id="input2BinaryDisplay">
                     <span class="display-label">Binary:</span>
                     <span class="binary-value" id="input2Binary"></span>
+                </div>
+
+                <!-- Rotation Dial for Input 2 -->
+                <div class="rotation-dial" data-input="input2">
+                    <button
+                        id="incrementInput2Btn"
+                        class="rotation-btn rotation-btn-increment hifi-btn-increment"
+                        title="Increment Input 2 by 1">
+                        <span class="arrow-up">↑</span>
+                    </button>
+                    <button
+                        id="decrementInput2Btn"
+                        class="rotation-btn rotation-btn-decrement hifi-btn-decrement"
+                        title="Decrement Input 2 by 1">
+                        <span class="arrow-down">↓</span>
+                    </button>
                 </div>
             </div>
 
@@ -606,11 +691,10 @@ MTK @ PhuirE Research</p>
                         data-operation="add"
                         data-symbol="+"
                         data-color="rust"
-                        disabled
-                        title="Add - Rust: Prospection (Coming in v0.0.2)">
+                        title="Add - Rust: Prospection">
                         <span class="btn-symbol">+</span>
                         <span class="btn-label">Add</span>
-                        <span class="version-tag">v0.0.2</span>
+                        <span class="version-tag">v0.0.14</span>
                     </button>
                 </div>
 
@@ -621,11 +705,10 @@ MTK @ PhuirE Research</p>
                         data-operation="subtract"
                         data-symbol="−"
                         data-color="rose"
-                        disabled
-                        title="Subtract - Rose: Healing (Coming in v0.0.2)">
+                        title="Subtract - Rose: Healing">
                         <span class="btn-symbol">−</span>
                         <span class="btn-label">Subtract</span>
-                        <span class="version-tag">v0.0.2</span>
+                        <span class="version-tag">v0.0.14</span>
                     </button>
                 </div>
 
@@ -659,10 +742,9 @@ MTK @ PhuirE Research</p>
                         data-operation="compare"
                         data-symbol=">"
                         data-color="amethyst"
-                        disabled
-                        title="Greater Than - Amethyst: Operations (Coming in v0.0.2)">
+                        title="Greater Than - Amethyst: Operations">
                         <span class="btn-symbol">></span>
-                        <span class="version-tag">v0.0.2</span>
+                        <span class="version-tag">v0.0.14</span>
                     </button>
                 </div>
 
@@ -673,10 +755,9 @@ MTK @ PhuirE Research</p>
                         data-operation="compare"
                         data-symbol="=>"
                         data-color="amethyst"
-                        disabled
-                        title="Greater or Equal - Amethyst: Operations (Coming in v0.0.2)">
+                        title="Greater or Equal - Amethyst: Operations">
                         <span class="btn-symbol">=></span>
-                        <span class="version-tag">v0.0.2</span>
+                        <span class="version-tag">v0.0.14</span>
                     </button>
                 </div>
 
@@ -687,10 +768,9 @@ MTK @ PhuirE Research</p>
                         data-operation="compare"
                         data-symbol="<"
                         data-color="amethyst"
-                        disabled
-                        title="Less Than - Amethyst: Operations (Coming in v0.0.2)">
+                        title="Less Than - Amethyst: Operations">
                         <span class="btn-symbol"><</span>
-                        <span class="version-tag">v0.0.2</span>
+                        <span class="version-tag">v0.0.14</span>
                     </button>
                 </div>
 
@@ -701,10 +781,9 @@ MTK @ PhuirE Research</p>
                         data-operation="compare"
                         data-symbol="=<"
                         data-color="amethyst"
-                        disabled
-                        title="Less or Equal - Amethyst: Operations (Coming in v0.0.2)">
+                        title="Less or Equal - Amethyst: Operations">
                         <span class="btn-symbol">=<</span>
-                        <span class="version-tag">v0.0.2</span>
+                        <span class="version-tag">v0.0.14</span>
                     </button>
                 </div>
 
@@ -726,11 +805,10 @@ MTK @ PhuirE Research</p>
                         data-operation="compare"
                         data-symbol="="
                         data-color="rose"
-                        disabled
-                        title="Equals - Rose: System (Coming in v0.0.2)">
+                        title="Equals - Rose: System">
                         <span class="btn-symbol">=</span>
                         <span class="btn-label">Equals</span>
-                        <span class="version-tag">v0.0.2</span>
+                        <span class="version-tag">v0.0.14</span>
                     </button>
                 </div>
 
@@ -748,11 +826,10 @@ MTK @ PhuirE Research</p>
                     <button
                         id="calculateBtn"
                         class="operand-btn operand-calculate hifi-btn-calculate"
-                        disabled
-                        title="Execute Calculation - Viridian: Instillment (Coming in v0.0.2)">
+                        title="Execute Calculation - Viridian: Instillment">
                         <span class="btn-symbol">⏎</span>
                         <span class="btn-label">Calc</span>
-                        <span class="version-tag">v0.0.2</span>
+                        <span class="version-tag">v0.0.14</span>
                     </button>
                 </div>
             </div>
@@ -869,7 +946,7 @@ MTK @ PhuirE Research</p>
 
         <!-- Version Info -->
         <div class="version-info">
-            <p>Round8 Calculator v0.0.11</p>
+            <p>Round8 Calculator v0.0.14</p>
             <p>+7% Bit Packing Efficiency at 16-bits vs Hexed Binary</p>
             <p>Theoretical 10x Bit Packing Efficiency due to not using Binary Operands</p>
             <p>Binary Operands are the Attack Vector of Shor's Factorization Attack</p>

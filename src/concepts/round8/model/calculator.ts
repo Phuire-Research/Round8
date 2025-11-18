@@ -19,7 +19,7 @@ import { r8_ } from './r8';
 // ============================================================
 
 type ActiveInputIdentifier = 'input1' | 'input2';
-export type OperationType = '+' | '-' | null;
+export type OperationType = '+' | '-' | '>' | '<' | '>=' | '<=' | '==' | '!=' | null;
 
 export interface InputState {
   value: string;                        // Round8 string ("1,2,3") - DISPLAY value (reversed)
@@ -78,8 +78,13 @@ function createCalculator() {
     const inputState = state[state.activeInput];
     // Build sequence in typed order (oldest first)
     const currentSequence = inputState.value;
-    // Append new digit to end (typed order)
-    const newSequence = currentSequence ? `${currentSequence}${digit}` : `${digit}`;
+    // Check if in zero state (should replace, not append)
+    const isZeroState = !currentSequence ||
+                        currentSequence === '0' ||
+                        currentSequence === '' ||
+                        currentSequence === '-0';
+    // Append new digit to end (typed order), or replace if zero state
+    const newSequence = isZeroState ? `${digit}` : `${currentSequence}${digit}`;
 
     // Parse directly (in typed order)
     const buffer = r8_.parseStringToBuffer(newSequence);
@@ -104,11 +109,11 @@ function createCalculator() {
     if (newSequence === '') {
       inputState.value = '0';
       inputState.buffer = 0n;
-      inputState.binary = inputState.buffer.toLocaleString();
+      inputState.binary = r8_.createBufferDisplay(0n);
     } else {
       // Parse directly (in typed order)
       const buffer = r8_.parseStringToBuffer(newSequence);
-      const binary = buffer?.toString();
+      const binary = buffer ? r8_.createBufferDisplay(buffer) : r8_.createBufferDisplay(0n);
 
       inputState.buffer = buffer ? buffer : 0n;
       // Format the display value with proper comma placement
@@ -126,35 +131,53 @@ function createCalculator() {
     inputState.binary = r8_.createBufferDisplay(0n);
   }
 
-  function handleOperation(operation: '+' | '-'): void {
+  function handleOperation(operation: OperationType): void {
+    if (operation === null) return;
     state.operation = operation;
   }
 
-  // function handleCalculate(): void {
-  //   const buffer1 = state.input1.buffer;
-  //   const buffer2 = state.input2.buffer;
+  function handleCalculate(): void {
+    const buffer1 = state.input1.buffer;
+    const buffer2 = state.input2.buffer;
+    const operation = state.operation;
 
-  //   let resultBuffer = 0n;
+    if (!operation) {
+      console.warn('Round8 Calculator: No operation selected');
+      return;
+    }
 
-  //   if (state.operation === '+') {
-  //     // resultBuffer = addRound8BuffersBinary(buffer1, buffer2);
-  //   } else if (state.operation === '-') {
-  //     // resultBuffer = subtractRound8BuffersBinary(buffer1, buffer2);
-  //   } else {
-  //     // showError('Invalid operation');
-  //     return;
-  //   }
+    let result: bigint = 0n;
 
-  //   // const resultString = round8BufferToString(resultBuffer, true);
-  //   // const resultBinary = round8BufferToBinaryString(resultBuffer, {
-  //   //   separator: '|',
-  //   //   includeSign: true
-  //   // });
+    if (operation === '+') {
+      result = r8_.operations.add(buffer1, buffer2);
+    } else if (operation === '-') {
+      result = r8_.operations.subtract(buffer1, buffer2);
 
-  //   // state.output.value = resultString;
-  //   state.output.buffer = resultBuffer;
-  //   // state.output.binary = resultBinary;
-  // }
+    // VIRIDIAN CRITICAL FIX: Native BigInt comparison (no precision loss)
+    // Using native BigInt operators instead of r8_.logical to maintain full 63-bit precision
+    // r8_.logical designed for BitRotationTuple (small values), not full bigint buffers
+    } else if (operation === '>') {
+      result = buffer1 > buffer2 ? 1n : 0n;
+    } else if (operation === '<') {
+      result = buffer1 < buffer2 ? 1n : 0n;
+    } else if (operation === '>=') {
+      result = buffer1 >= buffer2 ? 1n : 0n;
+    } else if (operation === '<=') {
+      result = buffer1 <= buffer2 ? 1n : 0n;
+    } else if (operation === '==') {
+      result = buffer1 === buffer2 ? 1n : 0n;
+    } else if (operation === '!=') {
+      result = buffer1 !== buffer2 ? 1n : 0n;
+
+    } else {
+      console.warn(`Round8 Calculator: Operation not yet implemented: ${operation}`);
+      return;
+    }
+
+    state.output.buffer = result;
+    state.output.binary = r8_.createBufferDisplay(result);
+    state.output.value = r8_.createRoundDisplay(result);
+  }
 
   function handleClear(): void {
     state.input1.value = '';
