@@ -180,22 +180,22 @@ function createCalculator() {
   }
 
   function handleClear(): void {
-    state.input1.value = '';
+    // Set inputs to absolute 0
+    state.input1.value = '0';
     state.input1.buffer = 0n;
-    state.input1.binary = '';
+    state.input1.binary = r8_.createBufferDisplay(0n);
 
-    state.input2.value = '';
+    state.input2.value = '0';
     state.input2.buffer = 0n;
-    state.input2.binary = '';
+    state.input2.binary = r8_.createBufferDisplay(0n);
 
-    state.output.value = '';
+    // Set output to absolute 0
+    state.output.value = '0';
     state.output.buffer = 0n;
-    state.output.binary = '';
+    state.output.binary = r8_.createBufferDisplay(0n);
 
     state.operation = null;
     state.activeInput = 'input1';
-
-    state.operation = null;
   }
 
   function handleInputSwitch(): void {

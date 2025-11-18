@@ -2,6 +2,22 @@
 /* Direct CSS Variable Overrides (Stratithon Client Pattern) */
 /* Replaces Tailwind's default colors with functional meaning */
 
+/* ============================================================ */
+/* DSEG7 Font Family - 7-Segment Digital Display              */
+/* Source: https://github.com/keshikan/DSEG                   */
+/* License: SIL Open Font License Version 1.1                 */
+/* ============================================================ */
+
+@font-face {
+  font-family: 'DSEG7-Classic';
+  src: url('fonts/dseg/DSEG7Classic-Bold.woff2') format('woff2'),
+       url('fonts/dseg/DSEG7Classic-Bold.woff') format('woff'),
+       url('fonts/dseg/DSEG7Classic-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer theme {
   :root {
     /* HiFi Seven-Suite Prismatic Spectrum - Direct Color Variables */
@@ -90,6 +106,12 @@
     --color-red-border-light: #ed1541;   /* 8% lighter */
     --color-red-shadow: rgba(203, 18, 55, 0.6);
 
+    /* === Digital Display Complement Colors - Shadow Depth Enhancement === */
+    --color-ochre-complement: #375EA2;              /* Blue-violet (complement of Ochre) */
+    --color-ochre-complement-shadow: rgba(55, 94, 162, 0.6);
+    --color-maroon-complement: #008060;             /* Teal-cyan (complement of Maroon) */
+    --color-maroon-complement-shadow: rgba(0, 128, 96, 0.6);
+
     /* === HiFi SVG Pattern Textures (Semantic Geometry) === */
     /* 100x100px tileable patterns at 20% opacity, stroke-width × 4/3 */
 
@@ -116,6 +138,12 @@
 
     /* Red: Warning Cross Pattern (Clear/Warning) */
     --pattern-red: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3E%3Cline x1='30' y1='30' x2='70' y2='70' stroke='%23dc143c' stroke-width='4' opacity='0.2'/%3E%3Cline x1='70' y1='30' x2='30' y2='70' stroke='%23dc143c' stroke-width='4' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='20' stroke='%23dc143c' stroke-width='3' fill='none' opacity='0.2'/%3E%3C/svg%3E");
+
+    /* Obsidian: Starry Field Pattern (Foundational Darkness - Suite 0) */
+    --pattern-obsidian: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3E%3Ccircle cx='15' cy='20' r='1.5' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='75' cy='30' r='1' fill='%23ffffff' opacity='0.4'/%3E%3Ccircle cx='35' cy='50' r='2' fill='%23ffffff' opacity='0.7'/%3E%3Ccircle cx='85' cy='65' r='1.2' fill='%23ffffff' opacity='0.5'/%3E%3Ccircle cx='50' cy='80' r='1.5' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='20' cy='75' r='1' fill='%23ffffff' opacity='0.4'/%3E%3Ccircle cx='60' cy='15' r='1.8' fill='%23ffffff' opacity='0.65'/%3E%3Ccircle cx='40' cy='35' r='1' fill='%23ffffff' opacity='0.45'/%3E%3Ccircle cx='70' cy='55' r='1.3' fill='%23ffffff' opacity='0.55'/%3E%3Ccircle cx='25' cy='90' r='1' fill='%23ffffff' opacity='0.5'/%3E%3C/svg%3E");
+
+    /* === LCD Scanline Pattern - Authentic Digital Display Texture === */
+    --pattern-lcd-scanlines: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="3"><defs><pattern id="lcd-scanlines" x="0" y="0" width="30" height="3" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="30" height="1" fill="rgba(0,0,0,0.05)"/><rect x="0" y="2" width="30" height="1" fill="rgba(0,0,0,0.02)"/></pattern></defs><rect width="100%" height="100%" fill="url(%23lcd-scanlines)"/></svg>');
   }
 }
 

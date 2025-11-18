@@ -566,16 +566,29 @@ MTK @ PhuirE Research</p>
                 aria-label="Round8 Input 1: Use dial pad to enter positions"
                 tabindex="0">
 
-                <!-- Round8 String Display -->
-                <div class="input-display" id="input1Display">
-                    <span class="input-value" id="input1Value"></span>
-                    <span class="input-cursor" id="input1Cursor">|</span>
-                </div>
+                <!-- Input Section Wrapper (encompasses Round8 value + binary) -->
+                <div class="input-section-wrapper digital-display-base digital-display-input">
+                    <!-- Round8 String Display with 7-Segment -->
+                    <div class="input-display" id="input1Display">
+                        <!-- Ghost Layer: Shows all 21 positions with 8s for unlit segments -->
+                        <div class="digital-ghost-layer" aria-hidden="true">
+                            8,88,88,88,88,88,88,88,88,88,88
+                        </div>
 
-                <!-- Binary Display with Rotation Buttons -->
-                <div class="binary-display-wrapper">
-                    <div class="binary-display" id="input1BinaryDisplay">
-                        <span class="binary-value" id="input1Binary"></span>
+                        <!-- Active Layer: Actual Round8 value -->
+                        <div class="digital-active-layer">
+                            <span class="input-value" id="input1Value"></span>
+                            <span class="input-cursor" id="input1Cursor">|</span>
+                        </div>
+
+                        <!-- Prismatic Noise Overlay -->
+                        <div class="digital-noise-overlay" aria-hidden="true"></div>
+                    </div>
+
+                    <!-- Binary Display with Rotation Buttons -->
+                    <div class="binary-display-wrapper">
+                    <div class="binary-display" id="input1Binary">
+                        <!-- JavaScript updates this with binary value -->
                     </div>
 
                     <!-- Rotation Dial for Input 1 -->
@@ -594,12 +607,19 @@ MTK @ PhuirE Research</p>
                         </button>
                     </div>
                 </div>
+                </div>
             </div>
 
             <!-- Row 2: Operand Display -->
             <div id="operandRow" class="display-row operand-row">
                 <div class="operand-display" id="operandDisplay">
-                    <span class="operand-symbol" id="operandSymbol"></span>
+                    <button
+                        id="operandButton"
+                        class="hifi-btn-obsidian"
+                        disabled
+                        title="Suite 0: Obsidian - Foundational State">
+                        <span class="operand-symbol" id="operandSymbol">○</span>
+                    </button>
                 </div>
             </div>
 
@@ -612,16 +632,29 @@ MTK @ PhuirE Research</p>
                 aria-readonly="true"
                 aria-label="Round8 Input 2: Use dial pad to enter positions"
                 tabindex="0">
-                <!-- Round8 String Display -->
-                <div class="input-display" id="input2Display">
-                    <span class="input-value" id="input2Value"></span>
-                    <span class="input-cursor" id="input2Cursor">|</span>
-                </div>
+                <!-- Input Section Wrapper (encompasses Round8 value + binary) -->
+                <div class="input-section-wrapper digital-display-base digital-display-input">
+                    <!-- Round8 String Display with 7-Segment -->
+                    <div class="input-display" id="input2Display">
+                        <!-- Ghost Layer: Shows all 21 positions with 8s for unlit segments -->
+                        <div class="digital-ghost-layer" aria-hidden="true">
+                            8,88,88,88,88,88,88,88,88,88,88
+                        </div>
 
-                <!-- Binary Display with Rotation Buttons -->
-                <div class="binary-display-wrapper">
-                    <div class="binary-display" id="input2BinaryDisplay">
-                        <span class="binary-value" id="input2Binary"></span>
+                        <!-- Active Layer: Actual Round8 value -->
+                        <div class="digital-active-layer">
+                            <span class="input-value" id="input2Value"></span>
+                            <span class="input-cursor" id="input2Cursor">|</span>
+                        </div>
+
+                        <!-- Prismatic Noise Overlay -->
+                        <div class="digital-noise-overlay" aria-hidden="true"></div>
+                    </div>
+
+                    <!-- Binary Display with Rotation Buttons -->
+                    <div class="binary-display-wrapper">
+                    <div class="binary-display" id="input2Binary">
+                        <!-- JavaScript updates this with binary value -->
                     </div>
 
                     <!-- Rotation Dial for Input 2 -->
@@ -640,18 +673,33 @@ MTK @ PhuirE Research</p>
                         </button>
                     </div>
                 </div>
+                </div>
             </div>
 
             <!-- Row 4: Output Dual Display -->
             <div id="outputRow" class="display-row output-row">
-                <!-- Round8 String Display -->
-                <div class="output-display" id="outputDisplay">
-                    <span class="output-value" id="outputValue"></span>
-                </div>
+                <!-- Output Section Wrapper (encompasses Round8 value + binary) -->
+                <div class="output-section-wrapper digital-display-base digital-display-output">
+                    <!-- Round8 String Display with 7-Segment -->
+                    <div class="output-display" id="outputDisplay">
+                        <!-- Ghost Layer: Shows all 21 positions with 8s for unlit segments -->
+                        <div class="digital-ghost-layer" aria-hidden="true">
+                            8,88,88,88,88,88,88,88,88,88,88
+                        </div>
 
-                <!-- Binary Display (Quantum-Resistant Verification) -->
-                <div class="binary-display" id="outputBinaryDisplay">
-                    <span class="binary-value" id="outputBinary"></span>
+                        <!-- Active Layer: Actual Round8 value -->
+                        <div class="digital-active-layer">
+                            <span class="output-value" id="outputValue"></span>
+                        </div>
+
+                        <!-- Prismatic Noise Overlay -->
+                        <div class="digital-noise-overlay" aria-hidden="true"></div>
+                    </div>
+
+                    <!-- Binary Display (Quantum-Resistant Verification) -->
+                    <div class="binary-display" id="outputBinary">
+                        <!-- JavaScript updates this with binary value -->
+                    </div>
                 </div>
             </div>
 
@@ -681,7 +729,6 @@ MTK @ PhuirE Research</p>
                         data-color="rust"
                         title="Add - Rust: Prospection">
                         <span class="btn-symbol">+</span>
-                        <span class="btn-label">Add</span>
                         <span class="version-tag">v0.0.14</span>
                     </button>
                 </div>
@@ -695,7 +742,6 @@ MTK @ PhuirE Research</p>
                         data-color="rose"
                         title="Subtract - Rose: Healing">
                         <span class="btn-symbol">−</span>
-                        <span class="btn-label">Subtract</span>
                         <span class="version-tag">v0.0.14</span>
                     </button>
                 </div>
@@ -706,7 +752,6 @@ MTK @ PhuirE Research</p>
                         disabled
                         title="Multiply - Viridian: Instillment (Coming in v0.0.15)">
                         <span class="btn-symbol">×</span>
-                        <span class="btn-label">Mult</span>
                         <span class="version-tag">v0.0.15</span>
                     </button>
                 </div>
@@ -717,7 +762,6 @@ MTK @ PhuirE Research</p>
                         disabled
                         title="Divide - Ochre: Drafting (Coming in v0.0.16)">
                         <span class="btn-symbol">÷</span>
-                        <span class="btn-label">Div</span>
                         <span class="version-tag">v0.0.16</span>
                     </button>
                 </div>
@@ -789,11 +833,11 @@ MTK @ PhuirE Research</p>
                 <div class="hifi-btn-wrapper">
                     <button
                         id="equalsBtn"
-                        class="operand-btn operand-equals hifi-btn-equals"
+                        class="operand-btn operand-compare hifi-btn-compare"
                         data-operation="compare"
                         data-symbol="="
-                        data-color="rose"
-                        title="Equals - Rose: System">
+                        data-color="amethyst"
+                        title="Equals - Amethyst: Operations">
                         <span class="btn-symbol">=</span>
                         <span class="btn-label">Equals</span>
                         <span class="version-tag">v0.0.14</span>
@@ -861,7 +905,7 @@ MTK @ PhuirE Research</p>
                         id="backspaceBtn"
                         class="dial-btn dial-backspace hifi-btn-backspace"
                         title="Remove Last Position - Amethyst: Operations">
-                        <span class="backspace-symbol">⌫</span>
+                        DLT
                     </button>
                 </div>
 

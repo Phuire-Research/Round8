@@ -1,0 +1,10 @@
+/* Round8 Calculator - Combined Styles */
+
+/* Import HiFi base styles (includes DSEG7 font-face) */
+@import url('styles/hifi-base.css');
+
+/* Import main calculator styles */
+@import url('styles/main.css');
+
+/* Import markdown layer styles */
+@import url('styles/markdown-layers.css');

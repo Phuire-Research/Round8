@@ -76,31 +76,40 @@ function updateOperationDisplay(
   const operation = calc.state.operation;
 
   const symbolElement = document.getElementById('operandSymbol');
-  const nameElement = document.getElementById('operandName');
+  const buttonElement = document.getElementById('operandButton');
   const operandRow = document.getElementById('operandRow');
 
   if (!operation) {
-    if (symbolElement) symbolElement.textContent = '';
-    if (nameElement) nameElement.textContent = '';
+    // Reset to Obsidian default state
+    if (symbolElement) symbolElement.textContent = '○';
+    if (buttonElement) {
+      buttonElement.className = 'hifi-btn-obsidian';
+      buttonElement.setAttribute('disabled', 'true');
+      buttonElement.setAttribute('title', 'Suite 0: Obsidian - Foundational State');
+    }
     if (operandRow) operandRow.removeAttribute('data-operation');
     return;
   }
 
-  // Map operation to display values
-  const operationMap: Record<Exclude<OperationType, null>, { symbol: string; name: string }> = {
-    '+': { symbol: '+', name: 'Addition' },
-    '-': { symbol: '−', name: 'Subtraction' },
-    '>': { symbol: '>', name: 'Greater Than' },
-    '<': { symbol: '<', name: 'Less Than' },
-    '>=': { symbol: '≥', name: 'Greater or Equal' },
-    '<=': { symbol: '≤', name: 'Less or Equal' },
-    '==': { symbol: '=', name: 'Equals' },
-    '!=': { symbol: '≠', name: 'Not Equal' }
+  // Map operation to display values and HiFi button classes
+  const operationMap: Record<Exclude<OperationType, null>, { symbol: string; btnClass: string; title: string }> = {
+    '+': { symbol: '+', btnClass: 'hifi-btn-add', title: 'Addition - Rust: Prospection' },
+    '-': { symbol: '−', btnClass: 'hifi-btn-subtract', title: 'Subtraction - Rose: Healing' },
+    '>': { symbol: '>', btnClass: 'hifi-btn-compare', title: 'Greater Than - Amethyst: Operations' },
+    '<': { symbol: '<', btnClass: 'hifi-btn-compare', title: 'Less Than - Amethyst: Operations' },
+    '>=': { symbol: '≥', btnClass: 'hifi-btn-compare', title: 'Greater or Equal - Amethyst: Operations' },
+    '<=': { symbol: '≤', btnClass: 'hifi-btn-compare', title: 'Less or Equal - Amethyst: Operations' },
+    '==': { symbol: '=', btnClass: 'hifi-btn-compare', title: 'Equals - Amethyst: Operations' },
+    '!=': { symbol: '≠', btnClass: 'hifi-btn-compare', title: 'Not Equal - Amethyst: Operations' }
   };
 
   const display = operationMap[operation];
   if (symbolElement) symbolElement.textContent = display.symbol;
-  if (nameElement) nameElement.textContent = display.name;
+  if (buttonElement) {
+    buttonElement.className = display.btnClass;
+    buttonElement.removeAttribute('disabled');
+    buttonElement.setAttribute('title', display.title);
+  }
   if (operandRow) operandRow.setAttribute('data-operation', operation);
 }
 
@@ -380,6 +389,7 @@ function initializeCalculator(): void {
       calc.handleClear();
       updateInputDisplay(calc, 1);
       updateInputDisplay(calc, 2);
+      updateOutputDisplay(calc);
       updateOperationDisplay(calc);
     });
   }
@@ -431,6 +441,12 @@ function initializeCalculator(): void {
   calc.state.activeInput = 'input2';
   calc.handleZero();
   updateInputDisplay(calc, 2);
+
+  // Initialize output with absolute 0
+  calc.state.output.value = '0';
+  calc.state.output.buffer = 0n;
+  calc.state.output.binary = r8_.createBufferDisplay(0n);
+  updateOutputDisplay(calc);
 
   // Reset to input1 as active
   calc.state.activeInput = 'input1';

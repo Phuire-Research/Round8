@@ -145,9 +145,33 @@
   }
 
   /* Calculator Inner Structure - Structural Border Frame */
-  .display-section,
-  .operands-section,
-  .dialpad-section,
+  .display-section {
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.5rem;
+    padding: 8px !important;
+    margin-bottom: 8px !important;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .operands-section {
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.5rem;
+    padding: 3px;
+    margin-bottom: 3px !important;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .dialpad-section {
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.5rem;
+    padding: 3px;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
   .scientific-section {
     position: relative;
     border: 1px solid rgba(0, 0, 0, 0.08);
@@ -483,13 +507,6 @@
     border-left: 2px solid var(--color-amethyst-border-dark);
   }
 
-  /* Backspace Symbol Sizing and Positioning */
-  .backspace-symbol {
-    display: inline-block;
-    font-size: 46px;
-    transform: translate3d(-5px, -19px, 0);
-  }
-
   /* Signed Toggle Button: Ochre/Drafting */
   .hifi-btn-signed {
     @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
@@ -595,39 +612,26 @@
     border-left: 2px solid var(--color-red-border-dark);
   }
 
-  /* Equals Button: Rose/System (Completion) */
-  .hifi-btn-equals {
-    @apply relative px-6 py-3 rounded-lg font-semibold transition-all duration-300;
-    @apply transform text-white;
+  /* Obsidian Button: Suite 0 - Foundational State (Informative Display) */
+  .hifi-btn-obsidian {
+    @apply relative font-semibold;
+    @apply text-white;
     font-family: 'Space Mono', monospace;
     width: 100%;
     height: 100%;
+    padding: 0;
+    border-radius: 0;
     background-image:
-      var(--pattern-rose),
-      radial-gradient(circle at 87.5% 12.5%, var(--color-rose) 0%, #1e151d 88%);
+      var(--pattern-obsidian),
+      radial-gradient(circle at 87.5% 12.5%, #1a1a1a 0%, #000000 88%);
     background-repeat: repeat, no-repeat;
     background-size: 30px 30px, 100% 100%;
     background-position: 0 0, 0 0;
-    border-top: 2px solid var(--color-rose-border-dark);
-    border-right: 2px solid var(--color-rose-border-dark);
-    border-bottom: 2px solid var(--color-rose-border-light);
-    border-left: 2px solid var(--color-rose-border-light);
-    box-shadow: -8px 8px 32px var(--color-rose-shadow);
-  }
-
-  .hifi-btn-equals:hover {
-    background-image:
-      var(--pattern-rose),
-      radial-gradient(circle at 87.5% 12.5%, var(--color-rose-light) 0%, #1e151d 88%);
-    box-shadow: -6px 6px 24px var(--color-rose-shadow);
-    transform: scale(0.96);
-  }
-
-  .hifi-btn-equals:active {
-    border-top: 2px solid var(--color-rose-border-light);
-    border-right: 2px solid var(--color-rose-border-light);
-    border-bottom: 2px solid var(--color-rose-border-dark);
-    border-left: 2px solid var(--color-rose-border-dark);
+    border-top: 2px solid #0a0a0a;
+    border-right: 2px solid #0a0a0a;
+    border-bottom: 2px solid #2a2a2a;
+    border-left: 2px solid #2a2a2a;
+    box-shadow: -8px 8px 32px rgba(0, 0, 0, 0.8);
   }
 
   /* Calculate Button: Cobalt/Professional (Execution) */
@@ -776,8 +780,7 @@
   .hifi-btn-add:disabled,
   .hifi-btn-subtract:disabled,
   .hifi-btn-compare:disabled,
-  .hifi-btn-calculate:disabled,
-  .hifi-btn-equals:disabled {
+  .hifi-btn-calculate:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
@@ -1062,9 +1065,12 @@
 
 /* Display Rows */
 .display-row {
-  margin-bottom: 0.75rem;
+  margin-bottom: 5px;
   border-radius: 0.75rem;
-  padding: 8px;
+  padding-left: 8px;
+  padding-right: 12px;
+  padding-top: 8px;
+  padding-bottom: 8px;
   border: 2px solid transparent;
   transition: all 0.2s ease;
 }
@@ -1122,10 +1128,11 @@
 }
 
 .input-value {
+  font-family: 'DSEG7-Classic', monospace;
   flex: 1;
   width: 100%;
   text-align: right;
-  padding-right: 0.5rem;
+  padding-right: 16px;
 }
 
 .input-value:empty::before {
@@ -1136,11 +1143,87 @@
 /* Operand Row - HiFi Treatment */
 .operand-row {
   text-align: center;
-  max-height: 16px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 0;
+}
+
+.operand-display {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.operand-display button {
+  width: 100%;
+  min-height: 16px;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Override HiFi button styles in operand-display context */
+/* All operand buttons are informative displays, not interactive elements */
+
+.operand-display .hifi-btn-obsidian,
+.operand-display .hifi-btn-add,
+.operand-display .hifi-btn-subtract,
+.operand-display .hifi-btn-multiply,
+.operand-display .hifi-btn-divide,
+.operand-display .hifi-btn-compare {
+  padding: 0 !important;
+  border-radius: 0 !important;
+  transition: none !important;
+  transform: none !important;
+  border-top-width: 0.5px !important;
+  border-right-width: 0.5px !important;
+  border-bottom-width: 0.5px !important;
+  border-left-width: 0.5px !important;
+}
+
+.operand-display .hifi-btn-add:hover,
+.operand-display .hifi-btn-subtract:hover,
+.operand-display .hifi-btn-multiply:hover,
+.operand-display .hifi-btn-divide:hover,
+.operand-display .hifi-btn-compare:hover {
+  transform: none !important;
+  box-shadow: -8px 8px 32px var(--color-rust-shadow);
+}
+
+.operand-display .hifi-btn-subtract:hover {
+  box-shadow: -8px 8px 32px var(--color-rose-shadow);
+}
+
+.operand-display .hifi-btn-compare:hover {
+  box-shadow: -8px 8px 32px var(--color-amethyst-shadow);
+}
+
+.operand-display .hifi-btn-add:active,
+.operand-display .hifi-btn-subtract:active,
+.operand-display .hifi-btn-multiply:active,
+.operand-display .hifi-btn-divide:active,
+.operand-display .hifi-btn-compare:active {
+  border-top: 0.5px solid var(--color-rust-border-dark);
+  border-right: 0.5px solid var(--color-rust-border-dark);
+  border-bottom: 0.5px solid var(--color-rust-border-light);
+  border-left: 0.5px solid var(--color-rust-border-light);
+}
+
+.operand-display .hifi-btn-subtract:active {
+  border-top: 0.5px solid var(--color-rose-border-dark);
+  border-right: 0.5px solid var(--color-rose-border-dark);
+  border-bottom: 0.5px solid var(--color-rose-border-light);
+  border-left: 0.5px solid var(--color-rose-border-light);
+}
+
+.operand-display .hifi-btn-compare:active {
+  border-top: 0.5px solid var(--color-amethyst-border-dark);
+  border-right: 0.5px solid var(--color-amethyst-border-dark);
+  border-bottom: 0.5px solid var(--color-amethyst-border-light);
+  border-left: 0.5px solid var(--color-amethyst-border-light);
 }
 
 /* Add Operation - Rust Phase (Prospector) */
@@ -1276,10 +1359,11 @@
 }
 
 .output-value {
+  font-family: 'DSEG7-Classic', monospace;
   flex: 1;
   width: 100%;
   text-align: right;
-  padding-right: 0.5rem;
+  padding-right: 16px;
 }
 
 .output-value:empty::before {
@@ -1421,10 +1505,6 @@
   color: white;
 }
 
-.operand-equals {
-  background-color: var(--color-rose);
-  color: white;
-}
 
 .operand-calculate {
   background-color: rgb(22 163 74);  /* green-600 */
@@ -1464,21 +1544,29 @@
 }
 
 .dial-btn {
-  padding: 1.25rem;
   font-size: 1.25rem;
   font-weight: 600;
   border-radius: 0.75rem;
-  border: none;
   background-color: rgb(51 65 85);  /* slate-700 */
   color: white;
   transition: all 0.15s ease;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  /* HiFi Dimensional Border - Cobalt */
+  border-top: 2px solid rgb(0 97 255);  /* darker cobalt */
+  border-right: 2px solid rgb(0 97 255);  /* darker cobalt */
+  border-bottom: 2px solid rgb(0 37 90);  /* lighter cobalt */
+  border-left: 2px solid rgb(0 37 90);  /* lighter cobalt */
 }
 
 .dial-btn:active {
   transform: translateY(0);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  /* Inverted border for pressed effect - Cobalt */
+  border-top: 2px solid rgb(0 37 90);  /* lighter cobalt */
+  border-right: 2px solid rgb(0 37 90);  /* lighter cobalt */
+  border-bottom: 2px solid rgb(0 97 255);  /* darker cobalt */
+  border-left: 2px solid rgb(0 97 255);  /* darker cobalt */
 }
 
 /* Special Dial Buttons */
@@ -1490,6 +1578,19 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  /* HiFi Dimensional Border - Maroon */
+  border-top: 2px solid #810000;  /* darker maroon */
+  border-right: 2px solid #810000;  /* darker maroon */
+  border-bottom: 2px solid #aa0000;  /* lighter maroon */
+  border-left: 2px solid #aa0000;  /* lighter maroon */
+}
+
+.dial-zero:active {
+  /* Inverted border for pressed effect - Maroon */
+  border-top: 2px solid #aa0000;  /* lighter maroon */
+  border-right: 2px solid #aa0000;  /* lighter maroon */
+  border-bottom: 2px solid #810000;  /* darker maroon */
+  border-left: 2px solid #810000;  /* darker maroon */
 }
 
 .zero-text {
@@ -1504,10 +1605,36 @@
 
 .dial-backspace {
   background-color: rgb(75 85 99);  /* gray-600 */
+  /* HiFi Dimensional Border - Amethyst */
+  border-top: 2px solid #7215cf;  /* amethyst-border-dark - darker */
+  border-right: 2px solid #7215cf;  /* amethyst-border-dark - darker */
+  border-bottom: 2px solid #861af1;  /* amethyst-border-light - lighter */
+  border-left: 2px solid #861af1;  /* amethyst-border-light - lighter */
+}
+
+.dial-backspace:active {
+  /* Inverted border for pressed effect - Amethyst */
+  border-top: 2px solid #861af1;  /* amethyst-border-light - lighter */
+  border-right: 2px solid #861af1;  /* amethyst-border-light - lighter */
+  border-bottom: 2px solid #7215cf;  /* amethyst-border-dark - darker */
+  border-left: 2px solid #7215cf;  /* amethyst-border-dark - darker */
 }
 
 .dial-comma {
   background-color: rgb(71 85 105);  /* slate-600 */
+  /* HiFi Dimensional Border - Ochre */
+  border-top: 2px solid #bc6e20;  /* ochre-border-dark - darker */
+  border-right: 2px solid #bc6e20;  /* ochre-border-dark - darker */
+  border-bottom: 2px solid #db8024;  /* ochre-border-light - lighter */
+  border-left: 2px solid #db8024;  /* ochre-border-light - lighter */
+}
+
+.dial-comma:active {
+  /* Inverted border for pressed effect - Ochre */
+  border-top: 2px solid #db8024;  /* ochre-border-light - lighter */
+  border-right: 2px solid #db8024;  /* ochre-border-light - lighter */
+  border-bottom: 2px solid #bc6e20;  /* ochre-border-dark - darker */
+  border-left: 2px solid #bc6e20;  /* ochre-border-dark - darker */
 }
 
 .dial-switch {
@@ -1729,4 +1856,192 @@
   .operations-row {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+/* ============================================================ */
+/* Digital 7-Segment Display System (DSEG7-Classic-Bold)      */
+/* Three-Layer Architecture: Ghost + Active + Noise Overlay   */
+/* TARGET: Round8 Value Displays (NOT Binary Displays)        */
+/* ============================================================ */
+
+/* Base Digital Display Container for Round8 Values */
+.digital-display-base {
+  font-family: 'DSEG7-Classic', monospace;  /* DSEG7 as primary font */
+  font-weight: bold;
+  font-size: 20.5px;  /* Match ghost and active layers */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  position: relative;
+  display: block;  /* Block display for full width */
+  width: 100%;  /* Fill container width */
+  padding: 0 !important;  /* No padding on base container - prevent override */
+  border-radius: 0.375rem;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+/* Ghost Layer - All 8s (Unlit Segments) */
+.digital-ghost-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  opacity: 0.15;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+  font-family: 'DSEG7-Classic', monospace;
+  font-weight: bold;
+  font-size: 20.5px;
+  padding: 8px;
+  text-align: right;  /* Align ghost text to right */
+  transition: all 0.2s ease;
+}
+
+/* Active Layer - Actual Round8 Value */
+.digital-active-layer {
+  position: relative;
+  z-index: 2;
+  font-family: 'DSEG7-Classic', monospace;
+  font-weight: bold;
+  font-size: 20.5px;
+  padding: 8px;
+  text-align: right;  /* Align active text to right */
+  width: 100%;  /* Fill container width */
+  display: block;  /* Block display for full width */
+  transition: all 0.2s ease;
+  /* Text color and shadow defined per display type variant */
+}
+
+/* Prismatic Noise Overlay */
+.digital-noise-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.08;
+  z-index: 3;
+  background-image: var(--pattern-lcd-scanlines);
+  background-repeat: repeat;
+}
+
+/* Input Display Variant (Ochre Background) */
+.digital-display-input {
+  background: linear-gradient(135deg, #C8A15D 0%, #b89650 100%);  /* Ochre gradient */
+  border-color: rgba(200, 161, 93, 0.4);
+}
+
+.digital-display-input .digital-ghost-layer {
+  color: rgb(0 0 0 / 33%);  /* Dark ghost on light background */
+}
+
+.digital-display-input .digital-active-layer {
+  color: #1a1a1a;  /* Dark text on light ochre background */
+  text-shadow: 0px 2px 4px var(--color-ochre-complement-shadow);  /* Blue-violet shadow */
+}
+
+/* Output Display Variant (Maroon Background) */
+.digital-display-output {
+  background: linear-gradient(135deg, #800020 0%, #6b001a 100%);  /* Maroon gradient */
+  border-color: rgba(128, 0, 32, 0.4);
+}
+
+.digital-display-output .digital-ghost-layer {
+  color: rgba(255, 255, 255, 0.08);  /* Light ghost on dark background */
+}
+
+.digital-display-output .digital-active-layer {
+  color: #e2e8f0;  /* Light text on dark maroon background */
+  text-shadow: 0px 2px 4px var(--color-maroon-complement-shadow);  /* Teal-cyan shadow */
+}
+
+/* Hover State Enhancement (Subtle Glow) */
+.digital-display-base:hover .digital-active-layer {
+  filter: brightness(1.1);
+}
+
+/* ============================================================ */
+/* Section Wrappers for Combined Display Areas                 */
+/* ============================================================ */
+
+/* Input Section Wrapper - Contains Round8 value + binary */
+.input-section-wrapper {
+  width: 100%;
+  padding: 8px 12px 8px 8px;  /* Internal padding for content */
+}
+
+/* Output Section Wrapper - Contains Round8 value + binary */
+.output-section-wrapper {
+  width: 100%;
+  padding: 8px 12px 8px 8px;  /* Internal padding for content */
+}
+
+/* Nested Display Containers (no background) */
+.input-section-wrapper .input-display,
+.output-section-wrapper .output-display {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 0.5rem;
+  position: relative;
+  width: 100%;
+  display: block;
+}
+
+/* Cursor Handling for Input Displays */
+.digital-active-layer .input-cursor {
+  font-family: inherit;  /* Use DSEG7 font */
+  animation: blink 1s infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ============================================================ */
+/* Original Binary Display with Text Wrapping                  */
+/* IMPORTANT: Modified to enable text wrapping                 */
+/* ============================================================ */
+
+/* Binary Display Wrapper - Contains binary display + rotation buttons */
+.binary-display-wrapper {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Binary displays with Orbitron font */
+.binary-display {
+  /* Use Orbitron font family */
+  font-family: 'Orbitron', monospace !important;
+  font-size: 9.2px !important;
+  /* Preserve original dark red background */
+  background: #4d0000 !important;
+  /* Preserve original text color with cyan text shadow */
+  color: #d4853d !important;
+  text-shadow: 0.5px 0.5px rgb(5 141 208);
+  /* Disable overflow - allow natural text flow */
+  overflow: visible !important;
+  /* Enable text wrapping */
+  text-wrap: wrap !important;
+  word-wrap: break-word !important;
+  word-break: break-all !important;
+  /* Keep original padding */
+  padding: 0.5rem 0.75rem !important;
+  /* HiFi dimensional border - dark red with lighter bottom/left */
+  border-radius: 0.375rem !important;
+  border-top: 2px solid #931a1a !important;      /* Darker top */
+  border-right: 2px solid #931a1a !important;    /* Darker right */
+  border-bottom: 2px solid #c10000 !important;   /* Lighter bottom */
+  border-left: 2px solid #c10000 !important;     /* Lighter left */
+}
+
+/* Binary display hover effect */
+.binary-display:hover {
+  background: #660000 !important;
 }
