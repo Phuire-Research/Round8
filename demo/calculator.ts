@@ -379,6 +379,11 @@ function initializeCalculator(): void {
     calculateBtn.addEventListener('click', () => {
       calc.handleCalculate();
       updateOutputDisplay(calc);
+      // Activate output display (restore saturation)
+      const outputRow = document.getElementById('outputRow');
+      if (outputRow) {
+        outputRow.classList.add('output-row-active');
+      }
     });
   }
 
@@ -391,6 +396,11 @@ function initializeCalculator(): void {
       updateInputDisplay(calc, 2);
       updateOutputDisplay(calc);
       updateOperationDisplay(calc);
+      // Deactivate output display (restore desaturation)
+      const outputRow = document.getElementById('outputRow');
+      if (outputRow) {
+        outputRow.classList.remove('output-row-active');
+      }
     });
   }
 

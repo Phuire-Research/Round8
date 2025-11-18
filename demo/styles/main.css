@@ -1336,6 +1336,13 @@
   border-right: 2px solid var(--color-maroon-border-dark);
   border-bottom: 2px solid var(--color-maroon-border-light);
   border-left: 2px solid var(--color-maroon-border-light);
+  /* Square top corners, rounded bottom corners */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  /* Additional top margin */
+  margin-top: 8px;
 }
 
 .output-label {
@@ -1932,6 +1939,13 @@
 .digital-display-input {
   background: linear-gradient(135deg, #C8A15D 0%, #b89650 100%);  /* Ochre gradient */
   border-color: rgba(200, 161, 93, 0.4);
+  filter: saturate(0.3);  /* Desaturated when inactive */
+  transition: filter 0.3s ease;
+}
+
+/* Active input display - restore saturation */
+.input-row-active .digital-display-input {
+  filter: saturate(1);  /* Full saturation when active */
 }
 
 .digital-display-input .digital-ghost-layer {
@@ -1947,6 +1961,13 @@
 .digital-display-output {
   background: linear-gradient(135deg, #800020 0%, #6b001a 100%);  /* Maroon gradient */
   border-color: rgba(128, 0, 32, 0.4);
+  filter: saturate(0.3);  /* Desaturated when no calculation performed */
+  transition: filter 0.3s ease;
+}
+
+/* Active output display - restore saturation after calculation */
+.output-row-active .digital-display-output {
+  filter: saturate(1);  /* Full saturation after calculation */
 }
 
 .digital-display-output .digital-ghost-layer {
@@ -1977,6 +1998,11 @@
 .output-section-wrapper {
   width: 100%;
   padding: 8px 12px 8px 8px;  /* Internal padding for content */
+  /* Square top corners, rounded bottom corners */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
 }
 
 /* Nested Display Containers (no background) */
