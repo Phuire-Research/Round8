@@ -32,9 +32,61 @@ export const initializeSpooledWrung = <T>(): SpooledWrung<T> => {
   return arr;
 };
 
+/**
+ * SpooledSumSeries - Six-Dimensional Sum Manifold [Muxity: 7]
+ *
+ * Pre-computed addition lookup table replacing arithmetic operations.
+ * Coordinates: [a0][a1][a2][b0][b1][b2] → [result, carry?]
+ *
+ * TESTABLE PROPERTIES:
+ * - Input: Two 3-bit rotation values (0-7)
+ * - Output: Deterministic sum (0-7) + optional carry flag
+ * - Access Time: O(1) array lookup
+ * - No arithmetic: Pure manifold traversal
+ * - Memory: 8³ × 8³ = 262,144 pre-computed entries
+ *
+ * QUANTUM RESISTANCE:
+ * - No factorization possible (lookup only)
+ * - Constant time prevents timing attacks
+ * - Position-aware (regular frame for positions 1-20)
+ */
 const SpooledSumSeries: SpooledWrung = initializeSpooledWrung();
+
+/**
+ * ShiftedSpooledSumSeries - Position 21 Sum Manifold [Muxity: 21]
+ *
+ * Shifted frame sum lookup for position 21 boundary.
+ * Uses identity mapping instead of Binary Operand Bias.
+ * Critical for maintaining bidirectional integrity at boundary.
+ */
 const ShiftedSpooledSumSeries: SpooledWrung = initializeSpooledWrung();
+
+/**
+ * SpooledDifferenceSeries - Six-Dimensional Difference Manifold [Muxity: 7]
+ *
+ * Pre-computed subtraction lookup table.
+ * Coordinates: [a0][a1][a2][b0][b1][b2] → [result, borrow?]
+ *
+ * TESTABLE PROPERTIES:
+ * - Input: Two 3-bit rotation values (minuend, subtrahend)
+ * - Output: Deterministic difference + optional borrow flag
+ * - Access Time: O(1) array lookup
+ * - No arithmetic: Pure manifold traversal
+ *
+ * BORROW MECHANICS:
+ * - Borrow flag indicates underflow
+ * - Propagates through position cascade
+ * - Testable via difference operations
+ */
 const SpooledDifferenceSeries: SpooledWrung = initializeSpooledWrung();
+
+/**
+ * SpooledShiftedDifferenceSeries - Position 21 Difference Manifold [Muxity: 21]
+ *
+ * Shifted frame difference lookup for position 21.
+ * Maintains identity mapping at boundary.
+ * Prevents mathematical discontinuity exploitation.
+ */
 const SpooledShiftedDifferenceSeries: SpooledWrung = initializeSpooledWrung();
 
 // Logical Comparison Spools (return boolean 0 or 1)

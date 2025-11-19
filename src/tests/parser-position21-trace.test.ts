@@ -45,6 +45,9 @@ describe('Trace Parser Position 21 Handling', () => {
   });
 
   test('Test each digit at position 21', () => {
+    // Expected at position 21: Symbol '1' → Rotation 1 (shifted frame)
+    // Actual before fix: Symbol '1' → Rotation 0 (used regular frame)
+    // Fix: conference.ts line 325 now returns symbolValue directly
     console.log('\n=== TESTING EACH DIGIT AT POSITION 21 ===');
 
     for (let digit = 1; digit <= 7; digit++) {

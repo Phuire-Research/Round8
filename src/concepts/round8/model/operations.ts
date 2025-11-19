@@ -293,13 +293,16 @@ const assembleBufferFromResultMuxity = (
   // Apply all recorded positions to buffer (index + 1 = position)
   muxity.positions.forEach((resultIndex, index) => {
     const pos = (index + 1) as Positions;
+    // Position 21 boundary check - switch to shifted manifold
     if (pos === 21) {
+      // Identity mapping: shifted numerals use direct indexing
       if (resultIndex === 0) {
         buffer = applyShiftedNumeralRotation(resultIndex + 1, buffer, pos);
       } else {
         buffer = applyShiftedNumeralRotation(resultIndex, buffer, pos);
       }
     } else {
+      // Binary Operand Bias: regular positions use offset mapping
       buffer = applyNumeralRotation(resultIndex, buffer, pos);
     }
   });
@@ -556,6 +559,21 @@ const differenceWrung = (
   return assembleBufferFromResultMuxity(result, false, 'difference', wasFullTwist);
 };
 
+/**
+ * muxifyWrung - Bidirectional Operation Router [Muxity: 7]
+ *
+ * Routes addition/subtraction through Spool Manifolds
+ * No arithmetic operations - pure lookup traversal
+ *
+ * POSITION AWARENESS:
+ * - Positions 1-20: Regular manifold (Binary Operand Bias)
+ * - Position 21: Shifted manifold (Identity mapping)
+ *
+ * TESTABLE PROPERTIES:
+ * - Deterministic output for all inputs
+ * - O(1) lookup time regardless of values
+ * - Bidirectional integrity maintained
+ */
 export const muxifyWrung = (operation: Operations, wrungA: bigint, wrungB: bigint): bigint => {
   const signA = getSignBit(wrungA);
   const signB = getSignBit(wrungB);

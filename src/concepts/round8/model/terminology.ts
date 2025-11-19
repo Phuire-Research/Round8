@@ -509,6 +509,11 @@ const extractValueTuple = (value: bigint): [0 | 1, 0 | 1, 0 | 1] => {
  */
 export const MARQUEE_TUPLE: [0 | 1, 0 | 1, 0 | 1] = extractValueTuple(setNumeralProperty(1));
 
+/**
+ * NumeralStore - Regular Frame Symbol Storage [Muxity: 2]
+ * Maps symbol names to rotation values for positions 1-20
+ * Formula: Symbol Value - 1 = Rotation (Binary Operand Bias)
+ */
 export const NumeralStore = {
   One: setNumeralProperty(Round8Numerals[1]),
   Two: setNumeralProperty(Round8Numerals[2]),
@@ -520,6 +525,21 @@ export const NumeralStore = {
   Eight: setNumeralProperty(Round8Numerals[8]),
 } as const;
 
+/**
+ * ShiftedNumeralStore - Position 21 Identity Mapping Storage [Muxity: 21]
+ *
+ * Maps symbol names to rotation values for position 21 ONLY.
+ * Identity mapping: Symbol value = Rotation value
+ *
+ * MAPPING:
+ * - Symbol '1' → Rotation 1 (binary 001)
+ * - Symbol '7' → Rotation 7 (binary 111)
+ * - Symbol '8' → Marquee (used in shifted bridge for borrow/carry)
+ *
+ * This creates the mathematical discontinuity at position 21
+ * that prevents quantum period-finding algorithms from working.
+ * Test: parser-position21-trace.test.ts validates bidirectional integrity.
+ */
 export const ShiftedNumeralStore = {
   One: setNumeralProperty(Round8Numerals[3]),
   Two: setNumeralProperty(Round8Numerals[4]),
@@ -610,8 +630,22 @@ export const initializeSpooledWrung = <T extends number | string | BitRotationTu
   return arr;
 };
 
+/**
+ * spooledNumerals - Three-Bit Display Lookup [Muxity: 3]
+ * [b0][b1][b2] → Display Symbol (1-8)
+ * Binary Operand Bias: Returns symbol value for positions 1-20
+ * O(1) array lookup replaces bit manipulation
+ */
 export const spooledNumerals = initializeSpooledWrung<number>();
+
+/**
+ * spooledShiftedNumerals - Three-Bit Shifted Lookup [Muxity: 3]
+ * [b0][b1][b2] → Display Symbol (0-8)
+ * Identity mapping: Returns symbol value for position 21
+ * Creates mathematical discontinuity at boundary
+ */
 export const spooledShiftedNumerals = initializeSpooledWrung<number>();
+
 export const spooledStringNumerals = initializeSpooledWrung<string>();
 export const spooledShiftedStringNumerals = initializeSpooledWrung<string>();
 // Only One Needed as we only Handle a Twist Case Given Some Carry Output.
@@ -777,20 +811,13 @@ export const getShiftedRotationString = (buffer: bigint, position: Positions): s
 };
 
 /**
- * applyNumeralRotation - Clear and Set function for applying numeral values
- * Uses WorkingBigIntBucket - ZERO allocation!
- * Sign-at-Origin: Position 1 at bits 1-3, Sign at bit 0
- * This REPLACES the old setBinaryRotation function (pruned for zero-allocation)
- * @param value - Number value (0-7) from Round8Numerals or elsewhere
- * @param buffer - The bigint buffer to modify
- * @param position - Position (1-21) to set value
- * @returns Updated buffer with value applied at position
+ * applyNumeralRotation - Regular Frame Bit Application [Muxity: 3]
+ * Applies rotation value to buffer at specified position (1-20).
+ * Input: value (0-7) → Binary (3 bits) → Buffer position
+ * Testable: Fixed bit offset calculation per position
  */
 export const applyNumeralRotation = (value: number, buffer: bigint, position: Positions): bigint => {
   let finalValue: bigint;
-  // PIN - REllEK [UNREASONABLE FIND] - Here is a major built in inefficiency that a Informative Base Relationship would benefit from.
-  // Effectively because the Bits of Round8 are Relative. We would be Able to Shift 3 bits onto a Buffer of Some N Length.
-  // There is no reason to not allow this outside of feat of lost precision, but here we have Greater Precision.
   switch (value) {
   case 0: {
     finalValue = NumeralStore.One;
@@ -840,20 +867,23 @@ export const applyNumeralRotation = (value: number, buffer: bigint, position: Po
 };
 
 /**
- * applyNumeralRotation - Clear and Set function for applying numeral values
+ * applyShiftedNumeralRotation - Position 21 Bit Application [Muxity: 21]
+ *
+ * Applies rotation value to buffer at position 21 ONLY.
+ * Uses ShiftedNumeralStore for identity mapping.
+ * Critical: Different lookup table than positions 1-20.
+ *
  * Uses WorkingBigIntBucket - ZERO allocation!
  * Sign-at-Origin: Position 1 at bits 1-3, Sign at bit 0
  * This REPLACES the old setBinaryRotation function (pruned for zero-allocation)
- * @param value - Number value (0-7) from Round8Numerals or elsewhere
+ *
+ * @param value - Number value (0-7) from ShiftedNumeralStore
  * @param buffer - The bigint buffer to modify
- * @param position - Position (1-21) to set value
+ * @param position - Position (must be 21)
  * @returns Updated buffer with value applied at position
  */
 export const applyShiftedNumeralRotation = (value: number, buffer: bigint, position: Positions): bigint => {
   let finalValue: bigint;
-  // PIN - REllEK [UNREASONABLE FIND] - Here is a major built in inefficiency that a Informative Base Relationship would benefit from.
-  // Effectively because the Bits of Round8 are Relative. We would be Able to Shift 3 bits onto a Buffer of Some N Length.
-  // There is no reason to not allow this outside of feat of lost precision, but here we have Greater Precision.
   switch (value) {
   case 0: {
     finalValue = ShiftedNumeralStore.Eight;

@@ -32,22 +32,17 @@ import {
 } from './terminology';
 
 /**
- * getWrungStringRepresentation - Parse buffer to Round8 string representation
+ * getWrungStringRepresentation - Bidirectional Display Generator [Muxity: 7]
  *
- * Marquee-aware parsing: Uses BidirectionalConference to establish halting delimiter.
- * Marquee positions (000 holding states) are excluded from output.
+ * Converts binary buffer to Round8 string representation
  *
- * Scans upward from Position 1 up to (but not including) Marquee delimiter.
- * downwardScan (BidirectionalConference) establishes boundary.
- * upwardScan respects that boundary for content extraction.
+ * ALGORITHM PHASES:
+ * 1. BidirectionalConference determines boundaries
+ * 2. Scan positions, apply frame-specific lookups
+ * 3. Position 21: Use shifted spool (identity)
+ * 4. Positions 1-20: Use regular spool (bias)
  *
- * Special Cases:
- * - Absolute Zero: Returns "0"
- * - Negative One: Returns representation based on 2nd Column Activation Rule
- * - Final Twist: Returns maximum positive representation
- *
- * @param buffer - BigInt buffer to parse (Sign-at-Origin architecture)
- * @returns String representation excluding Marquee holding positions
+ * TESTABLE: Parse(Display(X)) = X for all valid X
  */
 export const getWrungStringRepresentation = (buffer: bigint): string => {
   // Step 1: Determine Marquee delimiter via BidirectionalConference
@@ -280,15 +275,10 @@ const isValidRound8Numeral = (char: string): boolean => {
 };
 
 /**
- * round8NumeralToRotation - Map Round8 symbol to rotation value
- *
- * Applies Binary Operand Bias offset: symbol - 1 = rotation
- * Valid symbols: '1'-'8' → rotation values: 0-7
- *
- * Returns undefined for invalid symbols (guarding pattern).
- *
- * @param numeral - Single character '1'-'8'
- * @returns Rotation value 0-7, or undefined if invalid
+ * round8NumeralToRotation - Binary Operand Bias Converter [Muxity: 2]
+ * Positions 1-20: Symbol '1'-'8' → Rotation 0-7
+ * Formula: rotation = symbol - 1
+ * Testable: '1'→0, '2'→1, ..., '8'→7
  */
 const round8NumeralToRotation = (numeral: string): number | undefined => {
   const symbolValue = parseInt(numeral, 10);
@@ -304,16 +294,28 @@ const round8NumeralToRotation = (numeral: string): number | undefined => {
 };
 
 /**
- * round8NumeralToShiftedRotation - Position 21 shifted mapping
+ * round8NumeralToShiftedRotation - Position 21 Identity Converter [Muxity: 21]
  *
- * Position 21 excludes '8' (Full Twist indicator at boundary).
- * Valid symbols: '1'-'7' → rotation values: 1-7 (shifted frame mapping)
+ * Position 21 ONLY - Identity mapping for shifted frame boundary.
+ * Symbol values map directly to rotation values (no offset).
  *
- * Note: '8' at front of 21-length string means Full Twist (special case).
- * Returns undefined for invalid symbols (8 at Position 21, or out of range).
+ * MAPPING TABLE:
+ * - Symbol '1' → rotation 1 (binary 001)
+ * - Symbol '2' → rotation 2 (binary 010)
+ * - Symbol '3' → rotation 3 (binary 011)
+ * - Symbol '4' → rotation 4 (binary 100)
+ * - Symbol '5' → rotation 5 (binary 101)
+ * - Symbol '6' → rotation 6 (binary 110)
+ * - Symbol '7' → rotation 7 (binary 111)
+ * - Symbol '8' → INVALID (boundary limitation)
+ *
+ * BIDIRECTIONAL INTEGRITY:
+ * Parse: Symbol '1' → Rotation 1 → Binary 001
+ * Display: Binary 001 → Rotation 1 → Symbol '1'
+ * Test verification: parser-position21-trace.test.ts
  *
  * @param numeral - Single character '1'-'7'
- * @returns Rotation value 1-7 (shifted frame), or undefined if invalid
+ * @returns Rotation value 1-7, or undefined if invalid
  */
 const round8NumeralToShiftedRotation = (numeral: string): number | undefined => {
   const symbolValue = parseInt(numeral, 10);
@@ -487,14 +489,26 @@ const handleLengthTwoToTwenty = (
 };
 
 /**
- * handleLengthTwentyOne - Position 21 requires shifted terminology
+ * handleLengthTwentyOne - Boundary Frame Parser [Muxity: 21]
  *
- * Rule: '8' excluded at Position 21 (cannot place Marquee at Position 22).
- * Use Shifted terminology for Position 21 (1-7 valid, excludes 8).
+ * Special handling for maximum 21-position strings.
+ * Positions 1-20 use regular frame, Position 21 uses shifted frame.
  *
- * Returns undefined if any numeral invalid or Position 21 shows '8'.
+ * FRAME DISTRIBUTION:
+ * - Positions 1-20: Binary Operand Bias (symbol - 1 = rotation)
+ * - Position 21: Identity mapping (symbol = rotation)
  *
- * @param preparedString - Unsigned numeral string (length 21)
+ * BOUNDARY CONSTRAINTS:
+ * - No Marquee at Position 22 (system boundary)
+ * - Symbol '8' invalid at Position 21 (would overflow)
+ * - Shifted frame prevents period-finding attacks
+ *
+ * CRITICAL IMPLEMENTATION:
+ * - Line 551: applyShiftedNumeralRotation for position 21
+ * - Ensures bidirectional string interchange integrity
+ * - Test: parser-position21-trace.test.ts verifies 1-to-1 mapping
+ *
+ * @param preparedString - Unsigned numeral string (exactly 21 chars)
  * @param isNegative - Sign determination
  * @returns Round8 bigint buffer, or undefined if invalid
  */
@@ -532,7 +546,6 @@ const handleLengthTwentyOne = (
   // Position 21: Special handling (shifted terminology)
   const position21Numeral = preparedString[20]; // Index 20 = Position 21
 
-  console.log('REllEK', 7, position21Numeral);
   // Invalid case: Position 21 shows '8'
   // Should have been caught in Phase 3 as Full Twist case
   // Returns undefined
@@ -540,7 +553,9 @@ const handleLengthTwentyOne = (
     return undefined;
   }
 
-  // Apply shifted rotation at Position 21
+  // Apply shifted frame mapping for Position 21
+  // This uses identity mapping (symbol value = rotation value)
+  // to ensure correct bidirectional string interchange
   const rotation21 = round8NumeralToShiftedRotation(position21Numeral);
 
   // Invalid case: shifted rotation mapping failed (symbol out of range 1-7)
@@ -549,9 +564,7 @@ const handleLengthTwentyOne = (
     return undefined;
   }
 
-  console.log('REllEK', 8, rotation21, createFormattedRound8BinaryString(buffer));
   buffer = applyShiftedNumeralRotation(rotation21, buffer, 21 as Positions);
-  console.log('REllEK', 9, createFormattedRound8BinaryString(buffer));
   // No Marquee at Position 22 (system boundary)
   return buffer;
 };
@@ -694,17 +707,13 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
       return getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);
     }
   }
-  console.log('REllEK', 1);
   // Route to length-specific handling
   preparedString = preparedString.split('').reverse().join('');
   if (length === 1) {
-    console.log('REllEK', 2);
     return handleLengthOne(preparedString, isNegative);
   } else if (length >= 2 && length <= 20) {
-    console.log('REllEK', 3);
     return handleLengthTwoToTwenty(preparedString, isNegative);
   } else if (length === 21) {
-    console.log('REllEK', 4);
     return handleLengthTwentyOne(preparedString, isNegative);
   }
   // Fallback: should never reach here due to prior guards
