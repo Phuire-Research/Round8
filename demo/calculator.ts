@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable complexity */
 /**
  * Round8 Calculator v0.0.11 - UI Event Bindings
  *
@@ -81,13 +83,13 @@ function updateOperationDisplay(
 
   if (!operation) {
     // Reset to Obsidian default state
-    if (symbolElement) symbolElement.textContent = '○';
+    if (symbolElement) {symbolElement.textContent = '○';}
     if (buttonElement) {
       buttonElement.className = 'hifi-btn-obsidian';
       buttonElement.setAttribute('disabled', 'true');
       buttonElement.setAttribute('title', 'Suite 0: Obsidian - Foundational State');
     }
-    if (operandRow) operandRow.removeAttribute('data-operation');
+    if (operandRow) {operandRow.removeAttribute('data-operation');}
     return;
   }
 
@@ -104,13 +106,13 @@ function updateOperationDisplay(
   };
 
   const display = operationMap[operation];
-  if (symbolElement) symbolElement.textContent = display.symbol;
+  if (symbolElement) {symbolElement.textContent = display.symbol;}
   if (buttonElement) {
     buttonElement.className = display.btnClass;
     buttonElement.removeAttribute('disabled');
     buttonElement.setAttribute('title', display.title);
   }
-  if (operandRow) operandRow.setAttribute('data-operation', operation);
+  if (operandRow) {operandRow.setAttribute('data-operation', operation);}
 }
 
 /**
@@ -463,7 +465,7 @@ function initializeCalculator(): void {
   updateActiveInputHighlight(calc);
 
   console.log('Calculator UI bindings initialized');
-  console.log('Round8 Calculator v0.0.11 - Display reactivity enabled');
+  console.log('Round8 Calculator v0.0.14 - Display reactivity enabled');
 }
 
 /**

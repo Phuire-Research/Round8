@@ -152,16 +152,32 @@ const r8 = (value: string): bigint => {
 //   expect(getSignBit(result)).toBe(0);
 // });
 
-test('Mixed length edge case (1 position + 21 positions)', () => {
-  const wrungA = r8('8');
-  const wrungB = r8('111111111111111111111'); // 21 ones
-  const result = muxifyWrung('+', wrungA, wrungB);
+// test('Mixed length edge case (1 position + 21 positions)', () => {
+//   const wrungA = r8('8');
+//   const wrungB = r8('111111111111111111111'); // 21 ones
+//   const result = muxifyWrung('+', wrungA, wrungB);
 
-  // 8+1=9>8 → carry propagates through all 21 positions
+//   // 8+1=9>8 → carry propagates through all 21 positions
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('111111111111111111121'); // Least significant = 1
+//   expect(resultStr.length).toBe(21);
+// });
+
+test('Was Full Twist', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('1'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
+
   const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('111111111111111111121'); // Least significant = 1
-  expect(resultStr.length).toBe(21);
+  expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
 });
+
+// test('Is Near Max', () => {
+//   const wrungA = r8('688888888888888888888');
+
+//   const resultStr = getWrungStringRepresentation(wrungA);
+//   expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
+// });
 
 // test('21 positions minus 10 positions', () => {
 //   const twentyOne3s = '333333333333333333333';

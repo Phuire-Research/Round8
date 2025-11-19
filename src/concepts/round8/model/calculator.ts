@@ -132,7 +132,7 @@ function createCalculator() {
   }
 
   function handleOperation(operation: OperationType): void {
-    if (operation === null) return;
+    if (operation === null) {return;}
     state.operation = operation;
   }
 
@@ -146,7 +146,7 @@ function createCalculator() {
       return;
     }
 
-    let result: bigint = 0n;
+    let result = 0n;
 
     if (operation === '+') {
       result = r8_.operations.add(buffer1, buffer2);
@@ -168,7 +168,6 @@ function createCalculator() {
       result = buffer1 === buffer2 ? 1n : 0n;
     } else if (operation === '!=') {
       result = buffer1 !== buffer2 ? 1n : 0n;
-
     } else {
       console.warn(`Round8 Calculator: Operation not yet implemented: ${operation}`);
       return;
@@ -205,7 +204,6 @@ function createCalculator() {
   function handleSigned(): void {
     const inputState = state[state.activeInput];
     const flipped = r8_.terminology.flipSignBit(inputState.buffer);
-    console.log('DOES THIS FLIP', flipped);
     inputState.buffer = flipped;
     inputState.binary = r8_.createBufferDisplay(flipped);
     inputState.value = r8_.createRoundDisplay(flipped);

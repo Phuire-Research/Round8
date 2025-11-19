@@ -52,7 +52,6 @@ import {
 export const getWrungStringRepresentation = (buffer: bigint): string => {
   // Step 1: Determine Marquee delimiter via BidirectionalConference
   const marqueeState = BidirectionalConference(buffer);
-  console.log('CHECK MUXITY', marqueeState);
 
   // Special case: Absolute Zero (all positions 000)
   if (marqueeState.isAbsoluteZero) {
@@ -366,7 +365,6 @@ const handleLengthOne = (
   }
   buffer = applyNumeralRotation(rotationValue, buffer, 1 as Positions);
   buffer = applyMarqueeAtPosition(buffer, 2 as Positions);
-  console.log('WHAT IS THIS', buffer, createFormattedRound8BinaryString(buffer), getFormattedColumnarWrungRepresentation(buffer));
   return buffer;
 };
 
@@ -528,13 +526,13 @@ const handleLengthTwentyOne = (
     }
 
     const position = (i + 1) as Positions;
-
     buffer = applyNumeralRotation(rotation, buffer, position);
   }
 
   // Position 21: Special handling (shifted terminology)
   const position21Numeral = preparedString[20]; // Index 20 = Position 21
 
+  console.log('REllEK', 7, position21Numeral);
   // Invalid case: Position 21 shows '8'
   // Should have been caught in Phase 3 as Full Twist case
   // Returns undefined
@@ -551,8 +549,9 @@ const handleLengthTwentyOne = (
     return undefined;
   }
 
+  console.log('REllEK', 8, rotation21, createFormattedRound8BinaryString(buffer));
   buffer = applyShiftedNumeralRotation(rotation21, buffer, 21 as Positions);
-
+  console.log('REllEK', 9, createFormattedRound8BinaryString(buffer));
   // No Marquee at Position 22 (system boundary)
   return buffer;
 };
@@ -695,14 +694,17 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
       return getRound8Case(Round8Cases.POSITIVE_TWIST_CASE);
     }
   }
-
+  console.log('REllEK', 1);
   // Route to length-specific handling
   preparedString = preparedString.split('').reverse().join('');
   if (length === 1) {
+    console.log('REllEK', 2);
     return handleLengthOne(preparedString, isNegative);
   } else if (length >= 2 && length <= 20) {
+    console.log('REllEK', 3);
     return handleLengthTwoToTwenty(preparedString, isNegative);
   } else if (length === 21) {
+    console.log('REllEK', 4);
     return handleLengthTwentyOne(preparedString, isNegative);
   }
   // Fallback: should never reach here due to prior guards

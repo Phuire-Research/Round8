@@ -1,7 +1,13 @@
 /* eslint-disable complexity */
 import { BidirectionalConference, WrungMuxity } from './bidirectional';
-import { compareMagnitude, ShiftedSpooledSumSeries, SpooledDifferenceSeries, SpooledShiftedDifferenceSeries, SpooledSumSeries } from './cases';
-import { createFormattedRound8BinaryString } from './conference';
+import {
+  compareMagnitude,
+  ShiftedSpooledSumSeries,
+  SpooledDifferenceSeries,
+  SpooledShiftedDifferenceSeries,
+  SpooledSumSeries
+} from './cases';
+import { parseStringToRound8 } from './conference';
 import {
   applyMarqueeAtPosition,
   applyNumeralRotation,
@@ -24,8 +30,6 @@ import {
   spooledNumerals,
   spooledRegularShiftedBridge,
   spooledShiftedNumerals,
-  spooledShiftedStringNumerals,
-  SpooledWrung
 } from './terminology';
 
 /**
@@ -35,6 +39,7 @@ import {
 type OperationRouting = {
   effectiveOp: 'sum' | 'difference';
   anchorWrung: bigint;      // Base magnitude reference (larger in difference, first in sum)
+  anchorWrungWas: 'A' | 'B';
   modulatorWrung: bigint;   // Value that modulates anchor (adds to or subtracts from)
   resultSign: 0 | 1;
   isEqualMagnitude?: boolean;  // For difference zero-result short-circuit
@@ -77,6 +82,7 @@ export const determineEffectiveOperation = (
       return {
         effectiveOp: 'sum',
         anchorWrung: wrungA,
+        anchorWrungWas: 'A',
         modulatorWrung: wrungB,
         resultSign: 1,
       };
@@ -87,6 +93,7 @@ export const determineEffectiveOperation = (
       return {
         effectiveOp: 'sum',
         anchorWrung: wrungA,
+        anchorWrungWas: 'A',
         modulatorWrung: wrungB,
         resultSign: 0,
       };
@@ -100,6 +107,7 @@ export const determineEffectiveOperation = (
         return {
           effectiveOp: 'difference',
           anchorWrung: wrungA,
+          anchorWrungWas: 'A',
           modulatorWrung: wrungB,
           resultSign: 1,  // Positive zero
           isEqualMagnitude: true,
@@ -108,6 +116,7 @@ export const determineEffectiveOperation = (
       return {
         effectiveOp: 'difference',
         anchorWrung: magnitudeComparison === 1 ? wrungA : wrungB,
+        anchorWrungWas: magnitudeComparison === 1 ? 'A' : 'B',
         modulatorWrung: magnitudeComparison === 1 ? wrungB : wrungA,
         resultSign: magnitudeComparison === 1 ? 1 : 0,
         isEqualMagnitude: false,
@@ -121,6 +130,7 @@ export const determineEffectiveOperation = (
         return {
           effectiveOp: 'difference',
           anchorWrung: wrungB,
+          anchorWrungWas: 'B',
           modulatorWrung: wrungA,
           resultSign: 1,  // Positive zero
           isEqualMagnitude: true,
@@ -129,6 +139,7 @@ export const determineEffectiveOperation = (
       return {
         effectiveOp: 'difference',
         anchorWrung: magnitudeComparison === 1 ? wrungB : wrungA,
+        anchorWrungWas: magnitudeComparison === 1 ? 'B' : 'A',
         modulatorWrung: magnitudeComparison === 1 ? wrungA : wrungB,
         resultSign: magnitudeComparison === 1 ? 1 : 0,
         isEqualMagnitude: false,
@@ -145,6 +156,7 @@ export const determineEffectiveOperation = (
         return {
           effectiveOp: 'difference',
           anchorWrung: wrungA,
+          anchorWrungWas: 'A',
           modulatorWrung: wrungB,
           resultSign: 1,  // Positive zero
           isEqualMagnitude: true,
@@ -153,6 +165,7 @@ export const determineEffectiveOperation = (
       return {
         effectiveOp: 'difference',
         anchorWrung: magnitudeComparison === 1 ? wrungA : wrungB,
+        anchorWrungWas: magnitudeComparison === 1 ? 'A' : 'B',
         modulatorWrung: magnitudeComparison === 1 ? wrungB : wrungA,
         resultSign: magnitudeComparison === 1 ? 1 : 0,
         isEqualMagnitude: false,
@@ -166,6 +179,7 @@ export const determineEffectiveOperation = (
         return {
           effectiveOp: 'difference',
           anchorWrung: wrungA,
+          anchorWrungWas: 'A',
           modulatorWrung: wrungB,
           resultSign: 1,  // Positive zero (sign doesn't matter for zero)
           isEqualMagnitude: true,
@@ -174,6 +188,7 @@ export const determineEffectiveOperation = (
       return {
         effectiveOp: 'difference',
         anchorWrung: magnitudeComparison === 1 ? wrungA : wrungB,
+        anchorWrungWas: magnitudeComparison === 1 ? 'A' : 'B',
         modulatorWrung: magnitudeComparison === 1 ? wrungB : wrungA,
         resultSign: magnitudeComparison === 1 ? 0 : 1,
         isEqualMagnitude: false,
@@ -185,6 +200,7 @@ export const determineEffectiveOperation = (
       return {
         effectiveOp: 'sum',
         anchorWrung: wrungA,
+        anchorWrungWas: 'A',
         modulatorWrung: wrungB,
         resultSign: 1,
       };
@@ -195,6 +211,7 @@ export const determineEffectiveOperation = (
       return {
         effectiveOp: 'sum',
         anchorWrung: wrungA,
+        anchorWrungWas: 'A',
         modulatorWrung: wrungB,
         resultSign: 0,
       };
@@ -207,23 +224,18 @@ export const determineEffectiveOperation = (
   );
 };
 
-const getChosenSpool = (effective: OperationRouting): SpooledWrung => {
-  return effective.effectiveOp === 'sum' ? SpooledSumSeries : SpooledDifferenceSeries;
-};
-
 /**
- * UNIFIED BUFFER ASSEMBLY - Analyzes ResultMuxity, handles final propagation
+ * MUXIFIED BUFFER ASSEMBLY - Analyzes ResultMuxity, handles final propagation
  * Converts forward-only computation record into final buffer
  * Handles all-8s + final borrow = AbsoluteZero pattern
  */
 const assembleBufferFromResultMuxity = (
   muxity: ResultMuxity,
-  routing: OperationRouting,
   isFinalTwistDetected: boolean,
-  operation: 'sum' | 'difference'
+  operation: 'sum' | 'difference',
+  wasFinalTwist?: boolean
 ): bigint => {
   // Handle FinalTwist overflow (sum only)
-  console.log('ASSEMBLE', isFinalTwistDetected, muxity);
   if (isFinalTwistDetected) {
     return muxity.resultSign === 1
       ? getRound8Case(Round8Cases.POSITIVE_TWIST_CASE)
@@ -290,7 +302,6 @@ const assembleBufferFromResultMuxity = (
     } else {
       buffer = applyNumeralRotation(resultIndex, buffer, pos);
     }
-    console.log('CHECK POSITION FOR EACH', pos, resultIndex);
   });
 
   // Apply marquee delimiter after last position
@@ -298,7 +309,9 @@ const assembleBufferFromResultMuxity = (
   if (marqueePosition <= 21) {
     buffer = applyMarqueeAtPosition(buffer, marqueePosition as Positions);
   }
-  console.log('Final Binary', createFormattedRound8BinaryString(buffer));
+  if (wasFinalTwist) {
+    return muxifyWrung('+', buffer, parseStringToRound8('1') as bigint);
+  }
   return buffer;
 };
 
@@ -320,7 +333,6 @@ const sumWrung = (
 
   let isFinalTwistDetected = false;
   const carries: BitRotationTuple[] = [];
-  console.log('conditions', result, lengthA, lengthB, maxPosition, minPosition, longerWrung, wrungMuxityA, wrungMuxityB)
   scanUpwards(routing.anchorWrung, routing.modulatorWrung, (a: bigint, b: bigint, pos: Positions) => {
     if (pos > maxPosition) {return false;}
 
@@ -353,7 +365,6 @@ const sumWrung = (
       if (carry) {
         const [c0, c1, c2] = carry;
         const tuple = chosenSpool[rtA0][rtA1][rtA2][c0][c1][c2];
-        console.log('With Carry', tuple);
         if (pos === 21 && tuple.length > 1) {
           isFinalTwistDetected = true;
           return false;
@@ -376,27 +387,6 @@ const sumWrung = (
           ShiftedSpooledSumSeries[rtA0][rtA1][rtA2][rtB0][rtB1][rtB2]
           :
           SpooledSumSeries[rtA0][rtA1][rtA2][rtB0][rtB1][rtB2];
-        if (pos === 21) {
-          console.log(
-            'Without Carry',
-            spoolResult,
-            spooledShiftedNumerals[rtA0][rtA1][rtA2],
-            spooledShiftedNumerals[rtB0][rtB1][rtB2]
-          );
-          console.log(
-            'Without Carry',
-            spoolResult,
-            [[rtA0],[rtA1],[rtA2]],
-            [[rtB0],[rtB1],[rtB2]]
-          );
-        } else {
-          console.log(
-            'Without Carry',
-            spoolResult,
-            spooledNumerals[rtA0][rtA1][rtA2],
-            spooledNumerals[rtB0][rtB1][rtB2]
-          );
-        }
         if (pos === 21 && spoolResult.length > 1) {
           isFinalTwistDetected = true;
           return false;
@@ -410,12 +400,11 @@ const sumWrung = (
     return true;
   });
   if (carries.length > 0) {
-    console.log('CHECK', result, carries, result.positions);
     const carry = carries.pop() as BitRotationTuple;
     const carryAsNumeral = spooledNumerals[carry[0]][carry[1]][carry[2]];
     result.positions.push(carryAsNumeral - 1);
   }
-  return assembleBufferFromResultMuxity(result, routing, isFinalTwistDetected, 'sum');
+  return assembleBufferFromResultMuxity(result, isFinalTwistDetected, 'sum');
 };
 
 /**
@@ -425,14 +414,25 @@ const sumWrung = (
  */
 const differenceWrung = (
   routing: OperationRouting,
-  wrungMuxityA: WrungMuxity,
-  wrungMuxityB: WrungMuxity
+  muxityA: WrungMuxity,
+  muxityB: WrungMuxity
 ): bigint => {
   const result = createResultMuxity(routing.resultSign);
+  let wrungMuxityA = muxityA;
+  let wrungMuxityB = muxityB;
+  let wasFullTwist = false;
+  if (wrungMuxityA.isFinalTwist) {
+    wasFullTwist = true;
+    wrungMuxityA = BidirectionalConference(parseStringToRound8('688888888888888888888') as bigint);
+  } else if (wrungMuxityB.isFinalTwist) {
+    wrungMuxityB = BidirectionalConference(parseStringToRound8('688888888888888888888') as bigint);
+    wasFullTwist = true;
+  }
 
   // Direct routing via self-reference (WrungMuxity pivot enhancement)
-  const anchorMuxity = routing.anchorWrung === wrungMuxityA.wrung ? wrungMuxityA : wrungMuxityB;
-  const modulatorMuxity = routing.modulatorWrung === wrungMuxityA.wrung ? wrungMuxityA : wrungMuxityB;
+
+  const anchorMuxity = routing.anchorWrungWas === 'A' ? wrungMuxityA : wrungMuxityB;
+  const modulatorMuxity = routing.anchorWrungWas === 'B' ? wrungMuxityA : wrungMuxityB;
 
   const lengthAnchor = anchorMuxity.marqueeRotation ? anchorMuxity.marqueeRotation - 1 : 21;
   const lengthModulator = modulatorMuxity.marqueeRotation ? modulatorMuxity.marqueeRotation - 1 : 21;
@@ -441,40 +441,24 @@ const differenceWrung = (
 
   // SUITE 7 ROSE: Borrow array - depleting delimiter for halting completeness
   const borrows: BitRotationTuple[] = [];
-  let isFullTwist = false;
 
   scanUpwards(routing.anchorWrung, routing.modulatorWrung, (a: bigint, b: bigint, pos: Positions) => {
     if (pos > maxPosition) {return false;}
-    console.log('HIT!', 1);
     const chosenSpool = pos === 21 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
     let resultIndex = -1;
 
     // Beyond modulator (shorter operand) - use anchor value OR spool if pending borrow
     if (pos > minPosition) {
       const [b0, b1, b2] = extractBitTuple(a, pos);  // a is anchor
-      console.log('HIT!', 2);
       // SUITE 7 ROSE PATCH: Pop from borrow array (depleting delimiter)
       if (borrows.length > 0) {
-        console.log('HIT!', 3);
         const borrow = borrows.pop();  // Deplete borrow from array
         if (borrow && pos === 21) {
           const someNumber = (spooledNumerals[borrow[0]][borrow[1]][borrow[2]]) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
           // const someNumber = (spooledNumerals[borrow[0]][borrow[1]][borrow[2]] + 1) as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
           const [t0, t1, t2] = getShiftedBitRotation(someNumber);
           const borrowTuple = spooledRegularShiftedBridge[t0][t1][t2];
-          console.log('HIT!',
-            someNumber,
-            t0, t1, t2,
-            someNumber,
-            4,
-            pos,
-            borrow,
-            borrowTuple,
-            spooledShiftedNumerals[b0][b1][b2],
-            spooledShiftedNumerals[borrowTuple[0]][borrowTuple[1]][borrowTuple[2]]
-          );
           const spoolResult = chosenSpool[b0][b1][b2][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
-          console.log('HIT!', 4, spoolResult, spooledNumerals[borrow[0]][borrow[1]][borrow[2]]);
           if (spoolResult) {
             resultIndex = spoolResult[0] as number;
             if (spoolResult.length > 1) {
@@ -483,7 +467,6 @@ const differenceWrung = (
             }
           }
         } else if (borrow !== undefined) {
-          console.log('HIT!', 5, borrow);
           const spoolResult = chosenSpool[b0][b1][b2][borrow[0]][borrow[1]][borrow[2]];
           resultIndex = spoolResult[0] as number;
           if (spoolResult.length > 1) {
@@ -491,26 +474,21 @@ const differenceWrung = (
           }
         }
       } else {
-        console.log('HIT!', 6);
         // No borrow - copy anchor value directly
         // spooledNumerals returns DISPLAY VALUE (1-8), need INDEX (0-7)
         const some = pos === 21 ? spooledShiftedNumerals[b0][b1][b2] // Shifted already returns index
-          : spooledNumerals[b0][b1][b2] - 1;    // Convert display to index 
-        console.log('CHECK THIS SOME', some);
+          : spooledNumerals[b0][b1][b2] - 1;    // Convert display to index
         resultIndex = some;
       }
     } else {
-      console.log('HIT!', 7);
       // const [i0, i1, i2] = getShiftedBitRotation(resultIndex as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
       // const nextResult = chosenSpool[b0][b1][b2][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
       // Both have values - use difference spool
       const [rtA0, rtA1, rtA2] = extractBitTuple(a, pos);
       const [rtB0, rtB1, rtB2] = extractBitTuple(b, pos);
       if (borrows.length > 0) {
-        console.log('HIT!', 8);
         const borrow = borrows.pop();  // Deplete borrow from array
         if (borrow && pos === 21) {
-          console.log('HIT!', 9);
           const borrowTuple = spooledRegularShiftedBridge[borrow[0]][borrow[1]][borrow[2]];
           const spoolResult = chosenSpool[rtA0][rtA1][rtA2][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
           resultIndex = spoolResult[0] as number;
@@ -526,7 +504,6 @@ const differenceWrung = (
         } else if (borrow) {
           const borrowTuple = borrow;
           const spoolResult = chosenSpool[rtA0][rtA1][rtA2][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
-          console.log('HIT!', 10, borrowTuple, spoolResult, spooledNumerals[rtA0][rtA1][rtA2]);
           resultIndex = spoolResult[0] as number;
           if (spoolResult.length > 1) {
             borrows.push(spoolResult[1] as BitRotationTuple);
@@ -534,31 +511,21 @@ const differenceWrung = (
           const [i0, i1, i2] = getRegularBitRotation(resultIndex + 1 as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
           const nextResult = chosenSpool[i0][i1][i2][rtB0][rtB1][rtB2];
           resultIndex = nextResult[0] as number;
-          console.log('HIT!', 10.5, borrowTuple, nextResult, spooledNumerals[i0][i1][i2]);
           if (nextResult.length > 1) {
             borrows.push(nextResult[1] as BitRotationTuple);
           }
         }
       } else {
         const spoolResult = chosenSpool[rtA0][rtA1][rtA2][rtB0][rtB1][rtB2];
-        // spoolResult[0] is index 0-7 (getRegularRotation pattern)
-        console.log('CHECK SPOOL RESULT FOR UNDEFINED', spoolResult, [rtA0], [rtA1], [rtA2], [rtB0], [rtB1], [rtB2],
-          pos, minPosition, maxPosition, wrungMuxityA, wrungMuxityB);
         resultIndex = spoolResult[0] as number;
-        console.log('HIT!', 'Here A', resultIndex, spoolResult);
         if (pos === 21 && spoolResult.length > 1) {
-          console.log('HIT!', 11);
           borrows.push(spoolResult[1] as BitRotationTuple);
-          // isFullTwist = true;
-          return false;
         } else if (spoolResult.length > 1) {
-          console.log('HIT!', 12);
           borrows.push(spoolResult[1] as BitRotationTuple);
         }
       }
     }
     if (resultIndex >= 0) {
-      console.log('HIT!', 13, result.positions);
       // Track consecutive 8s from start (for all-8s pattern)
       // Array length before push = number of positions already added
       // Position being added = array.length + 1
@@ -571,32 +538,22 @@ const differenceWrung = (
     return true;
   });
 
-  // SUITE 7 ROSE: Marquee delimiter logic
-  // If there's a final borrow (borrowArray not empty), remove leading 8s equal to modulator length
-  // The modulator length determines how many positions are "underflow" from borrow cascade
-  console.log('Final Check', borrows, result, '\n', result.positions[result.positions.length - 1] === getRegularRotation(8));
-  console.log('Final Check', borrows.length, result.positions.length);
   if (borrows.length !== result.positions.length && borrows.length > 0) {
     borrows.forEach(_ => {
-      console.log('What\'s this?', result);
       if (result.positions.length === 21) {
         if (result.positions[20] === getShiftedRotation(8)) {
           result.positions.pop();
         }
       } else if (result.positions[result.positions.length - 1] === getRegularRotation(8)) {
-        console.log('What\'s this?', result);
         result.positions.pop();
       } else {
-        // May be a Sign Flip
         return;
       }
     });
   } else if (borrows.length === result.positions.length) {
     result.positions = result.positions.slice(0, 1);
-    console.log('Check Check', result.positions, isFullTwist);
   }
-  console.log('Final Final Check', borrows, result);
-  return assembleBufferFromResultMuxity(result, routing, isFullTwist, 'difference');
+  return assembleBufferFromResultMuxity(result, false, 'difference', wasFullTwist);
 };
 
 export const muxifyWrung = (operation: Operations, wrungA: bigint, wrungB: bigint): bigint => {

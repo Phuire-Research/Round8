@@ -891,7 +891,6 @@ export const applyShiftedNumeralRotation = (value: number, buffer: bigint, posit
     throw 'CRITICAL Apply Shifted Value ' + value;
   }
   }
-  console.log('WHAT IS THE FINAL VALUE', finalValue, value);
   WorkingBigIntBucket.content = finalValue;
   // Get pre-computed clear mask and bit offset (no runtime BigInt!)
   const clearMask = getClearMaskForPosition(position);
