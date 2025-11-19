@@ -59,7 +59,7 @@ describe('Round8 Terminology Proof', () => {
 
     // Test Shifted Display mappings
     console.log('\nShifted Display Tests:');
-    const shifted0 = getShiftedBitRotation(0);
+    const shifted0 = getShiftedBitRotation(8);
     console.log('Position 0 (Display 0):', shifted0, '→ Expected [0,0,1]');
     expect(shifted0).toEqual([1, 0, 0]); // LSB first
 
@@ -114,15 +114,15 @@ describe('Round8 Terminology Proof', () => {
     console.log('\nShifted Rotation Values:');
     const shift0 = getShiftedRotation(1);
     console.log('Position 0:', shift0, '→ Expected 1 (byte value)');
-    expect(shift0).toBe(2);
+    expect(shift0).toBe(1);
 
     const shift3 = getShiftedRotation(3);
     console.log('Position 3:', shift3, '→ Expected 4 (byte value)');
-    expect(shift3).toBe(4);
+    expect(shift3).toBe(3);
 
     const shift7 = getShiftedRotation(7);
     console.log('Position 7:', shift7, '→ Expected 0 (byte value)');
-    expect(shift7).toBe(0);
+    expect(shift7).toBe(7);
 
     // Test Marquee rotation (now a number constant)
     console.log('\nMarquee Rotation Value:');

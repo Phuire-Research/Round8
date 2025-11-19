@@ -1,6 +1,7 @@
 /* eslint-disable complexity */
 import { BidirectionalConference, WrungMuxity } from './bidirectional';
 import { compareMagnitude, ShiftedSpooledSumSeries, SpooledDifferenceSeries, SpooledShiftedDifferenceSeries, SpooledSumSeries } from './cases';
+import { createFormattedRound8BinaryString } from './conference';
 import {
   applyMarqueeAtPosition,
   applyNumeralRotation,
@@ -222,7 +223,7 @@ const assembleBufferFromResultMuxity = (
   operation: 'sum' | 'difference'
 ): bigint => {
   // Handle FinalTwist overflow (sum only)
-  console.log('ASSEMBLE', isFinalTwistDetected);
+  console.log('ASSEMBLE', isFinalTwistDetected, muxity);
   if (isFinalTwistDetected) {
     return muxity.resultSign === 1
       ? getRound8Case(Round8Cases.POSITIVE_TWIST_CASE)
@@ -280,9 +281,15 @@ const assembleBufferFromResultMuxity = (
   // Apply all recorded positions to buffer (index + 1 = position)
   muxity.positions.forEach((resultIndex, index) => {
     const pos = (index + 1) as Positions;
-    buffer = pos === 21
-      ? applyShiftedNumeralRotation(resultIndex - 1, buffer, pos)
-      : applyNumeralRotation(resultIndex, buffer, pos);
+    if (pos === 21) {
+      if (resultIndex === 0) {
+        buffer = applyShiftedNumeralRotation(resultIndex + 1, buffer, pos);
+      } else {
+        buffer = applyShiftedNumeralRotation(resultIndex, buffer, pos);
+      }
+    } else {
+      buffer = applyNumeralRotation(resultIndex, buffer, pos);
+    }
     console.log('CHECK POSITION FOR EACH', pos, resultIndex);
   });
 
@@ -291,7 +298,7 @@ const assembleBufferFromResultMuxity = (
   if (marqueePosition <= 21) {
     buffer = applyMarqueeAtPosition(buffer, marqueePosition as Positions);
   }
-
+  console.log('Final Binary', createFormattedRound8BinaryString(buffer));
   return buffer;
 };
 
@@ -369,7 +376,27 @@ const sumWrung = (
           ShiftedSpooledSumSeries[rtA0][rtA1][rtA2][rtB0][rtB1][rtB2]
           :
           SpooledSumSeries[rtA0][rtA1][rtA2][rtB0][rtB1][rtB2];
-        console.log('Without Carry', spoolResult);
+        if (pos === 21) {
+          console.log(
+            'Without Carry',
+            spoolResult,
+            spooledShiftedNumerals[rtA0][rtA1][rtA2],
+            spooledShiftedNumerals[rtB0][rtB1][rtB2]
+          );
+          console.log(
+            'Without Carry',
+            spoolResult,
+            [[rtA0],[rtA1],[rtA2]],
+            [[rtB0],[rtB1],[rtB2]]
+          );
+        } else {
+          console.log(
+            'Without Carry',
+            spoolResult,
+            spooledNumerals[rtA0][rtA1][rtA2],
+            spooledNumerals[rtB0][rtB1][rtB2]
+          );
+        }
         if (pos === 21 && spoolResult.length > 1) {
           isFinalTwistDetected = true;
           return false;
@@ -431,15 +458,29 @@ const differenceWrung = (
         console.log('HIT!', 3);
         const borrow = borrows.pop();  // Deplete borrow from array
         if (borrow && pos === 21) {
-          const borrowTuple = spooledRegularShiftedBridge[borrow[0]][borrow[1]][borrow[2]];
-          console.log('HIT!', 4, pos, borrow, borrowTuple, spooledShiftedNumerals[b0][b1][b2], spooledShiftedNumerals[borrowTuple[0]][borrowTuple[1]][borrowTuple[2]]);
+          const someNumber = (spooledNumerals[borrow[0]][borrow[1]][borrow[2]]) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
+          // const someNumber = (spooledNumerals[borrow[0]][borrow[1]][borrow[2]] + 1) as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+          const [t0, t1, t2] = getShiftedBitRotation(someNumber);
+          const borrowTuple = spooledRegularShiftedBridge[t0][t1][t2];
+          console.log('HIT!',
+            someNumber,
+            t0, t1, t2,
+            someNumber,
+            4,
+            pos,
+            borrow,
+            borrowTuple,
+            spooledShiftedNumerals[b0][b1][b2],
+            spooledShiftedNumerals[borrowTuple[0]][borrowTuple[1]][borrowTuple[2]]
+          );
           const spoolResult = chosenSpool[b0][b1][b2][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
           console.log('HIT!', 4, spoolResult, spooledNumerals[borrow[0]][borrow[1]][borrow[2]]);
-          resultIndex = spoolResult[0] as number;
-          if (spoolResult.length > 1) {
-            borrows.push(spoolResult[1] as BitRotationTuple);
-            isFullTwist = true;
-            return false;
+          if (spoolResult) {
+            resultIndex = spoolResult[0] as number;
+            if (spoolResult.length > 1) {
+              borrows.push(spoolResult[1] as BitRotationTuple);
+              return false;
+            }
           }
         } else if (borrow !== undefined) {
           console.log('HIT!', 5, borrow);
@@ -476,7 +517,7 @@ const differenceWrung = (
           if (spoolResult.length > 1) {
             borrows.push(spoolResult[1] as BitRotationTuple);
           }
-          const [i0, i1, i2] = getShiftedBitRotation(resultIndex as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7);
+          const [i0, i1, i2] = getShiftedBitRotation(resultIndex as 1 | 2 | 3 | 4 | 5 | 6 | 7);
           const nextResult = chosenSpool[i0][i1][i2][rtB0][rtB1][rtB2];
           resultIndex = nextResult[0] as number;
           if (nextResult.length > 1) {
@@ -508,7 +549,7 @@ const differenceWrung = (
         if (pos === 21 && spoolResult.length > 1) {
           console.log('HIT!', 11);
           borrows.push(spoolResult[1] as BitRotationTuple);
-          isFullTwist = true;
+          // isFullTwist = true;
           return false;
         } else if (spoolResult.length > 1) {
           console.log('HIT!', 12);
@@ -534,19 +575,25 @@ const differenceWrung = (
   // If there's a final borrow (borrowArray not empty), remove leading 8s equal to modulator length
   // The modulator length determines how many positions are "underflow" from borrow cascade
   console.log('Final Check', borrows, result, '\n', result.positions[result.positions.length - 1] === getRegularRotation(8));
-  if (borrows.length > 0) {
+  console.log('Final Check', borrows.length, result.positions.length);
+  if (borrows.length !== result.positions.length && borrows.length > 0) {
     borrows.forEach(_ => {
+      console.log('What\'s this?', result);
       if (result.positions.length === 21) {
         if (result.positions[20] === getShiftedRotation(8)) {
           result.positions.pop();
         }
       } else if (result.positions[result.positions.length - 1] === getRegularRotation(8)) {
+        console.log('What\'s this?', result);
         result.positions.pop();
       } else {
         // May be a Sign Flip
         return;
       }
     });
+  } else if (borrows.length === result.positions.length) {
+    result.positions = result.positions.slice(0, 1);
+    console.log('Check Check', result.positions, isFullTwist);
   }
   console.log('Final Final Check', borrows, result);
   return assembleBufferFromResultMuxity(result, routing, isFullTwist, 'difference');

@@ -45,49 +45,49 @@ export const ShiftedGreaterThanSeries: SomeSeries = {
   // Display 0 [0,0,1] > N (N = 0-7)
   // Display 0 is MINIMUM (Marquee), so 0 > X is always False
   ShiftedGreaterThanZeroAndZero: (() => {
-    const x = getShiftedBitRotation(0);  // Display 0 = [0,0,1] (Marquee)
-    const y = getShiftedBitRotation(0);  // Display 0 = [0,0,1] (Marquee)
+    const x = getShiftedBitRotation(8);  // Display 0 = [0,0,1] (Marquee)
+    const y = getShiftedBitRotation(8);  // Display 0 = [0,0,1] (Marquee)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]];  // False: 0 is NOT > 0
   })(),
 
   ShiftedGreaterThanZeroAndOne: (() => {
-    const x = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const x = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     const y = getShiftedBitRotation(1);  // Display 1 = [0,1,0]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]];  // False: 0 is NOT > 1
   })(),
 
   ShiftedGreaterThanZeroAndTwo: (() => {
-    const x = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const x = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     const y = getShiftedBitRotation(2);  // Display 2 = [0,1,1]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]];  // False: 0 is NOT > 2
   })(),
 
   ShiftedGreaterThanZeroAndThree: (() => {
-    const x = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const x = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     const y = getShiftedBitRotation(3);  // Display 3 = [1,0,0]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]];  // False: 0 is NOT > 3
   })(),
 
   ShiftedGreaterThanZeroAndFour: (() => {
-    const x = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const x = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     const y = getShiftedBitRotation(4);  // Display 4 = [1,0,1]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]];  // False: 0 is NOT > 4
   })(),
 
   ShiftedGreaterThanZeroAndFive: (() => {
-    const x = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const x = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     const y = getShiftedBitRotation(5);  // Display 5 = [1,1,0]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]];  // False: 0 is NOT > 5
   })(),
 
   ShiftedGreaterThanZeroAndSix: (() => {
-    const x = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const x = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     const y = getShiftedBitRotation(6);  // Display 6 = [1,1,1]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]];  // False: 0 is NOT > 6
   })(),
 
   ShiftedGreaterThanZeroAndSeven: (() => {
-    const x = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const x = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     const y = getShiftedBitRotation(7);  // Display 7 = [0,0,0] (Full Twist)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 0]];  // False: 0 is NOT > 7 (Marquee < Full Twist)
   })(),
@@ -95,7 +95,7 @@ export const ShiftedGreaterThanSeries: SomeSeries = {
   // Display 1 [0,1,0] > N (N = 0-7)
   ShiftedGreaterThanOneAndZero: (() => {
     const x = getShiftedBitRotation(1);  // Display 1 = [0,1,0]
-    const y = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const y = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]];  // True: 1 > 0
   })(),
 
@@ -144,7 +144,7 @@ export const ShiftedGreaterThanSeries: SomeSeries = {
   // Display 2 [0,1,1] > N (N = 0-7)
   ShiftedGreaterThanTwoAndZero: (() => {
     const x = getShiftedBitRotation(2);  // Display 2 = [0,1,1]
-    const y = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const y = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]];  // True: 2 > 0
   })(),
 
@@ -193,7 +193,7 @@ export const ShiftedGreaterThanSeries: SomeSeries = {
   // Display 3 [1,0,0] > N (N = 0-7)
   ShiftedGreaterThanThreeAndZero: (() => {
     const x = getShiftedBitRotation(3);  // Display 3 = [1,0,0]
-    const y = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const y = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]];  // True: 3 > 0
   })(),
 
@@ -242,7 +242,7 @@ export const ShiftedGreaterThanSeries: SomeSeries = {
   // Display 4 [1,0,1] > N (N = 0-7)
   ShiftedGreaterThanFourAndZero: (() => {
     const x = getShiftedBitRotation(4);  // Display 4 = [1,0,1]
-    const y = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const y = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]];  // True: 4 > 0
   })(),
 
@@ -291,7 +291,7 @@ export const ShiftedGreaterThanSeries: SomeSeries = {
   // Display 5 [1,1,0] > N (N = 0-7)
   ShiftedGreaterThanFiveAndZero: (() => {
     const x = getShiftedBitRotation(5);  // Display 5 = [1,1,0]
-    const y = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const y = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]];  // True: 5 > 0
   })(),
 
@@ -340,7 +340,7 @@ export const ShiftedGreaterThanSeries: SomeSeries = {
   // Display 6 [1,1,1] > N (N = 0-7)
   ShiftedGreaterThanSixAndZero: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = [1,1,1]
-    const y = getShiftedBitRotation(0);  // Display 0 = [0,0,1]
+    const y = getShiftedBitRotation(8);  // Display 0 = [0,0,1]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]];  // True: 6 > 0
   })(),
 
@@ -390,7 +390,7 @@ export const ShiftedGreaterThanSeries: SomeSeries = {
   // Display 7 is MAXIMUM (Full Twist), so 7 > X is True except when X = 7
   ShiftedGreaterThanSevenAndZero: (() => {
     const x = getShiftedBitRotation(7);  // Display 7 = [0,0,0] (Full Twist - MAXIMUM)
-    const y = getShiftedBitRotation(0);  // Display 0 = [0,0,1] (Marquee)
+    const y = getShiftedBitRotation(8);  // Display 0 = [0,0,1] (Marquee)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], 1]];  // True: 7 > 0 (Full Twist > Marquee)
   })(),
 

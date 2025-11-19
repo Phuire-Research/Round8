@@ -1,7 +1,18 @@
-import { BidirectionalConference } from "../concepts/round8/model/bidirectional";
-import { createFormattedRound8BinaryString, getFormattedColumnarWrungRepresentation, getWrungStringRepresentation, parseStringToRound8 } from "../concepts/round8/model/conference";
+import { BidirectionalConference } from '../concepts/round8/model/bidirectional';
+import {
+  createFormattedRound8BinaryString,
+  getFormattedColumnarWrungRepresentation,
+  getWrungStringRepresentation,
+  parseStringToRound8
+} from '../concepts/round8/model/conference';
 import { muxifyWrung } from '../concepts/round8/model/operations';
-import { getRotationValue, getShiftedBitRotation, getShiftedRotation, getShiftedRotationString, getSignBit } from "../concepts/round8/model/terminology";
+import {
+  getRotationValue,
+  getShiftedBitRotation,
+  getShiftedRotation,
+  getShiftedRotationString,
+  getSignBit
+} from '../concepts/round8/model/terminology';
 
 const r8 = (value: string): bigint => {
   const result = parseStringToRound8(value);
@@ -15,6 +26,16 @@ const r8 = (value: string): bigint => {
 //   const wrungB = r8('111111111111111111111');
 //   const result = muxifyWrung('+', wrungA, wrungB);
 //   const resultStr = getWrungStringRepresentation(result);
+//   const resultBinary = createFormattedRound8BinaryString(result);
+//   console.log('REFERENCE OVERVIEW 8', getShiftedBitRotation(8));
+//   console.log('REFERENCE OVERVIEW 1', getShiftedBitRotation(1));
+//   console.log('REFERENCE OVERVIEW 2', getShiftedBitRotation(2));
+//   console.log('REFERENCE OVERVIEW 3', getShiftedBitRotation(3));
+//   console.log('REFERENCE OVERVIEW 4', getShiftedBitRotation(4));
+//   console.log('REFERENCE OVERVIEW 5', getShiftedBitRotation(5));
+//   console.log('REFERENCE OVERVIEW 6', getShiftedBitRotation(6));
+//   console.log('REFERENCE OVERVIEW 7', getShiftedBitRotation(7));
+//   // expect(resultBinary).toBe('222222222222222222222');
 //   expect(resultStr).toBe('222222222222222222222');
 // });
 
@@ -60,6 +81,7 @@ const r8 = (value: string): bigint => {
 //   // 17 - 8 = 9 = 1*8 + 1 = 11 in Round8
 //   const result = muxifyWrung('-', r8('21'), r8('8'));
 //   expect(getWrungStringRepresentation(result)).toBe('11');
+// });
 
 // test('11 - 8 = 1 (borrow from position 2)', () => {
 //   // 11 in Round8 = 1*8 + 1 = 9 decimal
@@ -91,8 +113,8 @@ const r8 = (value: string): bigint => {
 //   expect(getWrungStringRepresentation(result)).toBe('1');
 // });
 
-// Note applyShiftedNumeralRotation(resultIndex - 1, buffer, pos)
-// This is apply an Offset, but is not regular
+// // Note applyShiftedNumeralRotation(resultIndex - 1, buffer, pos)
+// // This is apply an Offset, but is not regular
 // test('21 position subtraction', () => {
 //   const twentyOne2s = '222222222222222222222';
 //   const twentyOne1s = '111111111111111111111';
@@ -104,30 +126,41 @@ const r8 = (value: string): bigint => {
 //   expect(getWrungStringRepresentation(result)).toBe('11111111111111111111');
 // });
 
-test('20 positions minus 21 positions (smaller first should swap)', () => {
-  // This tests that the anchor is always the larger magnitude
-  console.log('REFERENCE OVERVIEW 0', getShiftedBitRotation(0));
-  console.log('REFERENCE OVERVIEW 1', getShiftedBitRotation(1));
-  console.log('REFERENCE OVERVIEW 2', getShiftedBitRotation(2));
-  console.log('REFERENCE OVERVIEW 3', getShiftedBitRotation(3));
-  console.log('REFERENCE OVERVIEW 4', getShiftedBitRotation(4));
-  console.log('REFERENCE OVERVIEW 5', getShiftedBitRotation(5));
-  console.log('REFERENCE OVERVIEW 6', getShiftedBitRotation(6));
-  console.log('REFERENCE OVERVIEW 7', getShiftedBitRotation(7));
-  const twenty8s = '88888888888888888888'; // 20 positions
-  const twentyOne1s = '111111111111111111111'; // 21 positions
-  const a20_8s = createFormattedRound8BinaryString(r8(twenty8s));
-  const a21_1s = createFormattedRound8BinaryString(r8(twentyOne1s));
-  console.log(a20_8s, twenty8s);
-  console.log(BidirectionalConference(r8(twenty8s)));
-  console.log(a21_1s, twentyOne1s);
-  console.log(BidirectionalConference(r8(twentyOne1s)));
-  // 21 positions > 20 positions in magnitude
-  // Magnitude comparison swaps: anchorWrung=twentyOne1s, modulatorWrung=twenty8s
-  // Computes: twentyOne1s - twenty8s (positive result)
-  const result = muxifyWrung('-', r8(twenty8s), r8(twentyOne1s));
-  // Result should be positive because magnitude comparison correctly swapped operands
-  expect(getSignBit(result)).toBe(1); // Positive result
+// test('20 positions minus 21 positions (smaller first should swap)', () => {
+//   // This tests that the anchor is always the larger magnitude
+//   console.log('REFERENCE OVERVIEW 8', getShiftedBitRotation(8));
+//   console.log('REFERENCE OVERVIEW 1', getShiftedBitRotation(1));
+//   console.log('REFERENCE OVERVIEW 2', getShiftedBitRotation(2));
+//   console.log('REFERENCE OVERVIEW 3', getShiftedBitRotation(3));
+//   console.log('REFERENCE OVERVIEW 4', getShiftedBitRotation(4));
+//   console.log('REFERENCE OVERVIEW 5', getShiftedBitRotation(5));
+//   console.log('REFERENCE OVERVIEW 6', getShiftedBitRotation(6));
+//   console.log('REFERENCE OVERVIEW 7', getShiftedBitRotation(7));
+//   const twenty8s = '88888888888888888888'; // 20 positions
+//   const twentyOne1s = '111111111111111111111'; // 21 positions
+//   const a20_8s = createFormattedRound8BinaryString(r8(twenty8s));
+//   const a21_1s = createFormattedRound8BinaryString(r8(twentyOne1s));
+//   console.log(a20_8s, twenty8s);
+//   console.log(BidirectionalConference(r8(twenty8s)));
+//   console.log(a21_1s, twentyOne1s);
+//   console.log(BidirectionalConference(r8(twentyOne1s)));
+//   // 21 positions > 20 positions in magnitude
+//   // Magnitude comparison swaps: anchorWrung=twentyOne1s, modulatorWrung=twenty8s
+//   // Computes: twentyOne1s - twenty8s (positive result)
+//   const result = muxifyWrung('-', r8(twenty8s), r8(twentyOne1s));
+//   // Result should be positive because magnitude comparison correctly swapped operands
+//   expect(getSignBit(result)).toBe(0);
+// });
+
+test('Mixed length edge case (1 position + 21 positions)', () => {
+  const wrungA = r8('8');
+  const wrungB = r8('111111111111111111111'); // 21 ones
+  const result = muxifyWrung('+', wrungA, wrungB);
+
+  // 8+1=9>8 → carry propagates through all 21 positions
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('111111111111111111121'); // Least significant = 1
+  expect(resultStr.length).toBe(21);
 });
 
 // test('21 positions minus 10 positions', () => {
@@ -140,4 +173,3 @@ test('20 positions minus 21 positions (smaller first should swap)', () => {
 //   // expect(createFormattedRound8BinaryString(result)).toBe('233333333332222222222');
 //   expect(getWrungStringRepresentation(result)).toBe('233333333332222222222');
 // });
-

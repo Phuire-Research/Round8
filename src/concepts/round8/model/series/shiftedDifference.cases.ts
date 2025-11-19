@@ -38,7 +38,7 @@
  * This prevents Shor factorization attacks during multiplication.
  */
 
-import { getShiftedBitRotation, SomeSeries, getRegularRotation, getShiftedRotation } from '../terminology';
+import { getShiftedBitRotation, SomeSeries, getRegularRotation, getShiftedRotation, getRegularBitRotation } from '../terminology';
 
 export const ShiftedDifferenceSeries: SomeSeries = {
   // This would be 8, but instead Truncates the Rotation
@@ -46,15 +46,15 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const result = getShiftedRotation(8);  // Marquee
-    const carry = getRegularRotation(1);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
+    const borrow = getRegularRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
   ShiftedDifferenceOfOneAndTwo: (() => {
     const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
     const result = getShiftedRotation(7);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -62,7 +62,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
     const result = getShiftedRotation(6);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -70,7 +70,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
     const result = getShiftedRotation(5);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -78,7 +78,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
     const result = getShiftedRotation(4);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -86,7 +86,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(3);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -94,8 +94,16 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const y = getShiftedBitRotation(7);  // Display 7 = 000 (position 6)
     const result = getShiftedRotation(2);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfOneAndMarqueeAsBorrow: (() => {
+    const x = getShiftedBitRotation(1);
+    const y = getShiftedBitRotation(8);  // Marquee
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
   ShiftedDifferenceOfTwoAndOne: (() => {
@@ -110,7 +118,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
     const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
     const result = getShiftedRotation(8); // Marquee
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -118,7 +126,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
     const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
     const result = getShiftedRotation(7);  // Display 2 - 3 = Borrow [000] (with borrow)
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -126,7 +134,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
     const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
     const result = getShiftedRotation(6);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -134,7 +142,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
     const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
     const result = getShiftedRotation(5);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -142,7 +150,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
     const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(4);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -150,8 +158,15 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
     const y = getShiftedBitRotation(7);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(3);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfTwoAndMarqueeAsBorrow: (() => {
+    const x = getShiftedBitRotation(2);
+    const y = getShiftedBitRotation(8);  // Marquee
+    const result = getShiftedRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfThreeAndOne: (() => {
@@ -172,7 +187,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
     const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
     const result = getShiftedRotation(8);  // Marquee
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -180,7 +195,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
     const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
     const result = getShiftedRotation(7);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -188,7 +203,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
     const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
     const result = getShiftedRotation(6);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -196,7 +211,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
     const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(5);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -204,8 +219,15 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
     const y = getShiftedBitRotation(7);
     const result = getShiftedRotation(4);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfThreeAndMarqueeAsBorrow: (() => {
+    const x = getShiftedBitRotation(3);
+    const y = getShiftedBitRotation(8);  // Marquee
+    const result = getShiftedRotation(2);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfFourAndOne: (() => {
@@ -233,7 +255,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
     const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
     const result = getShiftedRotation(8);  // Marquee
-    const borrow = getRegularRotation(1);  // Borrow
+    const borrow = getRegularBitRotation(1);  // Borrow
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -241,7 +263,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
     const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
     const result = getShiftedRotation(7);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -249,15 +271,22 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
     const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(6);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   ShiftedDifferenceOfFourAndSeven: (() => {
     const x = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
     const y = getShiftedBitRotation(7);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(5);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfFourAndMarqueeAsBorrow: (() => {
+    const x = getShiftedBitRotation(4);
+    const y = getShiftedBitRotation(8);  // Marquee
+    const result = getShiftedRotation(3);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfFiveAndOne: (() => {
@@ -292,7 +321,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
     const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
     const result = getShiftedRotation(8);  // Marquee
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -300,7 +329,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
     const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(7);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -308,8 +337,15 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
     const y = getShiftedBitRotation(7);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(6);
-    const borrow = getRegularRotation(1);  // Borrow: External carry [000]
+    const borrow = getRegularBitRotation(1);  // Borrow: External carry [000]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfFiveAndMarqueeAsBorrow: (() => {
+    const x = getShiftedBitRotation(5);
+    const y = getShiftedBitRotation(8);  // Marquee
+    const result = getShiftedRotation(4);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfSixAndOne: (() => {
@@ -351,7 +387,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(8);  // Marquee
-    const borrow = getRegularRotation(1);
+    const borrow = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -359,9 +395,17 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(7);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(7);
-    const borrow = getRegularRotation(1);
+    const borrow = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
+
+  ShiftedDifferenceOfSixAndMarqueeAsBorrow: (() => {
+    const x = getShiftedBitRotation(6);
+    const y = getShiftedBitRotation(8);  // Marquee
+    const result = getShiftedRotation(5);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
   ShiftedDifferenceOfSevenAndOne: (() => {
     const x = getShiftedBitRotation(7);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
@@ -408,7 +452,78 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(7);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(7);  // Display 6 = 111 (position 6)
     const result = getShiftedRotation(8); // Marquee
-    const borrow = getRegularRotation(1); // Borrow
+    const borrow = getRegularBitRotation(1); // Borrow
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfSevenAndMarqueeAsBorrow: (() => {
+    const x = getShiftedBitRotation(7);  // Marquee
+    const y = getShiftedBitRotation(8);
+    const result = getShiftedRotation(6);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAsBorrowAndOne: (() => {
+    const x = getShiftedBitRotation(8);  // Marquee
+    const y = getShiftedBitRotation(1);
+    const result = getShiftedRotation(7);
+    const borrow = getRegularBitRotation(1); // Borrow
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAsBorrowAndTwo: (() => {
+    const x = getShiftedBitRotation(8);  // Marquee
+    const y = getShiftedBitRotation(2);
+    const result = getShiftedRotation(7);
+    const borrow = getRegularBitRotation(1); // Borrow
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAsBorrowAndThree: (() => {
+    const x = getShiftedBitRotation(8);  // Marquee
+    const y = getShiftedBitRotation(3);
+    const result = getShiftedRotation(6);
+    const borrow = getRegularBitRotation(1); // Borrow
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAsBorrowAndFour: (() => {
+    const x = getShiftedBitRotation(8);  // Marquee
+    const y = getShiftedBitRotation(4);
+    const result = getShiftedRotation(5);
+    const borrow = getRegularBitRotation(1); // Borrow
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAsBorrowAndFive: (() => {
+    const x = getShiftedBitRotation(8);  // Marquee
+    const y = getShiftedBitRotation(5);
+    const result = getShiftedRotation(4);
+    const borrow = getRegularBitRotation(1); // Borrow
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAsBorrowAndSix: (() => {
+    const x = getShiftedBitRotation(8);  // Marquee
+    const y = getShiftedBitRotation(6);
+    const result = getShiftedRotation(3);
+    const borrow = getRegularBitRotation(1); // Borrow
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAsBorrowAndSeven: (() => {
+    const x = getShiftedBitRotation(8);  // Marquee
+    const y = getShiftedBitRotation(7);
+    const result = getShiftedRotation(2);
+    const borrow = getRegularBitRotation(1); // Borrow
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
+  })(),
+
+  ShiftedDifferenceOfMarqueeAsBorrowAndMarqueeAsBorrow: (() => {
+    const x = getShiftedBitRotation(8);  // Marquee
+    const y = getShiftedBitRotation(8);
+    const result = getShiftedRotation(1);
+    const borrow = getRegularBitRotation(1); // Borrow
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 };

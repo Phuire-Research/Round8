@@ -310,7 +310,7 @@ describe('muxifyWrung - Quality-First Summation', () => {
 
         // 8+1=9>8 → carry propagates through all 21 positions
         const resultStr = getWrungStringRepresentation(result);
-        expect(resultStr[resultStr.length - 1]).toBe('1'); // Least significant = 1
+        expect(resultStr).toBe('111111111111111111121'); // Least significant = 1
         expect(resultStr.length).toBe(21);
       });
     });

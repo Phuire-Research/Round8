@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /**
  * Round8 Conference Layer - Marquee-Aware Parsing Functions
  *
@@ -626,6 +627,13 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
   }
 
   if (preparedString === '711111111111111111111') {
+    return getRound8Case(
+      isNegative ?
+        Round8Cases.NEGATIVE_TWIST_CASE
+        :
+        Round8Cases.POSITIVE_TWIST_CASE
+    );
+  } else if (preparedString.length === 21 && preparedString.charAt(0) === '7') {
     return getRound8Case(
       isNegative ?
         Round8Cases.NEGATIVE_TWIST_CASE

@@ -521,15 +521,15 @@ export const NumeralStore = {
 } as const;
 
 export const ShiftedNumeralStore = {
-  One: setNumeralProperty(Round8Numerals[2]),
-  Two: setNumeralProperty(Round8Numerals[3]),
-  Three: setNumeralProperty(Round8Numerals[4]),
-  Four: setNumeralProperty(Round8Numerals[5]),
-  Five: setNumeralProperty(Round8Numerals[6]),
-  Six: setNumeralProperty(Round8Numerals[7]),
-  Seven: setNumeralProperty(Round8Numerals[8]),
+  One: setNumeralProperty(Round8Numerals[3]),
+  Two: setNumeralProperty(Round8Numerals[4]),
+  Three: setNumeralProperty(Round8Numerals[5]),
+  Four: setNumeralProperty(Round8Numerals[6]),
+  Five: setNumeralProperty(Round8Numerals[7]),
+  Six: setNumeralProperty(Round8Numerals[8]),
+  Seven: setNumeralProperty(Round8Numerals[1]),
   // Should Invalidate to Full Twist in Shifted Position
-  Eight: setNumeralProperty(Round8Numerals[1]),
+  Eight: setNumeralProperty(Round8Numerals[2]),
 } as const;
 
 const NumeralSeries = [
@@ -544,6 +544,7 @@ const NumeralSeries = [
 ];
 
 const ShiftedNumeralSeries = [
+  extractValueTuple(ShiftedNumeralStore.Eight),
   extractValueTuple(ShiftedNumeralStore.One),
   extractValueTuple(ShiftedNumeralStore.Two),
   extractValueTuple(ShiftedNumeralStore.Three),
@@ -663,7 +664,7 @@ export const getRegularRotation = (position: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): num
  * @param position - Display position 0-7
  * @returns The 3-bit tuple [0|1, 0|1, 0|1] for the shifted position
  */
-export const getShiftedBitRotation = (position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7): [0 | 1, 0 | 1, 0 | 1] => {
+export const getShiftedBitRotation = (position: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): [0 | 1, 0 | 1, 0 | 1] => {
   // Shifted mapping: position 7 wraps to index 0, others shift by +1
   return ShiftedNumeralSeries[position];
 };
@@ -676,7 +677,7 @@ export const getShiftedBitRotation = (position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7): 
  */
 export const getShiftedRotation = (position: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): number => {
   // Shifted mapping: position 7 → Round8Numerals[1], others → Round8Numerals[position + 2]
-  switch (position) {
+  switch (position - 1) {
   case 1: {
     return Round8Numerals[3];
   }
@@ -855,39 +856,39 @@ export const applyShiftedNumeralRotation = (value: number, buffer: bigint, posit
   // There is no reason to not allow this outside of feat of lost precision, but here we have Greater Precision.
   switch (value) {
   case 0: {
-    finalValue = ShiftedNumeralStore.One;
-    break;
-  }
-  case 1: {
-    finalValue = ShiftedNumeralStore.Two;
-    break;
-  }
-  case 2: {
-    finalValue = ShiftedNumeralStore.Three;
-    break;
-  }
-  case 3: {
-    finalValue = ShiftedNumeralStore.Four;
-    break;
-  }
-  case 4: {
-    finalValue = ShiftedNumeralStore.Five;
-    break;
-  }
-  case 5: {
-    finalValue = ShiftedNumeralStore.Six;
-    break;
-  }
-  case 6: {
-    finalValue = ShiftedNumeralStore.Seven;
-    break;
-  }
-  case 7: {
     finalValue = ShiftedNumeralStore.Eight;
     break;
   }
+  case 1: {
+    finalValue = ShiftedNumeralStore.One;
+    break;
+  }
+  case 2: {
+    finalValue = ShiftedNumeralStore.Two;
+    break;
+  }
+  case 3: {
+    finalValue = ShiftedNumeralStore.Three;
+    break;
+  }
+  case 4: {
+    finalValue = ShiftedNumeralStore.Four;
+    break;
+  }
+  case 5: {
+    finalValue = ShiftedNumeralStore.Five;
+    break;
+  }
+  case 6: {
+    finalValue = ShiftedNumeralStore.Six;
+    break;
+  }
+  case 7: {
+    finalValue = ShiftedNumeralStore.Seven;
+    break;
+  }
   default: {
-    throw 'CRITICAL';
+    throw 'CRITICAL Apply Shifted Value ' + value;
   }
   }
   console.log('WHAT IS THE FINAL VALUE', finalValue, value);
