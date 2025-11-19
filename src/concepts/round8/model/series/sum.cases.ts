@@ -53,7 +53,7 @@ export const SumSeries: SomeSeries = {
   SumOfOneAndEight: (() => {
     const x = getRegularBitRotation(1); // 1
     const y = getRegularBitRotation(8); // 8
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]]; // 1 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularBitRotation(1)]]; // 1 and Carry
   })(),
 
   // 2 + N (N = 1-8)
@@ -90,12 +90,12 @@ export const SumSeries: SomeSeries = {
   SumOfTwoAndSeven: (() => {
     const x = getRegularBitRotation(2); // 2
     const y = getRegularBitRotation(7); // 7
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]]; // 1 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularBitRotation(1)]]; // 1 and Carry
   })(),
   SumOfTwoAndEight: (() => {
     const x = getRegularBitRotation(2); // 2
     const y = getRegularBitRotation(8); // 8
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]]; // 2 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularBitRotation(1)]]; // 2 and Carry
   })(),
 
   // 3 + N (N = 1-8)
@@ -127,17 +127,17 @@ export const SumSeries: SomeSeries = {
   SumOfThreeAndSix: (() => {
     const x = getRegularBitRotation(3); // 3
     const y = getRegularBitRotation(6); // 6
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]]; // 1 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularBitRotation(1)]]; // 1 and Carry
   })(),
   SumOfThreeAndSeven: (() => {
     const x = getRegularBitRotation(3); // 3
     const y = getRegularBitRotation(7); // 7
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]]; // 2 and 1
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularBitRotation(1)]]; // 2 and 1
   })(),
   SumOfThreeAndEight: (() => {
     const x = getRegularBitRotation(3); // 3
     const y = getRegularBitRotation(8); // 8
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]]; // 3 and 1
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularBitRotation(1)]]; // 3 and 1
   })(),
 
   // 4 + N (N = 1-8)
@@ -164,22 +164,22 @@ export const SumSeries: SomeSeries = {
   SumOfFourAndFive: (() => {
     const x = getRegularBitRotation(4); // 4
     const y = getRegularBitRotation(5); // 5
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]]; // 1 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularBitRotation(1)]]; // 1 and Carry
   })(),
   SumOfFourAndSix: (() => {
     const x = getRegularBitRotation(4); // 4
     const y = getRegularBitRotation(6); // 6
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]]; // 2 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularBitRotation(1)]]; // 2 and Carry
   })(),
   SumOfFourAndSeven: (() => {
     const x = getRegularBitRotation(4); // 4
     const y = getRegularBitRotation(7); // 7
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]]; // 3 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularBitRotation(1)]]; // 3 and Carry
   })(),
   SumOfFourAndEight: (() => {
     const x = getRegularBitRotation(4); // 4
     const y = getRegularBitRotation(8); // 8
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularRotation(1)]]; // 4 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularBitRotation(1)]]; // 4 and Carry
   })(),
 
   // 5 + N (N = 1-8)
@@ -201,27 +201,27 @@ export const SumSeries: SomeSeries = {
   SumOfFiveAndFour: (() => {
     const x = getRegularBitRotation(5); // 5
     const y = getRegularBitRotation(4); // 4
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]]; // 1 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularBitRotation(1)]]; // 1 and Carry
   })(),
   SumOfFiveAndFive: (() => {
     const x = getRegularBitRotation(5); // 5
     const y = getRegularBitRotation(5); // 5
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]]; // 2 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularBitRotation(1)]]; // 2 and Carry
   })(),
   SumOfFiveAndSix: (() => {
     const x = getRegularBitRotation(5); // 5
     const y = getRegularBitRotation(6); // 6
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]]; // 3 and 1
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularBitRotation(1)]]; // 3 and 1
   })(),
   SumOfFiveAndSeven: (() => {
     const x = getRegularBitRotation(5); // 5
     const y = getRegularBitRotation(7); // 7
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularRotation(1)]]; // 4 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularBitRotation(1)]]; // 4 and Carry
   })(),
   SumOfFiveAndEight: (() => {
     const x = getRegularBitRotation(5); // 5
     const y = getRegularBitRotation(8); // 8
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularRotation(1)]]; // 5 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularBitRotation(1)]]; // 5 and Carry
   })(),
 
   // 6 + N (N = 1-8)
@@ -238,32 +238,32 @@ export const SumSeries: SomeSeries = {
   SumOfSixAndThree: (() => {
     const x = getRegularBitRotation(6); // 6
     const y = getRegularBitRotation(3); // 3
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]]; // 1 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularBitRotation(1)]]; // 1 and Carry
   })(),
   SumOfSixAndFour: (() => {
     const x = getRegularBitRotation(6); // 6
     const y = getRegularBitRotation(4); // 4
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]]; // 2 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularBitRotation(1)]]; // 2 and Carry
   })(),
   SumOfSixAndFive: (() => {
     const x = getRegularBitRotation(6); // 6
     const y = getRegularBitRotation(5); // 5
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]]; // 3 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularBitRotation(1)]]; // 3 and Carry
   })(),
   SumOfSixAndSix: (() => {
     const x = getRegularBitRotation(6); // 6
     const y = getRegularBitRotation(6); // 6
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularRotation(1)]]; // 4 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularBitRotation(1)]]; // 4 and Carry
   })(),
   SumOfSixAndSeven: (() => {
     const x = getRegularBitRotation(6); // 6
     const y = getRegularBitRotation(7); // 7
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularRotation(1)]]; // 5 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularBitRotation(1)]]; // 5 and Carry
   })(),
   SumOfSixAndEight: (() => {
     const x = getRegularBitRotation(6); // 6
     const y = getRegularBitRotation(8); // 8
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6), getRegularRotation(1)]]; // 6 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6), getRegularBitRotation(1)]]; // 6 and Carry
   })(),
 
   // 7 + N (N = 1-8)
@@ -275,78 +275,78 @@ export const SumSeries: SomeSeries = {
   SumOfSevenAndTwo: (() => {
     const x = getRegularBitRotation(7); // 7
     const y = getRegularBitRotation(2); // 2
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]]; // 1 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularBitRotation(1)]]; // 1 and Carry
   })(),
   SumOfSevenAndThree: (() => {
     const x = getRegularBitRotation(7); // 7
     const y = getRegularBitRotation(3); // 3
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]]; // 2 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularBitRotation(1)]]; // 2 and Carry
   })(),
   SumOfSevenAndFour: (() => {
     const x = getRegularBitRotation(7); // 7
     const y = getRegularBitRotation(4); // 4
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]]; // 3 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularBitRotation(1)]]; // 3 and Carry
   })(),
   SumOfSevenAndFive: (() => {
     const x = getRegularBitRotation(7); // 7
     const y = getRegularBitRotation(5); // 5
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularRotation(1)]]; // 4 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularBitRotation(1)]]; // 4 and Carry
   })(),
   SumOfSevenAndSix: (() => {
     const x = getRegularBitRotation(7); // 7
     const y = getRegularBitRotation(6); // 6
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularRotation(1)]]; // 5 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularBitRotation(1)]]; // 5 and Carry
   })(),
   SumOfSevenAndSeven: (() => {
     const x = getRegularBitRotation(7); // 7
     const y = getRegularBitRotation(7); // 7
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6), getRegularRotation(1)]]; // 6 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6), getRegularBitRotation(1)]]; // 6 and Carry
   })(),
   SumOfSevenAndEight: (() => {
     const x = getRegularBitRotation(7); // 7
     const y = getRegularBitRotation(8); // 8
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7), getRegularRotation(1)]]; // 7 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7), getRegularBitRotation(1)]]; // 7 and Carry
   })(),
 
   // 8 + N (N = 1-8)
   SumOfEightAndOne: (() => {
     const x = getRegularBitRotation(8); // 8
     const y = getRegularBitRotation(1); // 1
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularRotation(1)]]; // 1 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(1), getRegularBitRotation(1)]]; // 1 and Carry
   })(),
   SumOfEightAndTwo: (() => {
     const x = getRegularBitRotation(8); // 8
     const y = getRegularBitRotation(2); // 2
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularRotation(1)]]; // 2 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(2), getRegularBitRotation(1)]]; // 2 and Carry
   })(),
   SumOfEightAndThree: (() => {
     const x = getRegularBitRotation(8); // 8
     const y = getRegularBitRotation(3); // 3
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularRotation(1)]]; // 3 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(3), getRegularBitRotation(1)]]; // 3 and Carry
   })(),
   SumOfEightAndFour: (() => {
     const x = getRegularBitRotation(8); // 8
     const y = getRegularBitRotation(4); // 4
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularRotation(1)]]; // 4 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(4), getRegularBitRotation(1)]]; // 4 and Carry
   })(),
   SumOfEightAndFive: (() => {
     const x = getRegularBitRotation(8); // 8
     const y = getRegularBitRotation(5); // 5
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularRotation(1)]]; // 5 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(5), getRegularBitRotation(1)]]; // 5 and Carry
   })(),
   SumOfEightAndSix: (() => {
     const x = getRegularBitRotation(8); // 8
     const y = getRegularBitRotation(6); // 6
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6), getRegularRotation(1)]]; // 6 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(6), getRegularBitRotation(1)]]; // 6 and Carry
   })(),
   SumOfEightAndSeven: (() => {
     const x = getRegularBitRotation(8); // 8
     const y = getRegularBitRotation(7); // 7
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7), getRegularRotation(1)]]; // 7 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(7), getRegularBitRotation(1)]]; // 7 and Carry
   })(),
   SumOfEightAndEight: (() => {
     const x = getRegularBitRotation(8); // 8
     const y = getRegularBitRotation(8); // 8
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(8), getRegularRotation(1)]]; // 8 and Carry
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], getRegularRotation(8), getRegularBitRotation(1)]]; // 8 and Carry
   })(),
 };

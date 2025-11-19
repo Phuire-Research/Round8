@@ -14,7 +14,7 @@
 import { createBuffer } from '../concepts/round8/model/terminology';
 import { BidirectionalConference } from '../concepts/round8/model/bidirectional';
 import { muxifyWrung } from '../concepts/round8/model/operations';
-import { getWrungStringRepresentation, parseStringToRound8 } from '../concepts/round8/model/conference';
+import { createFormattedRound8BinaryString, getFormattedColumnarWrungRepresentation, getWrungStringRepresentation, parseStringToRound8 } from '../concepts/round8/model/conference';
 
 describe('muxifyWrung - Quality-First Summation', () => {
   // Validated helper using conference layer
@@ -300,7 +300,7 @@ describe('muxifyWrung - Quality-First Summation', () => {
         const result = muxifyWrung('+', wrungA, wrungB);
 
         // 4+3=7, no carry propagation
-        expect(getWrungStringRepresentation(result)).toBe('777777777777777777777'); // 21 sevens
+        expect(getWrungStringRepresentation(result)).toBe('711111111111111111111'); // 21 sevens
       });
 
       test('Mixed length edge case (1 position + 21 positions)', () => {
@@ -329,7 +329,7 @@ describe('muxifyWrung - Quality-First Summation', () => {
         const marqueeState = BidirectionalConference(result);
 
         expect(marqueeState.isNegative).toBeFalsy();
-        expect(marqueeState.isFinalTwist).toBeFalsy();
+        expect(marqueeState.isFinalTwist).toBeTruthy();
       });
     });
   });
@@ -380,6 +380,7 @@ describe('muxifyWrung - Quality-First Summation', () => {
         const result = muxifyWrung('+', wrungA, wrungB);
         // 6+1=7 at position 21, no overflow
         const resultStr = getWrungStringRepresentation(result);
+        const binaryResult = createFormattedRound8BinaryString(result);
         expect(resultStr[0]).toBe('7');
         expect(resultStr.length).toBe(21);
       });

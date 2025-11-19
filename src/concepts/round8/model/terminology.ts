@@ -510,7 +510,6 @@ const extractValueTuple = (value: bigint): [0 | 1, 0 | 1, 0 | 1] => {
 export const MARQUEE_TUPLE: [0 | 1, 0 | 1, 0 | 1] = extractValueTuple(setNumeralProperty(1));
 
 export const NumeralStore = {
-  Marquee: setNumeralProperty(Round8Numerals[0]),
   One: setNumeralProperty(Round8Numerals[1]),
   Two: setNumeralProperty(Round8Numerals[2]),
   Three: setNumeralProperty(Round8Numerals[3]),
@@ -522,7 +521,6 @@ export const NumeralStore = {
 } as const;
 
 export const ShiftedNumeralStore = {
-  Marquee: setNumeralProperty(Round8Numerals[0]),
   One: setNumeralProperty(Round8Numerals[2]),
   Two: setNumeralProperty(Round8Numerals[3]),
   Three: setNumeralProperty(Round8Numerals[4]),
@@ -531,7 +529,7 @@ export const ShiftedNumeralStore = {
   Six: setNumeralProperty(Round8Numerals[7]),
   Seven: setNumeralProperty(Round8Numerals[8]),
   // Should Invalidate to Full Twist in Shifted Position
-  Eight: setNumeralProperty(Round8Numerals[8]),
+  Eight: setNumeralProperty(Round8Numerals[1]),
 } as const;
 
 const NumeralSeries = [
@@ -544,25 +542,16 @@ const NumeralSeries = [
   extractValueTuple(NumeralStore.Seven), // Binary 6n → [0,1,1]
   extractValueTuple(NumeralStore.Eight), // Binary 7n → [1,1,1]
 ];
-const AlignedShiftedNumeralSeries = [
-  extractValueTuple(NumeralStore.Three),
-  extractValueTuple(NumeralStore.Four),
-  extractValueTuple(NumeralStore.Five),
-  extractValueTuple(NumeralStore.Six),
-  extractValueTuple(NumeralStore.Seven),
-  extractValueTuple(NumeralStore.Eight),
-  extractValueTuple(NumeralStore.One),
-  extractValueTuple(NumeralStore.Marquee),
-];
+
 const ShiftedNumeralSeries = [
-  extractValueTuple(NumeralStore.Marquee),
-  extractValueTuple(NumeralStore.Three),
-  extractValueTuple(NumeralStore.Four),
-  extractValueTuple(NumeralStore.Five),
-  extractValueTuple(NumeralStore.Six),
-  extractValueTuple(NumeralStore.Seven),
-  extractValueTuple(NumeralStore.Eight),
-  extractValueTuple(NumeralStore.One),
+  extractValueTuple(ShiftedNumeralStore.One),
+  extractValueTuple(ShiftedNumeralStore.Two),
+  extractValueTuple(ShiftedNumeralStore.Three),
+  extractValueTuple(ShiftedNumeralStore.Four),
+  extractValueTuple(ShiftedNumeralStore.Five),
+  extractValueTuple(ShiftedNumeralStore.Six),
+  extractValueTuple(ShiftedNumeralStore.Seven),
+  extractValueTuple(ShiftedNumeralStore.Eight),
 ];
 const Numerals = [
   1,
@@ -573,17 +562,6 @@ const Numerals = [
   6,
   7,
   8
-];
-const ShiftedNumerals = [
-  0,
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  7,
-  0 // Marquee Position and Error as Logic Should Guard Against this Case
 ];
 
 const StringNumerals = [
@@ -605,7 +583,6 @@ const ShiftedStringNumerals = [
   '6',
   '7',
   '0' // Marquee Position and Error as Logic Should Guard Against this Case
-
 ];
 
 export const initializeSpooledWrung = <T extends number | string | BitRotationTuple>() => {
@@ -637,10 +614,10 @@ const spool = <T>(informativeSeries: [0 | 1, 0 | 1, 0 | 1][], baseSeries: T[], s
 };
 
 spool(NumeralSeries, Numerals, spooledNumerals);
-spool(ShiftedNumeralSeries, ShiftedNumerals, spooledShiftedNumerals);
+spool(ShiftedNumeralSeries, Numerals, spooledShiftedNumerals);
 spool(NumeralSeries, StringNumerals, spooledStringNumerals);
 spool(ShiftedNumeralSeries, ShiftedStringNumerals, spooledShiftedStringNumerals);
-spool(NumeralSeries, AlignedShiftedNumeralSeries, spooledRegularShiftedBridge);
+spool(NumeralSeries, ShiftedNumeralSeries, spooledRegularShiftedBridge);
 
 /**
  * getRegularBitRotation - Get the bit tuple for regular positions 1-8
@@ -684,10 +661,37 @@ export const getShiftedBitRotation = (position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 
  * @param position - Display position 0-7
  * @returns The byte value (0-7) for the shifted position
  */
-export const getShiftedRotation = (position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7): number => {
+export const getShiftedRotation = (position: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): number => {
   // Shifted mapping: position 7 → Round8Numerals[1], others → Round8Numerals[position + 2]
-  const index = position === 7 ? 1 : position + 2;
-  return Round8Numerals[index];
+  switch (position) {
+  case 1: {
+    return Round8Numerals[2];
+  }
+  case 2: {
+    return Round8Numerals[2];
+  }
+  case 3: {
+    return Round8Numerals[3];
+  }
+  case 4: {
+    return Round8Numerals[4];
+  }
+  case 5: {
+    return Round8Numerals[5];
+  }
+  case 6: {
+    return Round8Numerals[6];
+  }
+  case 7: {
+    return Round8Numerals[7];
+  }
+  case 8: {
+    return Round8Numerals[0];
+  }
+  default: {
+    return Round8Numerals[0];
+  }
+  }
 };
 
 /**
@@ -722,6 +726,9 @@ export const getRotationValue = (buffer: bigint, position: Positions): number =>
 
   // Layer 2: Direct spool lookup (zero allocation!)
   // The 3-bit tuple directly indexes into our 3D spool
+  if (position === 21) {
+    return spooledShiftedNumerals[b0][b1][b2];
+  }
   return spooledNumerals[b0][b1][b2];
 };
 
@@ -899,8 +906,8 @@ export const applyMarqueeAtPosition = (
 ): bigint => {
   // Get the Marquee value from appropriate store
   const marqueeValue = useShifted
-    ? ShiftedNumeralStore.Marquee
-    : NumeralStore.Marquee;
+    ? ShiftedNumeralStore.Eight
+    : NumeralStore.Two;
 
   // Use WorkingBigIntBucket for zero-allocation
   WorkingBigIntBucket.content = marqueeValue;

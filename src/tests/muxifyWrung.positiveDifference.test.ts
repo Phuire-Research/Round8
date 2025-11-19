@@ -21,7 +21,7 @@ import {
   type Positions
 } from '../concepts/round8/model/terminology';
 import { BidirectionalConference } from '../concepts/round8/model/bidirectional';
-import { parseStringToRound8, getWrungStringRepresentation } from '../concepts/round8/model/conference';
+import { parseStringToRound8, getWrungStringRepresentation, getFormattedColumnarWrungRepresentation, createFormattedRound8BinaryString } from '../concepts/round8/model/conference';
 import { muxifyWrung } from '../concepts/round8/model/operations';
 
 describe('muxifyWrung - Quality-First Positive Difference', () => {
@@ -269,7 +269,7 @@ describe('muxifyWrung - Quality-First Positive Difference', () => {
 
       test('12345 - 111 = 12234', () => {
         const result = muxifyWrung('-', r8('12345'), r8('111'));
-        expect(str(result)).toBe('12234');
+        expect(getWrungStringRepresentation(result)).toBe('12234');
       });
     });
 
@@ -278,7 +278,7 @@ describe('muxifyWrung - Quality-First Positive Difference', () => {
         const twenty2s = '22222222222222222222';
         const twenty1s = '11111111111111111111';
         const result = muxifyWrung('-', r8(twenty2s), r8(twenty1s));
-        expect(str(result)).toBe('11111111111111111111');
+        expect(getWrungStringRepresentation(result)).toBe('11111111111111111111');
       });
 
       test('Equal twenty-digit numbers', () => {
@@ -298,7 +298,7 @@ describe('muxifyWrung - Quality-First Positive Difference', () => {
         const result = muxifyWrung('-', r8(twentyOne2s), r8(twentyOne1s));
         // Parse reversal applies to both operands (both palindromes, so same)
         // Difference: each position 2-1=1, result has 20 positions (pos 21 is shift-frame boundary)
-        expect(str(result)).toBe('11111111111111111111');
+        expect(getWrungStringRepresentation(result)).toBe('11111111111111111111');
       });
 
       test('Equal 21-digit numbers = AbsoluteZero', () => {
@@ -340,7 +340,7 @@ describe('muxifyWrung - Quality-First Positive Difference', () => {
         // Parse reversal: "222...2" → pos1-21=2, "1" → pos1=1
         // Difference: pos1=(2-1)=1, pos2-21=2
         // Stringify: "122...2" → reverse → "222...21"
-        expect(str(result)).toBe('22222222222222222221');
+        expect(getWrungStringRepresentation(result)).toBe('22222222222222222221');
       });
 
       test('21 positions minus 10 positions', () => {
@@ -350,7 +350,8 @@ describe('muxifyWrung - Quality-First Positive Difference', () => {
         // Parse reversal: "333...3" (21) → pos1-21=3, "111...1" (10) → pos1-10=1
         // Difference: pos1-10=(3-1)=2, pos11-21=3 (copy from anchor)
         // Stringify: "222...2333...3" (10 twos, 11 threes) → reverse → "333...3222...2"
-        expect(str(result)).toBe('233333333332222222222');
+        // expect(createFormattedRound8BinaryString(result)).toBe('233333333332222222222');
+        expect(getWrungStringRepresentation(result)).toBe('233333333332222222222');
       });
 
       test('20 positions minus 21 positions (smaller first should swap)', () => {

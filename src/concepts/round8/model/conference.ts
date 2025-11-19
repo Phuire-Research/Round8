@@ -26,7 +26,8 @@ import {
   getSignBit,
   applyMarqueeAtPosition,
   getShiftedRotationString,
-  extractBitTuple
+  extractBitTuple,
+  applyShiftedNumeralRotation
 } from './terminology';
 
 /**
@@ -50,6 +51,7 @@ import {
 export const getWrungStringRepresentation = (buffer: bigint): string => {
   // Step 1: Determine Marquee delimiter via BidirectionalConference
   const marqueeState = BidirectionalConference(buffer);
+  console.log('CHECK MUXITY', marqueeState);
 
   // Special case: Absolute Zero (all positions 000)
   if (marqueeState.isAbsoluteZero) {
@@ -305,26 +307,22 @@ const round8NumeralToRotation = (numeral: string): number | undefined => {
  * round8NumeralToShiftedRotation - Position 21 shifted mapping
  *
  * Position 21 excludes '8' (Full Twist indicator at boundary).
- * Valid symbols: '1'-'7' → rotation values: 0-6
+ * Valid symbols: '1'-'7' → rotation values: 1-7 (shifted frame mapping)
  *
  * Note: '8' at front of 21-length string means Full Twist (special case).
  * Returns undefined for invalid symbols (8 at Position 21, or out of range).
  *
  * @param numeral - Single character '1'-'7'
- * @returns Rotation value 0-6, or undefined if invalid
+ * @returns Rotation value 1-7 (shifted frame), or undefined if invalid
  */
 const round8NumeralToShiftedRotation = (numeral: string): number | undefined => {
   const symbolValue = parseInt(numeral, 10);
 
-  // Invalid case: Position 21 cannot be 8 (boundary limitation)
-  // Invalid case: symbol out of range (1-7)
-  // Returns undefined to signal invalidated input
   if (symbolValue < 1 || symbolValue > 7) {
     return undefined;
   }
 
-  // Apply offset: symbol - 1 = rotation value
-  return symbolValue - 1;
+  return symbolValue;
 };
 
 /**
@@ -367,6 +365,7 @@ const handleLengthOne = (
   }
   buffer = applyNumeralRotation(rotationValue, buffer, 1 as Positions);
   buffer = applyMarqueeAtPosition(buffer, 2 as Positions);
+  console.log('WHAT IS THIS', buffer, createFormattedRound8BinaryString(buffer), getFormattedColumnarWrungRepresentation(buffer));
   return buffer;
 };
 
@@ -551,7 +550,7 @@ const handleLengthTwentyOne = (
     return undefined;
   }
 
-  buffer = applyNumeralRotation(rotation21, buffer, 21 as Positions);
+  buffer = applyShiftedNumeralRotation(rotation21, buffer, 21 as Positions);
 
   // No Marquee at Position 22 (system boundary)
   return buffer;

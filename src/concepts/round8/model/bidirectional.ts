@@ -239,7 +239,7 @@ export const BidirectionalConference = (buffer: bigint): WrungMuxity => {
         marqueePosition = 21;
         firstValidPosition = 20;
         return false; // Stop scanning (found Marquee)
-      } else if (spooledShiftedNumerals[b1][b1][b2] !== 7) {
+      } else if (spooledShiftedNumerals[b0][b1][b2] !== 7 && spooledShiftedNumerals[b0][b1][b2] !== 8) {
         // Position 21 has valid counting value (010-111)
         marqueePosition = 22;
         firstValidPosition = 21;

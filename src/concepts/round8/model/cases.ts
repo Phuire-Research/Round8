@@ -59,10 +59,6 @@ const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
     const sixValue = tuple.slice(1) as unknown as number[]; // [result, carry?]
     // console.log(`  Storing at [${one}][${two}][${three}][${four}][${five}][${six}]:`, sixValue);
     spooled[one][two][three][four][five][six] = sixValue;
-    // Debug: Verify storage
-    if (one === 0 && two === 0 && three === 0 && four === 0 && five === 0 && six === 0) {
-      console.log('  VERIFY: Retrieved immediately:', spooled[0][0][0][0][0][0]);
-    }
   });
 };
 

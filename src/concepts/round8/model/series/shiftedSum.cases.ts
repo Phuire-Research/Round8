@@ -57,139 +57,7 @@ export const ShiftedSumSeries: SomeSeries = {
   // Represents carry propagating leftward into Column 0 shifted manifold
   // System has 6 counting positions (Display 1-6) + marquee [0,0,1] + placeholder [0,0,0]
   // Maximum value: 7,88,88,88,88,88,88,88,88,88,88 (position 7 at column 0, position 8 at columns 1-20)
-
-  // [0,0,0] as operand A - External carry from column 1
-  ShiftedSumOfCarryAndCarry: (() => {
-    const x = getRegularBitRotation(1);  // External carry = 000 (position 7)
-    const y = getRegularBitRotation(1);  // External carry = 000
-    const result = getShiftedRotation(2);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfCarryAndMarquee: (() => {
-    const x = getRegularBitRotation(1);  // External carry = 000 (position 7)
-    const y = getShiftedBitRotation(0);  // Marquee = 001
-    const result = getShiftedRotation(1);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfCarryAndOne: (() => {
-    const x = getRegularBitRotation(1);  // External carry = 000 (position 7)
-    const y = getShiftedBitRotation(1);  // Display 1 = 010
-    const result = getShiftedRotation(2);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfCarryAndTwo: (() => {
-    const x = getRegularBitRotation(1);  // External carry = 000 (position 7)
-    const y = getShiftedBitRotation(2);  // Display 2 = 011
-    const result = getShiftedRotation(3);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfCarryAndThree: (() => {
-    const x = getRegularBitRotation(1);  // External carry = 000 (position 7)
-    const y = getShiftedBitRotation(3);  // Display 3 = 100
-    const result = getShiftedRotation(4);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfCarryAndFour: (() => {
-    const x = getRegularBitRotation(1);  // External carry = 000 (position 7)
-    const y = getShiftedBitRotation(4);  // Display 4 = 101
-    const result = getShiftedRotation(5);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfCarryAndFive: (() => {
-    const x = getRegularBitRotation(1);  // External carry = 000 (position 7)
-    const y = getShiftedBitRotation(5);  // Display 5 = 110
-    const result = getShiftedRotation(6);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfCarryAndSix: (() => {
-    const x = getRegularBitRotation(1);  // External carry = 000 (position 7)
-    const y = getShiftedBitRotation(6);  // Display 6 = 111
-    const result = getShiftedRotation(7);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, result]];
-  })(),
-
-  // [0,0,1] as operand A - Marquee marker (N+1 rotation cases)
-  // When [0,0,1] marquee receives addition, it rotates in place
-  ShiftedSumOfMarqueeAndCarry: (() => {
-    const x = getShiftedBitRotation(0);  // Marquee = 001
-    const y = getRegularBitRotation(1);  // External carry = 000
-    const result = getShiftedRotation(1);  // Marquee + Carry = Display 1 [010] (position 0 + position 7 = position 1)
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfMarqueeAndMarquee: (() => {
-    const x = getShiftedBitRotation(0);  // Marquee = 001
-    const y = getShiftedBitRotation(0);  // Marquee = 001
-    const result = getShiftedRotation(0);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfMarqueeAndOne: (() => {
-    const x = getShiftedBitRotation(0);  // Marquee = 001
-    const y = getShiftedBitRotation(1);  // Display 1 = 010
-    const result = getShiftedRotation(1);  // Marquee + Display 1 → Rotates to Display 1 [010]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfMarqueeAndTwo: (() => {
-    const x = getShiftedBitRotation(0);  // Marquee = 001
-    const y = getShiftedBitRotation(2);  // Display 2 = 011
-    const result = getShiftedRotation(2);  // Marquee + Display 2 → Rotates to Display 2 [011]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfMarqueeAndThree: (() => {
-    const x = getShiftedBitRotation(0);  // Marquee = 001
-    const y = getShiftedBitRotation(3);  // Display 3 = 100
-    const result = getShiftedRotation(3);  // Marquee + Display 3 → Rotates to Display 3 [100]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfMarqueeAndFour: (() => {
-    const x = getShiftedBitRotation(0);  // Marquee = 001
-    const y = getShiftedBitRotation(4);  // Display 4 = 101
-    const result = getShiftedRotation(4);  // Marquee + Display 4 → Rotates to Display 4 [101]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfMarqueeAndFive: (() => {
-    const x = getShiftedBitRotation(0);  // Marquee = 001
-    const y = getShiftedBitRotation(5);  // Display 5 = 110
-    const result = getShiftedRotation(5);  // Marquee + Display 5 → Rotates to Display 5 [110]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfMarqueeAndSix: (() => {
-    const x = getShiftedBitRotation(0);  // Marquee = 001
-    const y = getShiftedBitRotation(6);  // Display 6 = 111
-    const result = getShiftedRotation(6);  // Marquee + Display 6 → Rotates to Display 6 [111]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  // VALID SHIFTED CASES: Display 1-6 (Binary 010-111)
-
   // Display 1 [0,1,0] + N
-  ShiftedSumOfOneAndCarry: (() => {
-    const x = getShiftedBitRotation(1);  // Display 1 = 010
-    const y = getRegularBitRotation(1);  // External carry = 000
-    const result = getShiftedRotation(2);  // Display 1 + Carry = Display 2 [011] (position 1 + position 7 = position 2)
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfOneAndMarquee: (() => {
-    const x = getShiftedBitRotation(1);  // Display 1 = 010
-    const y = getShiftedBitRotation(0);  // Marquee = 001
-    const result = getShiftedRotation(1);  // Display 1 + Marquee → Rotates to Display 1 [010]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
   ShiftedSumOfOneAndOne: (() => {
     const x = getShiftedBitRotation(1);  // Display 1 = 010
     const y = getShiftedBitRotation(1);  // Display 1 = 010
@@ -228,24 +96,16 @@ export const ShiftedSumSeries: SomeSeries = {
   ShiftedSumOfOneAndSix: (() => {
     const x = getShiftedBitRotation(1);  // Display 1 = 010
     const y = getShiftedBitRotation(6);  // Display 6 = 111
-    const result = getShiftedRotation(7);  // Wraps to Display 1 [010]
-    const carry = getRegularRotation(1);  // Carry Display 1 [010]
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);  // Carry Display 1 [010]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
-
-  // Display 2 [0,1,1] + N
-  ShiftedSumOfTwoAndCarry: (() => {
-    const x = getShiftedBitRotation(2);  // Display 2 = 011
-    const y = getRegularBitRotation(1);  // External carry = 000
-    const result = getShiftedRotation(3);  // Display 2 + Carry = Display 3 [100] (position 2 + position 7 = position 3)
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfTwoAndMarquee: (() => {
-    const x = getShiftedBitRotation(2);  // Display 2 = 011
-    const y = getShiftedBitRotation(0);  // Marquee = 001
-    const result = getShiftedRotation(2);  // Display 2 + Marquee → Rotates to Display 2 [011]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  ShiftedSumOfOneAndSeven: (() => {
+    const x = getShiftedBitRotation(1);  // Display 1 = 010
+    const y = getShiftedBitRotation(7);  // Display 6 = 111
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);  // Carry Display 1 [010]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
   ShiftedSumOfTwoAndOne: (() => {
@@ -280,7 +140,7 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(2);  // Display 2 = 011
     const y = getShiftedBitRotation(5);  // Display 5 = 110
     const result = getShiftedRotation(7);  // 2+5=7
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -288,23 +148,16 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(2);  // Display 2 = 011
     const y = getShiftedBitRotation(6);  // Display 6 = 111
     const result = getShiftedRotation(7);  // 2+6=8 → wraps to Display 7 [000] as Full Twist Case
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
-  // Display 3 [1,0,0] + N
-  ShiftedSumOfThreeAndCarry: (() => {
-    const x = getShiftedBitRotation(3);  // Display 3 = 100
-    const y = getRegularBitRotation(1);  // External carry = 000
-    const result = getShiftedRotation(4);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfThreeAndMarquee: (() => {
-    const x = getShiftedBitRotation(3);  // Display 3 = 100
-    const y = getShiftedBitRotation(0);  // Marquee = 001
-    const result = getShiftedRotation(3);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  ShiftedSumOfTwoAndSeven: (() => {
+    const x = getShiftedBitRotation(2);  // Display 2 = 011
+    const y = getShiftedBitRotation(7);  // Display 6 = 111
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
   ShiftedSumOfThreeAndOne: (() => {
@@ -332,7 +185,7 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(3);  // Display 3 = 100
     const y = getShiftedBitRotation(4);  // Display 4 = 101
     const result = getShiftedRotation(7);  // 3+4=7
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -340,7 +193,7 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(3);  // Display 3 = 100
     const y = getShiftedBitRotation(5);  // Display 5 = 110
     const result = getShiftedRotation(7);  // 3+5=8
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -348,23 +201,16 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(3);  // Display 3 = 100
     const y = getShiftedBitRotation(6);  // Display 6 = 111
     const result = getShiftedRotation(7);  // 3+6=11r → wraps to Display 3 [100]
-    const carry = getRegularRotation(1);  // Carry Display 1 [010]
+    const carry = getRegularBitRotation(1);  // Carry Display 1 [010]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
-  // Display 4 [1,0,1] + N
-  ShiftedSumOfFourAndCarry: (() => {
-    const x = getShiftedBitRotation(4);  // Display 4 = 101
-    const y = getRegularBitRotation(1);  // External carry = 000
-    const result = getShiftedRotation(5);  // Display 4 + Carry = Display 5 [110] (position 4 + position 7 = position 5)
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfFourAndMarquee: (() => {
-    const x = getShiftedBitRotation(4);  // Display 4 = 101
-    const y = getShiftedBitRotation(0);  // Marquee = 001
-    const result = getShiftedRotation(4);  // Display 4 + Marquee → Rotates to Display 4 [101]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  ShiftedSumOfThreeAndSeven: (() => {
+    const x = getShiftedBitRotation(3);  // Display 3 = 100
+    const y = getShiftedBitRotation(7);  // Display 6 = 111
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);  // Carry Display 1 [010]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
   ShiftedSumOfFourAndOne: (() => {
@@ -385,7 +231,7 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(4);  // Display 4 = 101
     const y = getShiftedBitRotation(3);  // Display 3 = 100
     const result = getShiftedRotation(7);  // 4+3=7
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -393,7 +239,7 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(4);  // Display 4 = 101
     const y = getShiftedBitRotation(4);  // Display 4 = 101
     const result = getShiftedRotation(7);  // 4+4=8 →
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -401,7 +247,7 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(4);  // Display 4 = 101
     const y = getShiftedBitRotation(5);  // Display 5 = 110
     const result = getShiftedRotation(7);  // 4+5=11r → wraps to Display 3 [100]
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -409,23 +255,16 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(4);  // Display 4 = 101
     const y = getShiftedBitRotation(6);  // Display 6 = 111
     const result = getShiftedRotation(7);  // 4+6=12r
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
-  // Display 5 [1,1,0] + N
-  ShiftedSumOfFiveAndCarry: (() => {
-    const x = getShiftedBitRotation(5);  // Display 5 = 110
-    const y = getRegularBitRotation(1);  // External carry = 000
-    const result = getShiftedRotation(6);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfFiveAndMarquee: (() => {
-    const x = getShiftedBitRotation(5);  // Display 5 = 110
-    const y = getShiftedBitRotation(0);  // Marquee = 001
-    const result = getShiftedRotation(5);  // Display 5 + Marquee → Rotates to Display 5 [110]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
+  ShiftedSumOfFourAndSeven: (() => {
+    const x = getShiftedBitRotation(4);  // Display 4 = 101
+    const y = getShiftedBitRotation(7);  // Display 6 = 111
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
   ShiftedSumOfFiveAndOne: (() => {
@@ -439,7 +278,7 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(5);  // Display 5 = 110
     const y = getShiftedBitRotation(2);  // Display 2 = 011
     const result = getShiftedRotation(7);  // 5+2=7
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -447,7 +286,7 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(5);  // Display 5 = 110
     const y = getShiftedBitRotation(3);  // Display 3 = 100
     const result = getShiftedRotation(7);  // 5+3=8 → wraps to Display 2 [011]
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -455,14 +294,14 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(5);  // Display 5 = 110
     const y = getShiftedBitRotation(4);  // Display 4 = 101
     const result = getShiftedRotation(7);  // 5+4= 11r → wraps to Display 3 [100]
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
   ShiftedSumOfFiveAndFive: (() => {
     const x = getShiftedBitRotation(5);  // Display 5 = 110
     const y = getShiftedBitRotation(5);  // Display 5 = 110
-    const result = getShiftedRotation(4);  // 5+5=12r → wraps to Display 4 [101]
+    const result = getShiftedRotation(7);  // 5+5=12r → wraps to Display 4 [101]
     const carry = getShiftedRotation(1);  // Carry Display 1 [010]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
@@ -471,31 +310,25 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(5);  // Display 5 = 110
     const y = getShiftedBitRotation(6);  // Display 6 = 111
     const result = getShiftedRotation(7);  // 5+6=13r → wraps to Display 5 [110]
-    const carry = getRegularRotation(1);  // Carry Display 1 [010]
+    const carry = getRegularBitRotation(1);  // Carry Display 1 [010]
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
+  })(),
+
+  ShiftedSumOfFiveAndSeven: (() => {
+    const x = getShiftedBitRotation(5);  // Display 5 = 110
+    const y = getShiftedBitRotation(7);  // Display 6 = 111
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);  // Carry Display 1 [010]
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
   // Display 6 [1,1,1] + N (maximum position before wrap)
-  ShiftedSumOfSixAndCarry: (() => {
-    const x = getShiftedBitRotation(6);  // Display 6 = 111
-    const y = getRegularBitRotation(1);  // External carry = 000
-    const result = getShiftedRotation(7);  // Full Twist
-    const carry = getRegularRotation(1);
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
-
-  ShiftedSumOfSixAndMarquee: (() => {
-    const x = getShiftedBitRotation(6);  // Display 6 = 111
-    const y = getShiftedBitRotation(0);  // Marquee = 001
-    const result = getShiftedRotation(6);  // Display 6 + Marquee → Rotates to Display 6 [111]
-    return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
-  })(),
 
   ShiftedSumOfSixAndOne: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111
     const y = getShiftedBitRotation(1);  // Display 1 = 010
     const result = getShiftedRotation(7);  // 6+1=7 → Full Twist
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -511,7 +344,7 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(6);  // Display 6 = 111
     const y = getShiftedBitRotation(3);  // Display 3 = 100
     const result = getShiftedRotation(7);  // 6+3=11r → wraps to Display 3 [100]
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -527,7 +360,7 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(6);  // Display 6 = 111
     const y = getShiftedBitRotation(5);  // Display 5 = 110
     const result = getShiftedRotation(7);  // 6+5=13r → wraps to Display 5 [110]
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 
@@ -535,7 +368,71 @@ export const ShiftedSumSeries: SomeSeries = {
     const x = getShiftedBitRotation(6);  // Display 6 = 111
     const y = getShiftedBitRotation(6);  // Display 6 = 111
     const result = getShiftedRotation(7);  // 6+6=14r → wraps to Display 7
-    const carry = getRegularRotation(1);
+    const carry = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
+  })(),
+
+  ShiftedSumOfSixAndSeven: (() => {
+    const x = getShiftedBitRotation(6);  // Display 6 = 111
+    const y = getShiftedBitRotation(7);  // Display 6 = 111
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
+  })(),
+
+  ShiftedSumOfSevenAndOne: (() => {
+    const x = getShiftedBitRotation(7);
+    const y = getShiftedBitRotation(1);  // Display 1 = 010
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
+  })(),
+
+  ShiftedSumOfSevenAndTwo: (() => {
+    const x = getShiftedBitRotation(7);
+    const y = getShiftedBitRotation(2);  // Display 2 = 011
+    const result = getShiftedRotation(7);
+    const carry = getShiftedRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
+  })(),
+
+  ShiftedSumOfSevenAndThree: (() => {
+    const x = getShiftedBitRotation(7);
+    const y = getShiftedBitRotation(3);  // Display 3 = 100
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
+  })(),
+
+  ShiftedSumOfSevenAndFour: (() => {
+    const x = getShiftedBitRotation(7);
+    const y = getShiftedBitRotation(4);  // Display 4 = 101
+    const result = getShiftedRotation(7);
+    const carry = getShiftedRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
+  })(),
+
+  ShiftedSumOfSevenAndFive: (() => {
+    const x = getShiftedBitRotation(7);
+    const y = getShiftedBitRotation(5);  // Display 5 = 110
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
+  })(),
+
+  ShiftedSumOfSevenAndSix: (() => {
+    const x = getShiftedBitRotation(7);
+    const y = getShiftedBitRotation(6);  // Display 6 = 111
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);
+    return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
+  })(),
+
+  ShiftedSumOfSevenAndSeven: (() => {
+    const x = getShiftedBitRotation(7);
+    const y = getShiftedBitRotation(7);
+    const result = getShiftedRotation(7);
+    const carry = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, carry]];
   })(),
 };
