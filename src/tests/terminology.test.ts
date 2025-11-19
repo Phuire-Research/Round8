@@ -112,9 +112,9 @@ describe('Round8 Terminology Proof', () => {
 
     // Test Shifted rotations (now returning numbers, not BigInts)
     console.log('\nShifted Rotation Values:');
-    const shift0 = getShiftedRotation(0);
+    const shift0 = getShiftedRotation(1);
     console.log('Position 0:', shift0, '→ Expected 1 (byte value)');
-    expect(shift0).toBe(1);
+    expect(shift0).toBe(2);
 
     const shift3 = getShiftedRotation(3);
     console.log('Position 3:', shift3, '→ Expected 4 (byte value)');

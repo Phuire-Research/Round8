@@ -564,6 +564,18 @@ const Numerals = [
   8
 ];
 
+const ShiftedNumerals = [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8
+];
+
 const StringNumerals = [
   '1',
   '2',
@@ -575,6 +587,7 @@ const StringNumerals = [
   '8'
 ];
 const ShiftedStringNumerals = [
+  '0',
   '1',
   '2',
   '3',
@@ -614,7 +627,7 @@ const spool = <T>(informativeSeries: [0 | 1, 0 | 1, 0 | 1][], baseSeries: T[], s
 };
 
 spool(NumeralSeries, Numerals, spooledNumerals);
-spool(ShiftedNumeralSeries, Numerals, spooledShiftedNumerals);
+spool(ShiftedNumeralSeries, ShiftedNumerals, spooledShiftedNumerals);
 spool(NumeralSeries, StringNumerals, spooledStringNumerals);
 spool(ShiftedNumeralSeries, ShiftedStringNumerals, spooledShiftedStringNumerals);
 spool(NumeralSeries, ShiftedNumeralSeries, spooledRegularShiftedBridge);
@@ -650,7 +663,7 @@ export const getRegularRotation = (position: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): num
  * @param position - Display position 0-7
  * @returns The 3-bit tuple [0|1, 0|1, 0|1] for the shifted position
  */
-export const getShiftedBitRotation = (position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): [0 | 1, 0 | 1, 0 | 1] => {
+export const getShiftedBitRotation = (position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7): [0 | 1, 0 | 1, 0 | 1] => {
   // Shifted mapping: position 7 wraps to index 0, others shift by +1
   return ShiftedNumeralSeries[position];
 };
@@ -665,28 +678,28 @@ export const getShiftedRotation = (position: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): num
   // Shifted mapping: position 7 → Round8Numerals[1], others → Round8Numerals[position + 2]
   switch (position) {
   case 1: {
-    return Round8Numerals[2];
-  }
-  case 2: {
-    return Round8Numerals[2];
-  }
-  case 3: {
     return Round8Numerals[3];
   }
-  case 4: {
+  case 2: {
     return Round8Numerals[4];
   }
-  case 5: {
+  case 3: {
     return Round8Numerals[5];
   }
-  case 6: {
+  case 4: {
     return Round8Numerals[6];
   }
-  case 7: {
+  case 5: {
     return Round8Numerals[7];
   }
+  case 6: {
+    return Round8Numerals[8];
+  }
+  case 7: {
+    return Round8Numerals[1];
+  }
   case 8: {
-    return Round8Numerals[0];
+    return Round8Numerals[2];
   }
   default: {
     return Round8Numerals[0];
@@ -877,6 +890,7 @@ export const applyShiftedNumeralRotation = (value: number, buffer: bigint, posit
     throw 'CRITICAL';
   }
   }
+  console.log('WHAT IS THE FINAL VALUE', finalValue, value);
   WorkingBigIntBucket.content = finalValue;
   // Get pre-computed clear mask and bit offset (no runtime BigInt!)
   const clearMask = getClearMaskForPosition(position);

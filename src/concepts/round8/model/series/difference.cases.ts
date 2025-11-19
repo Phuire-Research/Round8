@@ -37,56 +37,56 @@ export const DifferenceSeries: SomeSeries = {
     const x = getRegularBitRotation(1); // 1
     const y = getRegularBitRotation(1); // 1
     const result = getRegularRotation(8);
-    const borrow = getRegularRotation(1);
+    const borrow = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];  // Special Case. Forced Borrow
   })(),
   DifferenceOfOneAndTwo: (() => {
     const x = getRegularBitRotation(1); // 1
     const y = getRegularBitRotation(2); // 2
     const result = getRegularRotation(7); // 7
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfOneAndThree: (() => {
     const x = getRegularBitRotation(1); // 1
     const y = getRegularBitRotation(3); // 3
     const result = getRegularRotation(6);  // 6
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfOneAndFour: (() => {
     const x = getRegularBitRotation(1); // 1
     const y = getRegularBitRotation(4); // 4
     const result = getRegularRotation(5);  // 5
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfOneAndFive: (() => {
     const x = getRegularBitRotation(1); // 1
     const y = getRegularBitRotation(5); // 5
     const result = getRegularRotation(4);  // 4
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfOneAndSix: (() => {
     const x = getRegularBitRotation(1); // 1
     const y = getRegularBitRotation(6); // 6
     const result = getRegularRotation(3);  // 3
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfOneAndSeven: (() => {
     const x = getRegularBitRotation(1); // 1
     const y = getRegularBitRotation(7); // 7
     const result = getRegularRotation(2);  // 2
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfOneAndEight: (() => {
     const x = getRegularBitRotation(1); // 1
     const y = getRegularBitRotation(8); // 8
     const result = getRegularRotation(1);  // 1
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -101,49 +101,49 @@ export const DifferenceSeries: SomeSeries = {
     const x = getRegularBitRotation(2); // 2
     const y = getRegularBitRotation(2); // 2
     const result = getRegularRotation(8);  // 8
-    const borrow = getRegularRotation(1);  // 8
+    const borrow = getRegularBitRotation(1);  // 8
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];  // No borrow
   })(),
   DifferenceOfTwoAndThree: (() => {
     const x = getRegularBitRotation(2); // 2
     const y = getRegularBitRotation(3); // 3
     const result = getRegularRotation(7);  // 7
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfTwoAndFour: (() => {
     const x = getRegularBitRotation(2); // 2
     const y = getRegularBitRotation(4); // 4
     const result = getRegularRotation(6);  // 6
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfTwoAndFive: (() => {
     const x = getRegularBitRotation(2); // 2
     const y = getRegularBitRotation(5); // 5
     const result = getRegularRotation(5);  // 5
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfTwoAndSix: (() => {
     const x = getRegularBitRotation(2); // 2
     const y = getRegularBitRotation(6); // 6
     const result = getRegularRotation(4);  // 4
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfTwoAndSeven: (() => {
     const x = getRegularBitRotation(2); // 2
     const y = getRegularBitRotation(7); // 7
     const result = getRegularRotation(3);  // 3
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfTwoAndEight: (() => {
     const x = getRegularBitRotation(2); // 2
     const y = getRegularBitRotation(8); // 8
     const result = getRegularRotation(2);  // 2
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -164,42 +164,42 @@ export const DifferenceSeries: SomeSeries = {
     const x = getRegularBitRotation(3); // 3
     const y = getRegularBitRotation(3); // 3
     const result = getRegularRotation(8);  // 8
-    const borrow = getRegularRotation(1);  // 8
+    const borrow = getRegularBitRotation(1);  // 8
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];  // Borrow
   })(),
   DifferenceOfThreeAndFour: (() => {
     const x = getRegularBitRotation(3); // 3
     const y = getRegularBitRotation(4); // 4
     const result = getRegularRotation(7);  // 7
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfThreeAndFive: (() => {
     const x = getRegularBitRotation(3); // 3
     const y = getRegularBitRotation(5); // 5
     const result = getRegularRotation(6);  // 6
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfThreeAndSix: (() => {
     const x = getRegularBitRotation(3); // 3
     const y = getRegularBitRotation(6); // 6
     const result = getRegularRotation(5);  // 5
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfThreeAndSeven: (() => {
     const x = getRegularBitRotation(3); // 3
     const y = getRegularBitRotation(7); // 7
     const result = getRegularRotation(4);  // 4
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfThreeAndEight: (() => {
     const x = getRegularBitRotation(3); // 3
     const y = getRegularBitRotation(8); // 8
     const result = getRegularRotation(3);  // 3
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -226,35 +226,35 @@ export const DifferenceSeries: SomeSeries = {
     const x = getRegularBitRotation(4); // 4
     const y = getRegularBitRotation(4); // 4
     const result = getRegularRotation(8);  // 8
-    const borrow = getRegularRotation(1);
+    const borrow = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];  // No borrow
   })(),
   DifferenceOfFourAndFive: (() => {
     const x = getRegularBitRotation(4); // 4
     const y = getRegularBitRotation(5); // 5
     const result = getRegularRotation(7);  // 7
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfFourAndSix: (() => {
     const x = getRegularBitRotation(4); // 4
     const y = getRegularBitRotation(6); // 6
     const result = getRegularRotation(6);  // 6
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfFourAndSeven: (() => {
     const x = getRegularBitRotation(4); // 4
     const y = getRegularBitRotation(7); // 7
     const result = getRegularRotation(5);  // 5
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfFourAndEight: (() => {
     const x = getRegularBitRotation(4); // 4
     const y = getRegularBitRotation(8); // 8
     const result = getRegularRotation(4);  // 4
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -287,28 +287,28 @@ export const DifferenceSeries: SomeSeries = {
     const x = getRegularBitRotation(5); // 5
     const y = getRegularBitRotation(5); // 5
     const result = getRegularRotation(8);  // 8
-    const borrow = getRegularRotation(1);  // Borrow
+    const borrow = getRegularBitRotation(1);  // Borrow
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfFiveAndSix: (() => {
     const x = getRegularBitRotation(5); // 5
     const y = getRegularBitRotation(6); // 6
     const result = getRegularRotation(7);  // 7
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfFiveAndSeven: (() => {
     const x = getRegularBitRotation(5); // 5
     const y = getRegularBitRotation(7); // 7
     const result = getRegularRotation(6);  // 6
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfFiveAndEight: (() => {
     const x = getRegularBitRotation(5); // 5
     const y = getRegularBitRotation(8); // 8
     const result = getRegularRotation(5);  // 5
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -347,21 +347,21 @@ export const DifferenceSeries: SomeSeries = {
     const x = getRegularBitRotation(6); // 6
     const y = getRegularBitRotation(6); // 6
     const result = getRegularRotation(8);  // 8
-    const borrow = getRegularRotation(1);  // 8
+    const borrow = getRegularBitRotation(1);  // 8
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];  // Borrow
   })(),
   DifferenceOfSixAndSeven: (() => {
     const x = getRegularBitRotation(6); // 6
     const y = getRegularBitRotation(7); // 7
     const result = getRegularRotation(7);  // 7
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
   DifferenceOfSixAndEight: (() => {
     const x = getRegularBitRotation(6); // 6
     const y = getRegularBitRotation(8); // 8
     const result = getRegularRotation(6);  // 6
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -413,7 +413,7 @@ export const DifferenceSeries: SomeSeries = {
     const x = getRegularBitRotation(7); // 7
     const y = getRegularBitRotation(8); // 8
     const result = getRegularRotation(7);  // 7
-    const borrow = getRegularRotation(1);  // Borrow = Display 1 (000)
+    const borrow = getRegularBitRotation(1);  // Borrow = Display 1 (000)
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -464,7 +464,7 @@ export const DifferenceSeries: SomeSeries = {
     const x = getRegularBitRotation(8); // 8
     const y = getRegularBitRotation(8); // 8
     const result = getRegularRotation(8);  // 8-8=0 → Display 1 (000)
-    const borrow = getRegularRotation(1);  //
+    const borrow = getRegularBitRotation(1);  //
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];  // Borrow
   })()
 };

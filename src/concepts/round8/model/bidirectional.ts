@@ -221,7 +221,8 @@ export const BidirectionalConference = (buffer: bigint): WrungMuxity => {
       }
     });
   }
-  const isFinalTwist = composition[0].congruent === false && composition[1].congruent && composition[1].order.length === 20;
+  const isFinalTwist =
+  composition[0].congruent === false && composition[1].congruent && composition[1].order.length === 20 && composition[0].order.length === 1;
   if (isFinalTwist) {
     return {
       wrung: buffer,
@@ -253,7 +254,6 @@ export const BidirectionalConference = (buffer: bigint): WrungMuxity => {
     }
     return true; // Continue scanning downward
   });
-
   return {
     wrung: buffer,
     isNegative,
