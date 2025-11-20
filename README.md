@@ -13,6 +13,10 @@ Round8 is a proof-of-concept demonstrating spool-based indexed lookups for binar
 npm install round8
 ```
 
+### Concurrent Projects
+1. [Stratimux](https://github.com/Phuire-Research/Stratimux) - Higher Ordered Graph Programming Framework
+2. [SCS](https://youtu.be/tNsZyfANW8A) - Proof of Concept Bidirectional Higher Ordered Computation Paradigm.
+
 ## Change Log
 
 ### v0.0.15 (Current Release)
