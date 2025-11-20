@@ -44,7 +44,7 @@ import type { Round8State } from './concepts/round8/qualities/types';
  * Complete API for Round8 binary operations:
  * - operations: add, subtract, increment, decrement
  * - logical: greaterThan, lessThan, equals, notEquals
- * - anor: and, or, xor operations
+ * - anor: bidirectional range finding and BidirectionalConference
  * - conference: parsing and display functions
  * - terminology: bit manipulation and rotation functions
  * - createCalculator: factory for calculator instances

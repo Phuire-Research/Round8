@@ -19,7 +19,7 @@ npm install round8
 
 ## Change Log
 
-### v0.0.16 **(PATCH)**
+### v0.0.161 **(PATCH)**
 - Exported in r8_.anor the BidirectionalConference to be able to determine the associated Muxity of the Wrung.
 
 ### v0.0.15
