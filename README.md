@@ -127,10 +127,10 @@ But 7% is only the beginning as the means of being Quantum resistant also brings
 ## v0.0.15 -> v0.0.16
 Determining the most effective Round8 to Decimal Conversion without Look Up Table. Currently building out the initial dataset to validate potential algorithms. Already have the means for multiplication and the following lined up, but currently focusing on the most practical aspect of hex being able to convert to decimal. Where Round8 has friction due to fundamental differences in the design of the Number System.
 
-## v0.0.16
+## v0.0.17
 - `multiply(a, b)` - Awaiting MultiplyWrung validation
 
-## v0.0.17
+## v0.0.18
 - Round8 Decimals
 - `divide(a, b)` - Awaiting DivideWrung validation
 
