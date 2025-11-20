@@ -13858,7 +13858,8 @@ var Round8Calculator = (() => {
       anor,
       anorWrung,
       compareMagnitude,
-      determineEffectiveOperation
+      determineEffectiveOperation,
+      BidirectionalConference
     },
     // ============================================================
     // Terminology - Low-Level Primitives
