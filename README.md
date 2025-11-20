@@ -1,4 +1,4 @@
-# Round8 v0.0.11 - Proof of Concept
+# Round8 v0.0.15 - Proof of Concept
 
 [![Node.js CI](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml/badge.svg)](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml)
 [![npm version](https://badge.fury.io/js/round8.svg)](https://www.npmjs.com/package/round8)
@@ -15,7 +15,38 @@ npm install round8
 
 ## Change Log
 
-### v0.0.14 (Current Release)
+### v0.0.15 (Current Release)
+**Stratimux Concept Integration** - Muxified state management for Round8 operations.
+
+**New Features:**
+- `createRound8Concept()` - Factory for creating Round8 Stratimux Concept
+- Flat array calculator architecture with unlimited instances
+- Calculator routing via unique ID system
+- 11 qualities for calculator operations (create, input, calculate, clear, etc.)
+- All qualities traverse shared `r8_` manifold
+
+**Architecture:**
+- Muxified Singletons pattern - qualities share computational manifold
+- Two-input calculator design preserved
+- Independent state per calculator instance
+- Foundation for compositional expansion
+
+**Testing:**
+- New `round8-stratimux.test.ts` suite with 5 tests
+- Tests flat array architecture and ID routing
+- 393 total tests (up from 388)
+
+### v0.0.14
+**Documentation Update** - Comment renewal based on working test suite.
+
+**Documentation Changes:**
+- Spool Manifolds documented with lookup table mechanics
+- Position 21 shifted frame operations annotated
+- Binary Operand Bias formulas clarified
+- Test suite renamed to `mapping-display.test.ts`
+- 388 tests passing
+
+**v0.0.14 Features:**
 **Public API Complete** - Round8 breadboard fully accessible with organized categories.
 
 **New Operations:**
@@ -85,10 +116,10 @@ But 7% is only the beginning as the means of being Quantum resistant also brings
 
 # Road Map
 
-## v0.0.15
+## v0.0.16
 - `multiply(a, b)` - Awaiting MultiplyWrung validation
 
-## v0.0.16
+## v0.0.17
 - Round8 Decimals
 - `divide(a, b)` - Awaiting DivideWrung validation
 
