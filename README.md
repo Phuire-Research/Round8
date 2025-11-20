@@ -1,4 +1,4 @@
-# Round8 v0.0.15 - Proof of Concept
+# Round8 v0.0.16 - Proof of Concept
 
 [![Node.js CI](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml/badge.svg)](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml)
 [![npm version](https://badge.fury.io/js/round8.svg)](https://www.npmjs.com/package/round8)
@@ -19,7 +19,10 @@ npm install round8
 
 ## Change Log
 
-### v0.0.15 (Current Release)
+### v0.0.16 **(PATCH)**
+- Exported in r8_.anor the BidirectionalConference to be able to determine the associated Muxity of the Wrung.
+
+### v0.0.15
 **Stratimux Concept Integration** - Muxified state management for Round8 operations.
 
 **New Features:**
@@ -119,6 +122,9 @@ Note this is not a Number replacement. We have a variant Base 100 System called 
 But 7% is only the beginning as the means of being Quantum resistant also brings another jaw breaking cost savings. That we cannot disclose.
 
 # Road Map
+
+## v0.0.15 -> v0.0.16
+Determining the most effective Round8 to Decimal Conversion without Look Up Table. Currently building out the initial dataset to validate potential algorithms. Already have the means for multiplication and the following lined up, but currently focusing on the most practical aspect of hex being able to convert to decimal. Where Round8 has friction due to fundamental differences in the design of the Number System.
 
 ## v0.0.16
 - `multiply(a, b)` - Awaiting MultiplyWrung validation

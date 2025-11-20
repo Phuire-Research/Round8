@@ -46,6 +46,7 @@ import {
   lessThanOrEqual,
   notEquals
 } from './cases';
+import { BidirectionalConference } from './bidirectional';
 
 /**
  * Round8 Public API - Breadboard Access
@@ -109,6 +110,7 @@ export const r8_ = {
     anorWrung,
     compareMagnitude,
     determineEffectiveOperation,
+    BidirectionalConference,
   },
 
   // ============================================================
