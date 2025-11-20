@@ -36,7 +36,7 @@ import type {
 import type { WrungMuxity } from './concepts/round8/model/bidirectional';
 import {createRound8Concept, round8ConceptName} from './concepts/round8/round8.concept';
 import type { Round8Deck, Round8Concept } from './concepts/round8/round8.concept';
-import type { Round8State } from './concepts/round8/qualities/types';
+import type { Round8State, Round8Calculator } from './concepts/round8/qualities/types';
 
 /**
  * r8_ - The Round8 Computational Manifold
@@ -92,6 +92,7 @@ export type {
   // Calculator Model Types - Direct calculator operations
   /** Calculator instance state with two inputs and operation */
   CalculatorState,
+  Round8Calculator,
   /** Single input state: value (display), buffer (64-bit), binary (formatted) */
   InputState,
   /** Supported operations: +, -, >, <, >=, <=, ==, !=, null */
