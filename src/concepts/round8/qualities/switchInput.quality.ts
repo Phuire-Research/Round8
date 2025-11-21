@@ -3,7 +3,7 @@
 // Switches between input1 and input2 for specific calculator
 // ============================================================================
 
-import { createQualityCardWithPayload } from 'stratimux';
+import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
 import { Round8State, Round8SwitchInputPayload } from './types';
 
 /**
@@ -34,5 +34,6 @@ export const round8SwitchInput = createQualityCardWithPayload<Round8State, Round
         ...state.calculators.slice(calcIndex + 1)
       ]
     };
-  }
+  },
+  methodCreator: defaultMethodCreator
 });

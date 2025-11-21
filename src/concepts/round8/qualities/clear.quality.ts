@@ -3,7 +3,7 @@
 // Clears specific calculator to zero state using r8_ manifold
 // ============================================================================
 
-import { createQualityCardWithPayload } from 'stratimux';
+import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
 import { r8_ } from '../model';
 import { Round8ClearPayload, Round8State } from './types';
 
@@ -57,5 +57,6 @@ export const round8Clear = createQualityCardWithPayload<Round8State, Round8Clear
         ...state.calculators.slice(calcIndex + 1)
       ]
     };
-  }
+  },
+  methodCreator: defaultMethodCreator
 });

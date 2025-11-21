@@ -3,7 +3,7 @@
 // Sets the operation for specific calculator via ID routing
 // ============================================================================
 
-import { createQualityCardWithPayload } from 'stratimux';
+import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
 import { Round8SetOperationPayload, Round8State } from './types';
 
 /**
@@ -34,5 +34,6 @@ export const round8SetOperation = createQualityCardWithPayload<Round8State, Roun
         ...state.calculators.slice(calcIndex + 1)
       ]
     };
-  }
+  },
+  methodCreator: defaultMethodCreator
 });

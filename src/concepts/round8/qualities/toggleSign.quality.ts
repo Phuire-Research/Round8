@@ -3,7 +3,7 @@
 // Flips sign bit for active input using r8_ manifold
 // ============================================================================
 
-import { createQualityCardWithPayload } from 'stratimux';
+import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
 import { r8_ } from '../model';
 import { Round8State, Round8ToggleSignPayload } from './types';
 
@@ -46,5 +46,6 @@ export const round8ToggleSign = createQualityCardWithPayload<Round8State, Round8
         ...state.calculators.slice(calcIndex + 1)
       ]
     };
-  }
+  },
+  methodCreator: defaultMethodCreator
 });

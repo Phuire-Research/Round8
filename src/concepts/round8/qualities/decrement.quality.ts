@@ -3,7 +3,7 @@
 // Decrements active input using r8_ manifold operations
 // ============================================================================
 
-import { createQualityCardWithPayload } from 'stratimux';
+import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
 import { r8_ } from '../model';
 import { Round8DecrementPayload, Round8State } from './types';
 
@@ -46,5 +46,6 @@ export const round8Decrement = createQualityCardWithPayload<Round8State, Round8D
         ...state.calculators.slice(calcIndex + 1)
       ]
     };
-  }
+  },
+  methodCreator: defaultMethodCreator
 });

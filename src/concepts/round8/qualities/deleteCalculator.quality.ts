@@ -3,7 +3,7 @@
 // Removes specific calculator from array
 // ============================================================================
 
-import { createQualityCardWithPayload } from 'stratimux';
+import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
 import { Round8DeleteCalculatorPayload, Round8State } from './types';
 
 /**
@@ -29,5 +29,6 @@ export const round8DeleteCalculator = createQualityCardWithPayload<Round8State, 
     return {
       calculators: updatedCalculators
     };
-  }
+  },
+  methodCreator: defaultMethodCreator
 });

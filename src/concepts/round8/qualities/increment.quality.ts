@@ -3,7 +3,7 @@
 // Increments active input using r8_ manifold operations
 // ============================================================================
 
-import { createQualityCardWithPayload } from 'stratimux';
+import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
 import { r8_ } from '../model';
 import { Round8IncrementPayload, Round8State } from './types';
 
@@ -46,5 +46,6 @@ export const round8Increment = createQualityCardWithPayload<Round8State, Round8I
         ...state.calculators.slice(calcIndex + 1)
       ]
     };
-  }
+  },
+  methodCreator: defaultMethodCreator
 });

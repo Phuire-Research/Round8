@@ -3,7 +3,7 @@
 // Removes last digit from active input using r8_ manifold
 // ============================================================================
 
-import { createQualityCardWithPayload } from 'stratimux';
+import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
 import { Round8BackspacePayload, Round8State } from './types';
 import { r8_ } from '../model';
 
@@ -64,5 +64,6 @@ export const round8Backspace = createQualityCardWithPayload<Round8State, Round8B
         ...state.calculators.slice(calcIndex + 1)
       ]
     };
-  }
+  },
+  methodCreator: defaultMethodCreator
 });

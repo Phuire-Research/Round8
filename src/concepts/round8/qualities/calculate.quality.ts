@@ -3,7 +3,7 @@
 // Executes calculation for specific calculator using r8_ manifold
 // ============================================================================
 
-import { createQualityCardWithPayload } from 'stratimux';
+import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
 import { Round8CalculatePayload, Round8HistoryEntry, Round8State } from './types';
 import { r8_ } from '../model';
 
@@ -84,5 +84,6 @@ export const round8Calculate = createQualityCardWithPayload<Round8State, Round8C
         ...state.calculators.slice(calcIndex + 1)
       ]
     };
-  }
+  },
+  methodCreator: defaultMethodCreator
 });

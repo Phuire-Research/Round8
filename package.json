@@ -1,7 +1,7 @@
 {
   "name": "round8",
   "license": "GPL-3.0",
-  "version": "0.0.163",
+  "version": "0.0.164",
   "description": "Round8 Base-72 Numeral System - Pure Spatial Coordinate Stratimuxian Mathematics with String-Only API",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

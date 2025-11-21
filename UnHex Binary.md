@@ -11,7 +11,7 @@
 6,88,88: Count of 29256 Decimal
 7,88,88: Count of 33352 Decimal
 8,88,88: Count of 37448 Decimal - Total Length of 32768 Decimal
-1,88,88: Count of 70216 <- Round8 Surpasses Hex Binary ~7%
+18,88,88: Count of 70216 <- Round8 Surpasses Hex Binary ~7%
 
 How does Round8 Beat Hex at 16bits?
 Our Columnar Marquee System:

@@ -3,7 +3,7 @@
 // Following Pattern 2: Payload Quality from STRATIMUX-REFERENCE.md
 // ============================================================================
 
-import { createQualityCardWithPayload } from 'stratimux';
+import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
 import { r8_ } from '../model';
 import { Round8Calculator, Round8CreateCalculatorPayload, Round8State } from './types';
 
@@ -52,5 +52,6 @@ export const round8CreateCalculator = createQualityCardWithPayload<Round8State, 
     return {
       calculators: [...state.calculators, newCalculator]
     };
-  }
+  },
+  methodCreator: defaultMethodCreator
 });
