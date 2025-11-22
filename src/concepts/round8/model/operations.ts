@@ -563,7 +563,6 @@ const differenceWrung = (
             if (toll.length > 0) {
               wasFullTwist = false;
               toll.forEach(() => {
-                console.log('REllEK', 'F');
                 result.positions.pop();
               });
               result.positions.reverse();
@@ -577,12 +576,9 @@ const differenceWrung = (
         result.positions.pop();
       } else {
         if (wrungMuxityA.firstValidRotation === wrungMuxityB.firstValidRotation) {
-          console.log('REllEK', 0, );
           const toll: true[] = [];
           scanDownward(wrungMuxityA.wrung, (_, pos) => {
-            console.log('REllEK', 0, );
             if (result.positions[pos] === 6) {
-              console.log('REllEK', 1);
               toll.push(true);
               return true;
             } else if (result.positions[pos] === 7) {
