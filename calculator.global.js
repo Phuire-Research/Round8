@@ -13756,14 +13756,58 @@ var Round8Calculator = (() => {
       return true;
     });
     if (borrows.length !== result.positions.length && borrows.length > 0) {
-      borrows.forEach((_) => {
+      borrows.forEach((_, i) => {
         if (result.positions.length === 21) {
           if (result.positions[20] === getShiftedRotation(8)) {
-            result.positions.pop();
+            if (wrungMuxityA.firstValidRotation === wrungMuxityB.firstValidRotation) {
+              const toll = [];
+              result.positions.reverse();
+              scanDownward(wrungMuxityA.wrung, (_2, pos) => {
+                if (result.positions[pos - 1] === 6) {
+                  toll.push(true);
+                  return true;
+                } else if (result.positions[pos - 1] === 7 && pos === 21) {
+                  toll.push(true);
+                  return true;
+                } else {
+                  return false;
+                }
+              });
+              if (toll.length > 0) {
+                wasFullTwist = false;
+                toll.forEach(() => {
+                  result.positions.pop();
+                });
+                result.positions.reverse();
+                return;
+              }
+            } else {
+              result.positions.pop();
+            }
           }
         } else if (result.positions[result.positions.length - 1] === getRegularRotation(8)) {
           result.positions.pop();
         } else {
+          if (wrungMuxityA.firstValidRotation === wrungMuxityB.firstValidRotation) {
+            const toll = [];
+            scanDownward(wrungMuxityA.wrung, (_2, pos) => {
+              if (result.positions[pos] === 6) {
+                toll.push(true);
+                return true;
+              } else if (result.positions[pos] === 7) {
+                toll.push(true);
+                return false;
+              } else {
+                return false;
+              }
+            }, wrungMuxityA.firstValidRotation - 1);
+            if (toll.length > 0) {
+              toll.forEach(() => {
+                result.positions.pop();
+              });
+              return;
+            }
+          }
           return;
         }
       });
@@ -15750,7 +15794,8 @@ var Round8Calculator = (() => {
       return {
         calculators: [...state.calculators, newCalculator]
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/concepts/round8/qualities/inputDigit.quality.ts
@@ -15789,7 +15834,8 @@ var Round8Calculator = (() => {
           ...state.calculators.slice(calcIndex + 1)
         ]
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/concepts/round8/qualities/setOperation.quality.ts
@@ -15814,7 +15860,8 @@ var Round8Calculator = (() => {
           ...state.calculators.slice(calcIndex + 1)
         ]
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/concepts/round8/qualities/calculate.quality.ts
@@ -15879,7 +15926,8 @@ var Round8Calculator = (() => {
           ...state.calculators.slice(calcIndex + 1)
         ]
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/concepts/round8/qualities/clear.quality.ts
@@ -15923,7 +15971,8 @@ var Round8Calculator = (() => {
           ...state.calculators.slice(calcIndex + 1)
         ]
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/concepts/round8/qualities/switchInput.quality.ts
@@ -15948,7 +15997,8 @@ var Round8Calculator = (() => {
           ...state.calculators.slice(calcIndex + 1)
         ]
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/concepts/round8/qualities/toggleSign.quality.ts
@@ -15981,7 +16031,8 @@ var Round8Calculator = (() => {
           ...state.calculators.slice(calcIndex + 1)
         ]
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/concepts/round8/qualities/increment.quality.ts
@@ -16014,7 +16065,8 @@ var Round8Calculator = (() => {
           ...state.calculators.slice(calcIndex + 1)
         ]
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/concepts/round8/qualities/decrement.quality.ts
@@ -16047,7 +16099,8 @@ var Round8Calculator = (() => {
           ...state.calculators.slice(calcIndex + 1)
         ]
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/concepts/round8/qualities/deleteCalculator.quality.ts
@@ -16067,7 +16120,8 @@ var Round8Calculator = (() => {
       return {
         calculators: updatedCalculators
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/concepts/round8/qualities/backspace.quality.ts
@@ -16115,7 +16169,8 @@ var Round8Calculator = (() => {
           ...state.calculators.slice(calcIndex + 1)
         ]
       };
-    }
+    },
+    methodCreator: defaultMethodCreator
   });
 
   // src/index.ts
