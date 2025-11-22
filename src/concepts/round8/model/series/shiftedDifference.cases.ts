@@ -38,7 +38,7 @@
  * This prevents Shor factorization attacks during multiplication.
  */
 
-import { getShiftedBitRotation, SomeSeries, getRegularRotation, getShiftedRotation, getRegularBitRotation } from '../terminology';
+import { getShiftedBitRotation, SomeSeries, getRegularRotation, getShiftedRotation, getRegularBitRotation, Positions } from '../terminology';
 
 export const ShiftedDifferenceSeries: SomeSeries = {
   // This would be 8, but instead Truncates the Rotation
@@ -46,7 +46,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
     const x = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
     const result = getShiftedRotation(8);  // Marquee
-    const borrow = getRegularRotation(1);
+    const borrow = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
 
@@ -351,42 +351,42 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfSixAndOne: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(1);  // Display 1 = 010 (position 1)
-    const result = getShiftedRotation(5);
+    const result = getShiftedRotation(5 + 1 as 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfSixAndTwo: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(2);  // Display 2 = 011 (position 2)
-    const result = getShiftedRotation(4);
+    const result = getShiftedRotation(4 + 1 as 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfSixAndThree: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(3);  // Display 3 = 100 (position 3)
-    const result = getShiftedRotation(3);
+    const result = getShiftedRotation(3 + 1 as 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfSixAndFour: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(4);  // Display 4 = 101 (position 4)
-    const result = getShiftedRotation(2);
+    const result = getShiftedRotation(2 + 1 as 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfSixAndFive: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(5);  // Display 5 = 110 (position 5)
-    const result = getShiftedRotation(1);
+    const result = getShiftedRotation(1 + 1 as 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
   })(),
 
   ShiftedDifferenceOfSixAndSix: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
-    const result = getShiftedRotation(8);  // Marquee
+    const result = getShiftedRotation(7 as 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8);  // Marquee
     const borrow = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),
@@ -394,7 +394,7 @@ export const ShiftedDifferenceSeries: SomeSeries = {
   ShiftedDifferenceOfSixAndSeven: (() => {
     const x = getShiftedBitRotation(6);  // Display 6 = 111 (position 6)
     const y = getShiftedBitRotation(7);  // Display 6 = 111 (position 6)
-    const result = getShiftedRotation(7);
+    const result = getShiftedRotation(7 + 1 as 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8);
     const borrow = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
   })(),

@@ -1,4 +1,4 @@
-# Round8 v0.0.165 - Proof of Concept
+# Round8 v0.0.166 - Proof of Concept
 
 [![Node.js CI](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml/badge.svg)](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml)
 [![npm version](https://badge.fury.io/js/round8.svg)](https://www.npmjs.com/package/round8)
@@ -19,7 +19,7 @@ npm install round8
 
 ## Change Log
 
-### v0.0.165 **(HOTFIX)**
+### v0.0.166 **(HOTFIX)**
 - Exported in r8_.anor the BidirectionalConference to be able to determine the associated Muxity of the Wrung.
 - Exported the Round8Calculator Type for the Stratimux State Pairing of the Base Enhancement.
 - Ensured the Stratimux Round8 Concept Qualities have a Method Creator for Usage in ActionStrategies.

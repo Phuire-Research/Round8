@@ -236,6 +236,7 @@ const assembleBufferFromResultMuxity = (
   operation: 'sum' | 'difference',
   wasFinalTwist?: boolean
 ): bigint => {
+  console.log('WHERE', muxity);
   // Handle FinalTwist overflow (sum only)
   if (isFinalTwistDetected) {
     return muxity.resultSign === 1
@@ -255,67 +256,43 @@ const assembleBufferFromResultMuxity = (
     }
   }
 
-  // Handle final borrow (difference) - trailing 8s pattern
-  if (muxity.pendingPropagation && operation === 'difference') {
-    // Check if ALL computed positions are 8s (index 7)
-    if (muxity.consecutiveEightsFromStart === muxity.positions.length) {
-      // All positions are 8s + final borrow = AbsoluteZero
-      return createBuffer();
-    }
-    // Trailing 8s with final borrow - consume positions from end
-    let trailingEightsCount = 0;
-    for (let i = muxity.positions.length - 1; i >= 0; i--) {
-      if (muxity.positions[i] === 7) {
-        trailingEightsCount++;
-      } else {
-        break;
-      }
-    }
-    // Consume trailing 8s with final borrow
-    if (trailingEightsCount > 0) {
-      muxity.positions.length -= trailingEightsCount;  // Truncate array
-      muxity.pendingPropagation = false;
-      // If all positions consumed, result is AbsoluteZero
-      if (muxity.positions.length === 0) {
-        return createBuffer();
-      }
-    } else {
-      // No trailing 8s but final borrow - this is a magnitude error
-      throw new Error('Borrow overflow: invalid magnitude comparison');
-    }
-  }
-
   // ASSEMBLE BUFFER from ResultMuxity array
   let buffer = createBuffer();
   if (muxity.resultSign === 1) {
     buffer = setSignBit(buffer);
   }
-
-  // Apply all recorded positions to buffer (index + 1 = position)
-  muxity.positions.forEach((resultIndex, index) => {
-    const pos = (index + 1) as Positions;
-    // Position 21 boundary check - switch to shifted manifold
-    if (pos === 21) {
-      // Identity mapping: shifted numerals use direct indexing
-      if (resultIndex === 0) {
-        buffer = applyShiftedNumeralRotation(resultIndex + 1, buffer, pos);
+  if (wasFinalTwist && muxity.positions.length === 1 && muxity.positions[0] === 7 && muxity.pendingPropagation) {
+    buffer = applyNumeralRotation(0, buffer, 1);
+    buffer = applyMarqueeAtPosition(buffer, 2);
+  } else {
+    // Apply all recorded positions to buffer (index + 1 = position)
+    muxity.positions.forEach((resultIndex, index) => {
+      const pos = (index + 1) as Positions;
+      // Position 21 boundary check - switch to shifted manifold
+      if (pos === 21) {
+        // Identity mapping: shifted numerals use direct indexing
+        if (resultIndex === 0) {
+          buffer = applyShiftedNumeralRotation(resultIndex + 1, buffer, pos);
+        } else {
+          buffer = applyShiftedNumeralRotation(resultIndex, buffer, pos);
+        }
       } else {
-        buffer = applyShiftedNumeralRotation(resultIndex, buffer, pos);
+        // Binary Operand Bias: regular positions use offset mapping
+        buffer = applyNumeralRotation(resultIndex, buffer, pos);
       }
-    } else {
-      // Binary Operand Bias: regular positions use offset mapping
-      buffer = applyNumeralRotation(resultIndex, buffer, pos);
-    }
-  });
+    });
 
-  // Apply marquee delimiter after last position
-  const marqueePosition = muxity.positions.length + 1;
-  if (marqueePosition <= 21) {
-    buffer = applyMarqueeAtPosition(buffer, marqueePosition as Positions);
+    // Apply marquee delimiter after last position
+    const marqueePosition = muxity.positions.length + 1;
+    if (marqueePosition <= 21) {
+      buffer = applyMarqueeAtPosition(buffer, marqueePosition as Positions);
+    }
+    if (wasFinalTwist) {
+      console.log('WHERE Final Twist', muxity);
+      return muxifyWrung('+', buffer, parseStringToRound8('1') as bigint);
+    }
   }
-  if (wasFinalTwist) {
-    return muxifyWrung('+', buffer, parseStringToRound8('1') as bigint);
-  }
+  console.log('WHERE END', muxity);
   return buffer;
 };
 
@@ -445,7 +422,7 @@ const differenceWrung = (
 
   // SUITE 7 ROSE: Borrow array - depleting delimiter for halting completeness
   const borrows: BitRotationTuple[] = [];
-
+  let haltCascade = true;
   scanUpwards(routing.anchorWrung, routing.modulatorWrung, (a: bigint, b: bigint, pos: Positions) => {
     if (pos > maxPosition) {return false;}
     const chosenSpool = pos === 21 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
@@ -507,6 +484,7 @@ const differenceWrung = (
           }
         } else if (borrow) {
           const borrowTuple = borrow;
+          console.log('What\'s This Tuple', borrow);
           const spoolResult = chosenSpool[rtA0][rtA1][rtA2][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
           resultIndex = spoolResult[0] as number;
           if (spoolResult.length > 1) {
@@ -541,32 +519,44 @@ const differenceWrung = (
     }
     return true;
   });
-
+  console.log('REllEK Before Carry Handling', result, borrows);
   if (borrows.length !== result.positions.length && borrows.length > 0) {
     borrows.forEach((_, i) => {
       if (result.positions.length === 21) {
-        if (result.positions[20] === getShiftedRotation(8)) {
+        if (result.positions[20] === getShiftedRotation(8) || result.positions[20] === getShiftedRotation(7)) {
           if (wrungMuxityA.firstValidRotation === wrungMuxityB.firstValidRotation) {
+            let shouldReverse = false;
             const toll: true[] = [];
-            result.positions.reverse();
+            if (result.positions[20] === getShiftedRotation(8)) {
+              shouldReverse = true;
+              result.positions.reverse();
+            }
             scanDownward(wrungMuxityA.wrung, (_, pos) => {
+              console.log('HIT A');
               if (result.positions[pos - 1] === 6) {
+                console.log('HIT B');
                 toll.push(true);
                 return true;
               } else if (result.positions[pos - 1] === 7 && pos === 21) {
+                console.log('HIT C');
                 toll.push(true);
                 return true;
               } else  {
+                console.log('HIT D', result.positions[pos - 1]);
                 return false;
               }
             });
             if (toll.length > 0) {
-              wasFullTwist = false;
               toll.forEach(() => {
                 result.positions.pop();
               });
-              result.positions.reverse();
+              if (shouldReverse) {
+                result.positions.reverse();
+              }
               return;
+            }
+            if (shouldReverse) {
+              result.positions.reverse();
             }
           } else {
             result.positions.pop();
@@ -599,8 +589,33 @@ const differenceWrung = (
       }
     });
   } else if (borrows.length === result.positions.length) {
+    haltCascade = false;
     result.positions = result.positions.slice(0, 1);
   }
+  if (borrows.length > 0) {
+    result.pendingPropagation = true;
+  }
+  if ( borrows.length === 1 && result.positions.length === 2 && result.positions[1] === 7) {
+    result.positions.pop();
+    result.pendingPropagation = false;
+  } else if (result.positions.length === borrows.length && !haltCascade) {
+    const toll: true[] = [];
+    borrows.forEach((_, i) => {
+      const target = result.positions.length - i - 1;
+      if (result.positions[target] && result.positions[target] === 7 && i + 1 !== result.positions.length) {
+        toll.push(true);
+      } else {
+        return;
+      }
+    });
+    if (toll.length > 0) {
+      toll.forEach(() => {
+        result.positions.pop();
+      });
+    }
+    result.pendingPropagation = false;
+  }
+  console.log('REllEK Before Carry Handling After', result, borrows);
   return assembleBufferFromResultMuxity(result, false, 'difference', wasFullTwist);
 };
 
