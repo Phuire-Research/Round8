@@ -25,6 +25,7 @@ import {
   Positions,
   ResultMuxity,
   Round8Cases,
+  scanDownward,
   scanUpwards,
   setSignBit,
   spooledNumerals,
@@ -542,14 +543,62 @@ const differenceWrung = (
   });
 
   if (borrows.length !== result.positions.length && borrows.length > 0) {
-    borrows.forEach(_ => {
+    borrows.forEach((_, i) => {
       if (result.positions.length === 21) {
         if (result.positions[20] === getShiftedRotation(8)) {
-          result.positions.pop();
+          if (wrungMuxityA.firstValidRotation === wrungMuxityB.firstValidRotation) {
+            const toll: true[] = [];
+            result.positions.reverse();
+            scanDownward(wrungMuxityA.wrung, (_, pos) => {
+              if (result.positions[pos - 1] === 6) {
+                toll.push(true);
+                return true;
+              } else if (result.positions[pos - 1] === 7 && pos === 21) {
+                toll.push(true);
+                return true;
+              } else  {
+                return false;
+              }
+            });
+            if (toll.length > 0) {
+              wasFullTwist = false;
+              toll.forEach(() => {
+                console.log('REllEK', 'F');
+                result.positions.pop();
+              });
+              result.positions.reverse();
+              return;
+            }
+          } else {
+            result.positions.pop();
+          }
         }
       } else if (result.positions[result.positions.length - 1] === getRegularRotation(8)) {
         result.positions.pop();
       } else {
+        if (wrungMuxityA.firstValidRotation === wrungMuxityB.firstValidRotation) {
+          console.log('REllEK', 0, );
+          const toll: true[] = [];
+          scanDownward(wrungMuxityA.wrung, (_, pos) => {
+            console.log('REllEK', 0, );
+            if (result.positions[pos] === 6) {
+              console.log('REllEK', 1);
+              toll.push(true);
+              return true;
+            } else if (result.positions[pos] === 7) {
+              toll.push(true);
+              return false;
+            } else  {
+              return false;
+            }
+          }, wrungMuxityA.firstValidRotation as number - 1 as Positions);
+          if (toll.length > 0) {
+            toll.forEach(() => {
+              result.positions.pop();
+            });
+            return;
+          }
+        }
         return;
       }
     });

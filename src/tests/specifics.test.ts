@@ -163,14 +163,32 @@ const r8 = (value: string): bigint => {
 //   expect(resultStr.length).toBe(21);
 // });
 
+// test('Was Full Twist', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('1'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
+// });
+
 test('Was Full Twist', () => {
   const wrungA = r8('711111111111111111111');
-  const wrungB = r8('1'); // 21 ones
+  const wrungB = r8('688888888888888888888'); // 21 ones
   const result = muxifyWrung('-', wrungA, wrungB);
 
   const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
+  expect(resultStr).toBe('1'); // Least significant = 1
 });
+
+// test('Was Full Twist', () => {
+//   const wrungA = r8('6888');
+//   const wrungB = r8('6887'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('1'); // Least significant = 1
+// });
 
 // test('Is Near Max', () => {
 //   const wrungA = r8('688888888888888888888');
