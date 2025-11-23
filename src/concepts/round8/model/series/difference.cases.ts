@@ -406,7 +406,7 @@ export const DifferenceSeries: SomeSeries = {
     const x = getRegularBitRotation(7); // 7
     const y = getRegularBitRotation(7); // 7
     const result = getRegularRotation(8);  // 8
-    const borrow = getRegularBitRotation(8);
+    const borrow = getRegularBitRotation(1);
     return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];  // Borrow
   })(),
   DifferenceOfSevenAndEight: (() => {
