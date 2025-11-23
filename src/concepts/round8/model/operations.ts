@@ -550,14 +550,24 @@ const differenceWrung = (
       let bounce = false;
 
       if (result.positions[result.positions.length - 1] === 7) {
+        console.log('CASE A');
+        let prior = false;
         result.positions.reverse().forEach((rt, i) => {
           console.log('Truncating', rt, i, result.positions);
           if (!bounce) {
             if (i === 0 && rt === 7) {
               //
+            } else if (rt === 6) {
+              prior = true;
             } else {
-              console.log('Truncate at ', i, rt);
+              console.log('Truncate at ', i, rt, prior);
               newPositions = result.positions.slice(i);
+              if (prior) {
+                console.log('HIT THERE WAS PRIOR', newPositions[0]);
+                newPositions[0] = 0;
+                console.log('HIT THERE WAS PRIOR', newPositions[0]);
+              }
+              console.log('New Positions', newPositions);
               bounce = true;
             }
           }
@@ -565,6 +575,7 @@ const differenceWrung = (
         newPositions.reverse();
         result.positions = newPositions;
       } else if (result.positions[result.positions.length - 1] === 6) {
+        console.log('CASE B');
         result.positions.forEach((rt, i) => {
           console.log('Truncating', rt, i, result.positions);
           if (!bounce) {
