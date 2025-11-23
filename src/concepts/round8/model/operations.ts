@@ -556,15 +556,39 @@ const differenceWrung = (
           console.log('Truncating', rt, i, result.positions);
           if (!bounce) {
             if (i === 0 && rt === 7) {
+              console.log('EDGE H');
               //
             } else if (rt === 6) {
               prior = true;
             } else {
-              console.log('Truncate at ', i, rt, prior);
+              console.log('Truncate at ', i, rt, prior, result.positions);
               newPositions = result.positions.slice(i);
+              console.log('Truncate at ', i, rt, prior, newPositions);
               if (prior) {
-                console.log('HIT THERE WAS PRIOR', newPositions[0]);
-                newPositions[0] = 0;
+                console.log('HIT THERE WAS PRIOR', newPositions[0], newPositions);
+                if (rt === 7) {
+                  console.log('EDGE A');
+                  if (
+                    result.positions[i] && result.positions[i] === 7 && result.positions[i + 1] && result.positions[i + 1] === 6) {
+                    // eslint-disable-next-line max-depth
+                    if (newPositions.length === 2) {
+                      console.log('EDGE B');
+                      console.log('What are we shifting', newPositions[0], newPositions);
+                      newPositions.shift();
+                    } else if (newPositions.length === 1) {
+                      console.log('EDGE C');
+                      //
+                    } else {
+                      console.log('EDGE D');
+                      newPositions[0] = 0;
+                    }
+                  } else {
+                    console.log('EDGE E');
+                    newPositions.shift();
+                  }
+                } else {
+                  // newPositions[0] = 0;
+                }
                 console.log('HIT THERE WAS PRIOR', newPositions[0]);
               }
               console.log('New Positions', newPositions);
@@ -572,8 +596,16 @@ const differenceWrung = (
             }
           }
         });
-        newPositions.reverse();
-        result.positions = newPositions;
+        console.log('EDGE F', bounce, newPositions, result.positions);
+        if (newPositions.length === 0) {
+          result.positions.shift();
+        } else {
+          newPositions.reverse();
+          result.positions = newPositions;
+        }
+        // if (borrows.length === 1 && borrows[0].position === 21) {
+        //   result.positions.push(0);
+        // }
       } else if (result.positions[result.positions.length - 1] === 6) {
         console.log('CASE B');
         result.positions.forEach((rt, i) => {
