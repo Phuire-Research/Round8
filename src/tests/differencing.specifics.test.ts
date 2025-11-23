@@ -1,20 +1,9 @@
 import { r8_ } from '..';
-import { BidirectionalConference } from '../concepts/round8/model/bidirectional';
 import {
-  createFormattedRound8BinaryString,
-  getFormattedColumnarWrungRepresentation,
-  getWrungNumberRepresentation,
   getWrungStringRepresentation,
   parseStringToRound8
 } from '../concepts/round8/model/conference';
 import { muxifyWrung } from '../concepts/round8/model/operations';
-import {
-  getRotationValue,
-  getShiftedBitRotation,
-  getShiftedRotation,
-  getShiftedRotationString,
-  getSignBit
-} from '../concepts/round8/model/terminology';
 
 const r8 = (value: string): bigint => {
   const result = parseStringToRound8(value);
@@ -23,28 +12,11 @@ const r8 = (value: string): bigint => {
   }
   return result;
 };
-// test('Position 21 numeral accumulation', () => {
-//   const wrungA = r8('111111111111111111111');
-//   const wrungB = r8('111111111111111111111');
-//   const result = muxifyWrung('+', wrungA, wrungB);
-//   const resultStr = getWrungStringRepresentation(result);
-//   const resultBinary = createFormattedRound8BinaryString(result);
-//   console.log('REFERENCE OVERVIEW 8', getShiftedBitRotation(8));
-//   console.log('REFERENCE OVERVIEW 1', getShiftedBitRotation(1));
-//   console.log('REFERENCE OVERVIEW 2', getShiftedBitRotation(2));
-//   console.log('REFERENCE OVERVIEW 3', getShiftedBitRotation(3));
-//   console.log('REFERENCE OVERVIEW 4', getShiftedBitRotation(4));
-//   console.log('REFERENCE OVERVIEW 5', getShiftedBitRotation(5));
-//   console.log('REFERENCE OVERVIEW 6', getShiftedBitRotation(6));
-//   console.log('REFERENCE OVERVIEW 7', getShiftedBitRotation(7));
-//   // expect(resultBinary).toBe('222222222222222222222');
-//   expect(resultStr).toBe('222222222222222222222');
-// });
 
-// test('1 + 1 = 2', () => {
-//   const result = muxifyWrung('+', r8('1'), r8('1'));
-//   expect(getWrungStringRepresentation(result)).toBe('2');
-// });
+test('1 + 1 = 2', () => {
+  const result = muxifyWrung('+', r8('1'), r8('1'));
+  expect(getWrungStringRepresentation(result)).toBe('2');
+});
 
 test('8181 + 1818 = 11221 (inverse alternating)', () => {
   const result = muxifyWrung('+', r8('8181'), r8('1818'));
@@ -125,32 +97,6 @@ test('21 position subtraction', () => {
   expect(getWrungStringRepresentation(result)).toBe('111111111111111111111');
 });
 
-// test('20 positions minus 21 positions (smaller first should swap)', () => {
-//   // This tests that the anchor is always the larger magnitude
-//   console.log('REFERENCE OVERVIEW 8', getShiftedBitRotation(8));
-//   console.log('REFERENCE OVERVIEW 1', getShiftedBitRotation(1));
-//   console.log('REFERENCE OVERVIEW 2', getShiftedBitRotation(2));
-//   console.log('REFERENCE OVERVIEW 3', getShiftedBitRotation(3));
-//   console.log('REFERENCE OVERVIEW 4', getShiftedBitRotation(4));
-//   console.log('REFERENCE OVERVIEW 5', getShiftedBitRotation(5));
-//   console.log('REFERENCE OVERVIEW 6', getShiftedBitRotation(6));
-//   console.log('REFERENCE OVERVIEW 7', getShiftedBitRotation(7));
-//   const twenty8s = '88888888888888888888'; // 20 positions
-//   const twentyOne1s = '111111111111111111111'; // 21 positions
-//   const a20_8s = createFormattedRound8BinaryString(r8(twenty8s));
-//   const a21_1s = createFormattedRound8BinaryString(r8(twentyOne1s));
-//   console.log(a20_8s, twenty8s);
-//   console.log(BidirectionalConference(r8(twenty8s)));
-//   console.log(a21_1s, twentyOne1s);
-//   console.log(BidirectionalConference(r8(twentyOne1s)));
-//   // 21 positions > 20 positions in magnitude
-//   // Magnitude comparison swaps: anchorWrung=twentyOne1s, modulatorWrung=twenty8s
-//   // Computes: twentyOne1s - twenty8s (positive result)
-//   const result = muxifyWrung('-', r8(twenty8s), r8(twentyOne1s));
-//   // Result should be positive because magnitude comparison correctly swapped operands
-//   expect(getSignBit(result)).toBe(0);
-// });
-
 test('Mixed length edge case (1 position + 21 positions)', () => {
   const wrungA = r8('8');
   const wrungB = r8('111111111111111111111'); // 21 ones
@@ -173,23 +119,23 @@ test('Subtraction: 711111111111111111111 - 1 = 688888888888888888888 (21-positio
   expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
 });
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888888 = 1 (equal-length full twist)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888888'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888888 = 1 (equal-length full twist)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888888'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('1'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('1'); // Least significant = 1
+});
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888887 = 2 (single position variance)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888887'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888887 = 2 (single position variance)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888887'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('2'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('2'); // Least significant = 1
+});
 
 test('111 - 88 = 1 (cascading borrow)', () => {
   // Parse reversal: "111" → pos1=1, pos2=1, pos3=1
@@ -303,6 +249,7 @@ test('Subtraction: 711111111111111111111 - 688888888888888888878 = 11 (position-
 test('DIAGNOSTIC: Start 11,11,11 → Decrement → Borrow cascade through all positions', (done) => {
   // Parse the starting Round8 string "11,11,11"
   const startString = '11,11,11';
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const startBuffer = parseStringToRound8(startString)!;
 
   const expectedString = '8,88,88';
@@ -386,20 +333,20 @@ test('Subtraction: 711111111111111111111 - 688888888888888888788 = 181 (three-di
 
 // <---------------------->
 
-// test('Is Near Max', () => {
-//   const wrungA = r8('688888888888888888888');
+test('Is Near Max', () => {
+  const wrungA = r8('688888888888888888888');
 
-//   const resultStr = getWrungStringRepresentation(wrungA);
-//   expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(wrungA);
+  expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
+});
 
-// test('21 positions minus 10 positions', () => {
-//   const twentyOne3s = '333333333333333333333';
-//   const ten1s = '1111111111';
-//   const result = muxifyWrung('-', r8(twentyOne3s), r8(ten1s));
-//   // Parse reversal: "333...3" (21) → pos1-21=3, "111...1" (10) → pos1-10=1
-//   // Difference: pos1-10=(3-1)=2, pos11-21=3 (copy from anchor)
-//   // Stringify: "222...2333...3" (10 twos, 11 threes) → reverse → "333...3222...2"
-//   // expect(createFormattedRound8BinaryString(result)).toBe('233333333332222222222');
-//   expect(getWrungStringRepresentation(result)).toBe('333333333332222222222');
-// });
+test('21 positions minus 10 positions', () => {
+  const twentyOne3s = '333333333333333333333';
+  const ten1s = '1111111111';
+  const result = muxifyWrung('-', r8(twentyOne3s), r8(ten1s));
+  // Parse reversal: "333...3" (21) → pos1-21=3, "111...1" (10) → pos1-10=1
+  // Difference: pos1-10=(3-1)=2, pos11-21=3 (copy from anchor)
+  // Stringify: "222...2333...3" (10 twos, 11 threes) → reverse → "333...3222...2"
+  // expect(createFormattedRound8BinaryString(result)).toBe('233333333332222222222');
+  expect(getWrungStringRepresentation(result)).toBe('333333333332222222222');
+});

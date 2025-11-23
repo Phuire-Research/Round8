@@ -236,7 +236,6 @@ const assembleBufferFromResultMuxity = (
   operation: 'sum' | 'difference',
   wasFinalTwist?: boolean
 ): bigint => {
-  // console.log('WHERE', muxity);
   // Handle FinalTwist overflow (sum only)
   if (isFinalTwistDetected) {
     return muxity.resultSign === 1
@@ -290,11 +289,9 @@ const assembleBufferFromResultMuxity = (
       }
     }
     if (wasFinalTwist) {
-      // console.log('WHERE Final Twist', muxity);
       return muxifyWrung('+', buffer, parseStringToRound8('1') as bigint, true);
     }
   }
-  console.log('WHERE END', muxity.positions.length, createFormattedRound8BinaryString(buffer));
   return buffer;
 };
 
@@ -314,7 +311,6 @@ const sumWrung = (
   const maxPosition = Math.max(lengthA, lengthB);
   const minPosition = Math.min(lengthA, lengthB);
   const longerWrung = lengthA > lengthB ? routing.anchorWrung : routing.modulatorWrung;
-  console.log('Sum', getWrungStringRepresentation(wrungMuxityA.wrung), getWrungStringRepresentation(wrungMuxityB.wrung));
   let isFinalTwistDetected = false;
   const carries: BitRotationTuple[] = [];
   scanUpwards(routing.anchorWrung, routing.modulatorWrung, (a: bigint, b: bigint, pos: Positions) => {
@@ -489,7 +485,7 @@ const differenceWrung = (
         // const borrowMuxity = borrows[borrows.length - 1];  // Deplete borrow from array
         const borrowMuxity = borrows.pop();  // Deplete borrow from array
 
-        if (borrowMuxity && borrowMuxity.position + 1 === pos && pos === 21) {
+        if (borrowMuxity && pos === 21) {
           const borrow = borrowMuxity.tuple;
           const borrowTuple = spooledRegularShiftedBridge[borrow[0]][borrow[1]][borrow[2]];
           const spoolResult = chosenSpool[rtA0][rtA1][rtA2][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
@@ -503,7 +499,7 @@ const differenceWrung = (
           if (nextResult.length > 1) {
             borrows.unshift({tuple: nextResult[1] as BitRotationTuple, position: pos});
           }
-        } else if (borrowMuxity && borrowMuxity.position + 1 === pos) {
+        } else if (borrowMuxity) {
           const borrowTuple = borrowMuxity.tuple;
           const spoolResult = chosenSpool[rtA0][rtA1][rtA2][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
           resultIndex = spoolResult[0] as number;
@@ -532,110 +528,79 @@ const differenceWrung = (
       // Array length before push = number of positions already added
       // Position being added = array.length + 1
       // So if array.length === consecutiveEightsFromStart, next position is consecutiveEightsFromStart + 1
-      if (resultIndex === 7 && result.positions.length === result.consecutiveEightsFromStart) {
-        result.consecutiveEightsFromStart = result.positions.length + 1;
-      }
+      // if (resultIndex === 7 && result.positions.length === result.consecutiveEightsFromStart) {
+      //   result.consecutiveEightsFromStart = result.positions.length + 1;
+      // }
       result.positions.push(resultIndex);  // Push sequentially (index = position - 1)
     }
     return true;
   });
-  console.log('REllEK Before Carry Handling Before', result, borrows);
-  console.log('Borrow Fold A');
   if (borrows.length > 0) {
-    console.log('Borrow Fold B');
     if (borrows.length === 1 && borrows[0].position === result.positions.length) {
-    // if (borrows.length === 1 && borrows[0].position === 21 && result.positions[result.positions.length - 1] === 7) {
-      console.log('Borrow Truncate');
       let newPositions: number[] = [];
       let bounce = false;
 
       if (result.positions[result.positions.length - 1] === 7) {
-        console.log('CASE A');
         let prior = false;
         result.positions.reverse().forEach((rt, i) => {
-          console.log('Truncating', rt, i, result.positions);
           if (!bounce) {
             if (i === 0 && rt === 7) {
-              console.log('EDGE H');
               //
             } else if (rt === 6) {
               prior = true;
             } else {
-              console.log('Truncate at ', i, rt, prior, result.positions);
               newPositions = result.positions.slice(i);
-              console.log('Truncate at ', i, rt, prior, newPositions);
               if (prior) {
-                console.log('HIT THERE WAS PRIOR', newPositions[0], newPositions);
                 if (rt === 7) {
-                  console.log('EDGE A');
                   if (
                     result.positions[i] && result.positions[i] === 7 && result.positions[i + 1] && result.positions[i + 1] === 6) {
                     // eslint-disable-next-line max-depth
                     if (newPositions.length === 2) {
-                      console.log('EDGE B');
-                      console.log('What are we shifting', newPositions[0], newPositions);
                       newPositions.shift();
                     } else if (newPositions.length === 1) {
-                      console.log('EDGE C');
                       //
                     } else {
-                      console.log('EDGE D');
                       newPositions[0] = 0;
                     }
                   } else {
-                    console.log('EDGE E');
                     newPositions.shift();
                   }
                 } else {
                   // newPositions[0] = 0;
                 }
-                console.log('HIT THERE WAS PRIOR', newPositions[0]);
               }
-              console.log('New Positions', newPositions);
               bounce = true;
             }
           }
         });
-        console.log('EDGE F', bounce, newPositions, result.positions);
         if (newPositions.length === 0) {
           result.positions.shift();
         } else {
           newPositions.reverse();
           result.positions = newPositions;
         }
-        // if (borrows.length === 1 && borrows[0].position === 21) {
-        //   result.positions.push(0);
-        // }
       } else if (result.positions[result.positions.length - 1] === 6) {
-        console.log('CASE B');
         result.positions.forEach((rt, i) => {
-          console.log('Truncating', rt, i, result.positions);
           if (!bounce) {
-            console.log('Going to Truncate at ', i, rt);
             if (i === 0) {
               //
             } else if (rt === 6) {
-              console.log('Truncate at ', i, rt);
               bounce = true;
               //
               newPositions = result.positions.slice(0, i - 1);
-              console.log('New Positions', newPositions);
             }
           }
         });
         result.positions = newPositions;
       }
     } else if (borrows.length < result.positions.length) {
-      console.log('Borrow Fold C');
       if (borrows.length === 1 && result.positions[result.positions.length - 1] === 7) {
-        console.log('Borrow Fold G');
         result.positions.pop();
       } else if (
         borrows.length === 2 &&
         result.positions[result.positions.length - 1] === 7 &&
         result.positions[result.positions.length - 2] === 7
       ) {
-        console.log('Borrow Fold D');
         result.positions.pop();
         result.positions.pop();
       } else if (
@@ -643,41 +608,29 @@ const differenceWrung = (
         result.positions[result.positions.length - 1] === 6 &&
         result.positions[result.positions.length - 2] === 7
       ) {
-        console.log('Borrow Fold E');
         result.positions.pop();
         result.positions.pop();
       }
     } else if (borrows[0].position === result.positions.length) {
-      console.log('Borrow Fold F');
       if (result.positions[result.positions.length - 1] === 7) {
-        console.log('Borrow Fold H');
         if (
           result.positions[result.positions.length - 2] &&
           result.positions[result.positions.length - 2] === 7 &&
           result.positions.length !== 2
         ) {
-          console.log('Borrow Fold HA');
           result.positions.pop();
           result.positions.pop();
         } else {
-          console.log('Borrow Fold HB');
           result.positions.pop();
         }
       } else if (result.positions[result.positions.length - 1] === 6) {
-        console.log('Borrow Fold I');
         result.positions.push(0);
       }
     } else if (borrows.length > result.positions.length) {
       result.positions = [0];
     }
   }
-  // borrows.forEach((borrow, i) => {
-  //   if (borrow.position === result.positions.length) {
-  //   }
-  // });
-  // result.positions.reverse();
-  // if (borrows)
-  console.log('REllEK Before Carry Handling After', result, borrows);
+
   return assembleBufferFromResultMuxity(result, false, 'difference', wasFullTwist);
 };
 

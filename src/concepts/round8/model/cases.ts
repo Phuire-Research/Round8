@@ -95,10 +95,7 @@ const SpooledLessThanSeries: SpooledWrung<TrueFalse> = initializeSpooledWrung<Tr
 const SpooledShiftedGreaterThanSeries: SpooledWrung<TrueFalse> = initializeSpooledWrung<TrueFalse>();
 
 const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
-  let count = 0;
   Object.keys(someSeries).forEach((sum) => {
-    count++;
-    // console.log(`Spooling case ${count}: ${sum}`);
     const caseArray = someSeries[sum];
     // caseArray structure: [bit2_X, bit1_X, bit0_X, bit2_Y, bit1_Y, [bit0_Y, result, carry?]]
     const one = caseArray[0] as number; // bit2_X
@@ -109,7 +106,6 @@ const spool = (someSeries: SomeSeries, spooled: SpooledWrung) => {
     const tuple = caseArray[5] as number[];
     const six = tuple[0] as number; // bit0_Y
     const sixValue = tuple.slice(1) as unknown as number[]; // [result, carry?]
-    // console.log(`  Storing at [${one}][${two}][${three}][${four}][${five}][${six}]:`, sixValue);
     spooled[one][two][three][four][five][six] = sixValue;
   });
 };

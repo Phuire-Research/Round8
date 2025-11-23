@@ -63,7 +63,6 @@ export const getWrungStringRepresentation = (buffer: bigint): string => {
   // Normal case: Scan from Position 1 up to Marquee delimiter
   const firstValid = marqueeState.firstValidRotation ?? 1;
   let result = '';
-  console.log(marqueeState);
   // Step 2: Scan upward from Position 1, halt at Marquee delimiter
   scanUpward(buffer, (buf, pos) => {
     // Halt at Marquee delimiter (don't include Marquee holding position)

@@ -15,13 +15,13 @@
 
 import {
   createBuffer,
-  applyNumeralRotation,
-  setSignBit,
   getSignBit,
-  type Positions
 } from '../concepts/round8/model/terminology';
 import { BidirectionalConference } from '../concepts/round8/model/bidirectional';
-import { parseStringToRound8, getWrungStringRepresentation, getFormattedColumnarWrungRepresentation, createFormattedRound8BinaryString } from '../concepts/round8/model/conference';
+import {
+  parseStringToRound8,
+  getWrungStringRepresentation
+} from '../concepts/round8/model/conference';
 import { muxifyWrung } from '../concepts/round8/model/operations';
 
 describe('muxifyWrung - Quality-First Positive Difference', () => {
