@@ -11635,7 +11635,7 @@ var Round8Calculator = (() => {
       const x = getRegularBitRotation(7);
       const y = getRegularBitRotation(7);
       const result = getRegularRotation(8);
-      const borrow = getRegularRotation(8);
+      const borrow = getRegularBitRotation(1);
       return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
     })(),
     DifferenceOfSevenAndEight: (() => {
@@ -11679,7 +11679,7 @@ var Round8Calculator = (() => {
     DifferenceOfEightAndSix: (() => {
       const x = getRegularBitRotation(8);
       const y = getRegularBitRotation(6);
-      const result = getRegularRotation(3);
+      const result = getRegularRotation(2);
       return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
     })(),
     DifferenceOfEightAndSeven: (() => {
@@ -12706,7 +12706,7 @@ var Round8Calculator = (() => {
       const x = getShiftedBitRotation(1);
       const y = getShiftedBitRotation(1);
       const result = getShiftedRotation(8);
-      const borrow = getRegularRotation(1);
+      const borrow = getRegularBitRotation(1);
       return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
     })(),
     ShiftedDifferenceOfOneAndTwo: (() => {
@@ -12972,44 +12972,44 @@ var Round8Calculator = (() => {
     ShiftedDifferenceOfSixAndOne: (() => {
       const x = getShiftedBitRotation(6);
       const y = getShiftedBitRotation(1);
-      const result = getShiftedRotation(5);
+      const result = getShiftedRotation(5 + 1);
       return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
     })(),
     ShiftedDifferenceOfSixAndTwo: (() => {
       const x = getShiftedBitRotation(6);
       const y = getShiftedBitRotation(2);
-      const result = getShiftedRotation(4);
+      const result = getShiftedRotation(4 + 1);
       return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
     })(),
     ShiftedDifferenceOfSixAndThree: (() => {
       const x = getShiftedBitRotation(6);
       const y = getShiftedBitRotation(3);
-      const result = getShiftedRotation(3);
+      const result = getShiftedRotation(3 + 1);
       return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
     })(),
     ShiftedDifferenceOfSixAndFour: (() => {
       const x = getShiftedBitRotation(6);
       const y = getShiftedBitRotation(4);
-      const result = getShiftedRotation(2);
+      const result = getShiftedRotation(2 + 1);
       return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
     })(),
     ShiftedDifferenceOfSixAndFive: (() => {
       const x = getShiftedBitRotation(6);
       const y = getShiftedBitRotation(5);
-      const result = getShiftedRotation(1);
+      const result = getShiftedRotation(1 + 1);
       return [x[0], x[1], x[2], y[0], y[1], [y[2], result]];
     })(),
     ShiftedDifferenceOfSixAndSix: (() => {
       const x = getShiftedBitRotation(6);
       const y = getShiftedBitRotation(6);
-      const result = getShiftedRotation(8);
+      const result = getShiftedRotation(7);
       const borrow = getRegularBitRotation(1);
       return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
     })(),
     ShiftedDifferenceOfSixAndSeven: (() => {
       const x = getShiftedBitRotation(6);
       const y = getShiftedBitRotation(7);
-      const result = getShiftedRotation(7);
+      const result = getShiftedRotation(7 + 1);
       const borrow = getRegularBitRotation(1);
       return [x[0], x[1], x[2], y[0], y[1], [y[2], result, borrow]];
     })(),
@@ -13154,9 +13154,7 @@ var Round8Calculator = (() => {
   var SpooledLessThanSeries = initializeSpooledWrung2();
   var SpooledShiftedGreaterThanSeries = initializeSpooledWrung2();
   var spool2 = (someSeries, spooled) => {
-    let count = 0;
     Object.keys(someSeries).forEach((sum) => {
-      count++;
       const caseArray = someSeries[sum];
       const one = caseArray[0];
       const two = caseArray[1];
@@ -13536,54 +13534,39 @@ var Round8Calculator = (() => {
         return muxity.resultSign === 1 ? getRound8Case(1 /* POSITIVE_TWIST_CASE */) : getRound8Case(2 /* NEGATIVE_TWIST_CASE */);
       }
     }
-    if (muxity.pendingPropagation && operation === "difference") {
-      if (muxity.consecutiveEightsFromStart === muxity.positions.length) {
-        return createBuffer();
-      }
-      let trailingEightsCount = 0;
-      for (let i = muxity.positions.length - 1; i >= 0; i--) {
-        if (muxity.positions[i] === 7) {
-          trailingEightsCount++;
-        } else {
-          break;
-        }
-      }
-      if (trailingEightsCount > 0) {
-        muxity.positions.length -= trailingEightsCount;
-        muxity.pendingPropagation = false;
-        if (muxity.positions.length === 0) {
-          return createBuffer();
-        }
-      } else {
-        throw new Error("Borrow overflow: invalid magnitude comparison");
-      }
-    }
     let buffer = createBuffer();
     if (muxity.resultSign === 1) {
       buffer = setSignBit(buffer);
     }
-    muxity.positions.forEach((resultIndex, index) => {
-      const pos = index + 1;
-      if (pos === 21) {
-        if (resultIndex === 0) {
-          buffer = applyShiftedNumeralRotation(resultIndex + 1, buffer, pos);
+    if (wasFinalTwist && muxity.positions.length === 1 && muxity.positions[0] === 7 && muxity.pendingPropagation) {
+      buffer = applyNumeralRotation(0, buffer, 1);
+      buffer = applyMarqueeAtPosition(buffer, 2);
+    } else {
+      muxity.positions.forEach((resultIndex, index) => {
+        const pos = index + 1;
+        if (pos === 21) {
+          if (resultIndex === 0) {
+            buffer = applyShiftedNumeralRotation(resultIndex + 1, buffer, pos);
+          } else {
+            buffer = applyShiftedNumeralRotation(resultIndex, buffer, pos);
+          }
         } else {
-          buffer = applyShiftedNumeralRotation(resultIndex, buffer, pos);
+          buffer = applyNumeralRotation(resultIndex, buffer, pos);
         }
-      } else {
-        buffer = applyNumeralRotation(resultIndex, buffer, pos);
+      });
+      if (muxity.positions.length < 21) {
+        const marqueePosition = muxity.positions.length + 1;
+        if (marqueePosition <= 21) {
+          buffer = applyMarqueeAtPosition(buffer, marqueePosition);
+        }
       }
-    });
-    const marqueePosition = muxity.positions.length + 1;
-    if (marqueePosition <= 21) {
-      buffer = applyMarqueeAtPosition(buffer, marqueePosition);
-    }
-    if (wasFinalTwist) {
-      return muxifyWrung("+", buffer, parseStringToRound8("1"));
+      if (wasFinalTwist) {
+        return muxifyWrung("+", buffer, parseStringToRound8("1"), true);
+      }
     }
     return buffer;
   };
-  var sumWrung = (routing, wrungMuxityA, wrungMuxityB) => {
+  var sumWrung = (routing, wrungMuxityA, wrungMuxityB, wasRan = false) => {
     const result = createResultMuxity(routing.resultSign);
     const lengthA = wrungMuxityA.marqueeRotation ? wrungMuxityA.marqueeRotation - 1 : 21;
     const lengthB = wrungMuxityB.marqueeRotation ? wrungMuxityB.marqueeRotation - 1 : 21;
@@ -13612,7 +13595,8 @@ var Round8Calculator = (() => {
           }
           resultIndex += tuple[0];
         } else {
-          const some = resultIndex += pos === 21 ? spooledShiftedNumerals[b0][b1][b2] - 1 : spooledNumerals[b0][b1][b2] - 1;
+          const diff = wasRan ? 1 : 0;
+          resultIndex += pos === 21 ? spooledShiftedNumerals[b0][b1][b2] - diff : spooledNumerals[b0][b1][b2] - 1;
         }
       } else {
         const [rtA0, rtA1, rtA2] = extractBitTuple(a, pos);
@@ -13651,6 +13635,9 @@ var Round8Calculator = (() => {
       const carryAsNumeral = spooledNumerals[carry[0]][carry[1]][carry[2]];
       result.positions.push(carryAsNumeral - 1);
     }
+    if (result.positions.length === 21 && carries.length === 1) {
+      result.positions[0] += 1;
+    }
     return assembleBufferFromResultMuxity(result, isFinalTwistDetected, "sum");
   };
   var differenceWrung = (routing, muxityA, muxityB) => {
@@ -13659,6 +13646,12 @@ var Round8Calculator = (() => {
     let wrungMuxityB = muxityB;
     let wasFullTwist = false;
     if (wrungMuxityA.isFinalTwist) {
+      if (wrungMuxityB.isFinalTwist === false) {
+        if (getWrungStringRepresentation(wrungMuxityB.wrung) === "688888888888888888888") {
+          result.positions.push(0);
+          return assembleBufferFromResultMuxity(result, false, "difference", false);
+        }
+      }
       wasFullTwist = true;
       wrungMuxityA = BidirectionalConference(parseStringToRound8("688888888888888888888"));
     } else if (wrungMuxityB.isFinalTwist) {
@@ -13681,8 +13674,9 @@ var Round8Calculator = (() => {
       if (pos > minPosition) {
         const [b0, b1, b2] = extractBitTuple(a, pos);
         if (borrows.length > 0) {
-          const borrow = borrows.pop();
-          if (borrow && pos === 21) {
+          const borrowMuxity = borrows.pop();
+          if (borrowMuxity && pos === 21) {
+            const borrow = borrowMuxity.tuple;
             const someNumber = spooledNumerals[borrow[0]][borrow[1]][borrow[2]];
             const [t0, t1, t2] = getShiftedBitRotation(someNumber);
             const borrowTuple = spooledRegularShiftedBridge[t0][t1][t2];
@@ -13690,15 +13684,16 @@ var Round8Calculator = (() => {
             if (spoolResult) {
               resultIndex = spoolResult[0];
               if (spoolResult.length > 1) {
-                borrows.push(spoolResult[1]);
+                borrows.unshift({ tuple: spoolResult[1], position: pos });
                 return false;
               }
             }
-          } else if (borrow !== void 0) {
+          } else if (borrowMuxity !== void 0) {
+            const borrow = borrowMuxity.tuple;
             const spoolResult = chosenSpool[b0][b1][b2][borrow[0]][borrow[1]][borrow[2]];
             resultIndex = spoolResult[0];
             if (spoolResult.length > 1) {
-              borrows.push(spoolResult[1]);
+              borrows.unshift({ tuple: spoolResult[1], position: pos });
             }
           }
         } else {
@@ -13709,114 +13704,128 @@ var Round8Calculator = (() => {
         const [rtA0, rtA1, rtA2] = extractBitTuple(a, pos);
         const [rtB0, rtB1, rtB2] = extractBitTuple(b, pos);
         if (borrows.length > 0) {
-          const borrow = borrows.pop();
-          if (borrow && pos === 21) {
+          const borrowMuxity = borrows.pop();
+          if (borrowMuxity && pos === 21) {
+            const borrow = borrowMuxity.tuple;
             const borrowTuple = spooledRegularShiftedBridge[borrow[0]][borrow[1]][borrow[2]];
             const spoolResult = chosenSpool[rtA0][rtA1][rtA2][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
             resultIndex = spoolResult[0];
             if (spoolResult.length > 1) {
-              borrows.push(spoolResult[1]);
+              borrows.unshift({ tuple: spoolResult[1], position: pos });
             }
             const [i0, i1, i2] = getShiftedBitRotation(resultIndex);
             const nextResult = chosenSpool[i0][i1][i2][rtB0][rtB1][rtB2];
             resultIndex = nextResult[0];
             if (nextResult.length > 1) {
-              borrows.push(nextResult[1]);
+              borrows.unshift({ tuple: nextResult[1], position: pos });
             }
-          } else if (borrow) {
-            const borrowTuple = borrow;
+          } else if (borrowMuxity) {
+            const borrowTuple = borrowMuxity.tuple;
             const spoolResult = chosenSpool[rtA0][rtA1][rtA2][borrowTuple[0]][borrowTuple[1]][borrowTuple[2]];
             resultIndex = spoolResult[0];
             if (spoolResult.length > 1) {
-              borrows.push(spoolResult[1]);
+              borrows.unshift({ tuple: spoolResult[1], position: pos });
             }
             const [i0, i1, i2] = getRegularBitRotation(resultIndex + 1);
             const nextResult = chosenSpool[i0][i1][i2][rtB0][rtB1][rtB2];
             resultIndex = nextResult[0];
             if (nextResult.length > 1) {
-              borrows.push(nextResult[1]);
+              borrows.unshift({ tuple: nextResult[1], position: pos });
             }
           }
         } else {
           const spoolResult = chosenSpool[rtA0][rtA1][rtA2][rtB0][rtB1][rtB2];
           resultIndex = spoolResult[0];
           if (pos === 21 && spoolResult.length > 1) {
-            borrows.push(spoolResult[1]);
+            borrows.unshift({ tuple: spoolResult[1], position: pos });
           } else if (spoolResult.length > 1) {
-            borrows.push(spoolResult[1]);
+            borrows.unshift({ tuple: spoolResult[1], position: pos });
           }
         }
       }
       if (resultIndex >= 0) {
-        if (resultIndex === 7 && result.positions.length === result.consecutiveEightsFromStart) {
-          result.consecutiveEightsFromStart = result.positions.length + 1;
-        }
         result.positions.push(resultIndex);
       }
       return true;
     });
-    if (borrows.length !== result.positions.length && borrows.length > 0) {
-      borrows.forEach((_, i) => {
-        if (result.positions.length === 21) {
-          if (result.positions[20] === getShiftedRotation(8)) {
-            if (wrungMuxityA.firstValidRotation === wrungMuxityB.firstValidRotation) {
-              const toll = [];
-              result.positions.reverse();
-              scanDownward(wrungMuxityA.wrung, (_2, pos) => {
-                if (result.positions[pos - 1] === 6) {
-                  toll.push(true);
-                  return true;
-                } else if (result.positions[pos - 1] === 7 && pos === 21) {
-                  toll.push(true);
-                  return true;
-                } else {
-                  return false;
-                }
-              });
-              if (toll.length > 0) {
-                wasFullTwist = false;
-                toll.forEach(() => {
-                  result.positions.pop();
-                });
-                result.positions.reverse();
-                return;
-              }
-            } else {
-              result.positions.pop();
-            }
-          }
-        } else if (result.positions[result.positions.length - 1] === getRegularRotation(8)) {
-          result.positions.pop();
-        } else {
-          if (wrungMuxityA.firstValidRotation === wrungMuxityB.firstValidRotation) {
-            const toll = [];
-            scanDownward(wrungMuxityA.wrung, (_2, pos) => {
-              if (result.positions[pos] === 6) {
-                toll.push(true);
-                return true;
-              } else if (result.positions[pos] === 7) {
-                toll.push(true);
-                return false;
+    if (borrows.length > 0) {
+      if (borrows.length === 1 && borrows[0].position === result.positions.length) {
+        let newPositions = [];
+        let bounce = false;
+        if (result.positions[result.positions.length - 1] === 7) {
+          let prior = false;
+          result.positions.reverse().forEach((rt, i) => {
+            if (!bounce) {
+              if (i === 0 && rt === 7) {
+              } else if (rt === 6) {
+                prior = true;
               } else {
-                return false;
+                newPositions = result.positions.slice(i);
+                if (prior) {
+                  if (rt === 7) {
+                    if (result.positions[i] && result.positions[i] === 7 && result.positions[i + 1] && result.positions[i + 1] === 6) {
+                      if (newPositions.length === 2) {
+                        newPositions.shift();
+                      } else if (newPositions.length === 1) {
+                      } else {
+                        newPositions[0] = 0;
+                      }
+                    } else {
+                      newPositions.shift();
+                    }
+                  } else {
+                  }
+                }
+                bounce = true;
               }
-            }, wrungMuxityA.firstValidRotation - 1);
-            if (toll.length > 0) {
-              toll.forEach(() => {
-                result.positions.pop();
-              });
-              return;
             }
+          });
+          if (newPositions.length === 0) {
+            result.positions.shift();
+          } else {
+            newPositions.reverse();
+            result.positions = newPositions;
           }
-          return;
+        } else if (result.positions[result.positions.length - 1] === 6) {
+          result.positions.forEach((rt, i) => {
+            if (!bounce) {
+              if (i === 0) {
+              } else if (rt === 6) {
+                bounce = true;
+                newPositions = result.positions.slice(0, i - 1);
+              }
+            }
+          });
+          result.positions = newPositions;
         }
-      });
-    } else if (borrows.length === result.positions.length) {
-      result.positions = result.positions.slice(0, 1);
+      } else if (borrows.length < result.positions.length) {
+        if (borrows.length === 1 && result.positions[result.positions.length - 1] === 7) {
+          result.positions.pop();
+        } else if (borrows.length === 2 && result.positions[result.positions.length - 1] === 7 && result.positions[result.positions.length - 2] === 7) {
+          result.positions.pop();
+          result.positions.pop();
+        } else if (borrows.length === 2 && result.positions[result.positions.length - 1] === 6 && result.positions[result.positions.length - 2] === 7) {
+          result.positions.pop();
+          result.positions.pop();
+        }
+      } else if (borrows[0].position === result.positions.length) {
+        if (result.positions[result.positions.length - 1] === 7) {
+          if (result.positions[result.positions.length - 2] && result.positions[result.positions.length - 2] === 7 && result.positions.length !== 2) {
+            result.positions.pop();
+            result.positions.pop();
+          } else {
+            result.positions.pop();
+          }
+        } else if (result.positions[result.positions.length - 1] === 6) {
+          result.positions.push(0);
+        }
+      } else if (borrows.length > result.positions.length) {
+        result.positions = [0];
+      }
     }
     return assembleBufferFromResultMuxity(result, false, "difference", wasFullTwist);
   };
-  var muxifyWrung = (operation, wrungA, wrungB) => {
+  var muxifyWrung = (operation, wrungA, wrungB, wasRan = false) => {
     const signA = getSignBit(wrungA);
     const signB = getSignBit(wrungB);
     const wrungMuxityA = BidirectionalConference(wrungA);
@@ -13852,7 +13861,7 @@ var Round8Calculator = (() => {
       }
     }
     if (effectiveOperation.effectiveOp === "sum") {
-      return sumWrung(effectiveOperation, wrungMuxityA, wrungMuxityB);
+      return sumWrung(effectiveOperation, wrungMuxityA, wrungMuxityB, wasRan);
     } else {
       return differenceWrung(effectiveOperation, wrungMuxityA, wrungMuxityB);
     }
