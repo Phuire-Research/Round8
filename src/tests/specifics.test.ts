@@ -326,13 +326,33 @@ const r8 = (value: string): bigint => {
 //   done();
 // });
 
+// test('Some Test of 1', (done) => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('1'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
+//   done();
+// });
+
+// test('Some Test of 1', (done) => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('688888888888888888876'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('13'); // Least significant = 1
+//   done();
+// });
+
 test('Some Test of 1', (done) => {
   const wrungA = r8('711111111111111111111');
-  const wrungB = r8('1'); // 21 ones
+  const wrungB = r8('688888888888888888787'); // 21 ones
   const result = muxifyWrung('-', wrungA, wrungB);
 
   const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
+  expect(resultStr).toBe('82'); // Least significant = 1
   done();
 });
 

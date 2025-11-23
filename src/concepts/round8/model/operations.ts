@@ -600,14 +600,12 @@ const differenceWrung = (
     });
   } else if (borrows.length === result.positions.length) {
     result.positions = result.positions.slice(0, 1);
+    borrows.length = 0;
   }
   if (borrows.length > 0) {
     result.pendingPropagation = true;
   }
-  if ( borrows.length === 1 && result.positions.length > 1 && result.positions[0] === 7 && wasFullTwist) {
-    result.positions.pop();
-    result.pendingPropagation = false;
-  } else if (result.positions.length === borrows.length) {
+  if (borrows.length > 0 && wasFullTwist) {
     const toll: true[] = [];
     borrows.forEach((_, i) => {
       const target = result.positions.length - i - 1;
@@ -625,10 +623,10 @@ const differenceWrung = (
     borrows.length = 0;
     result.pendingPropagation = false;
   }
-  console.log('REllEK Before Carry Handling After', result, borrows);
-  if (borrows.length === 1 && result.positions.length === 2 && result.positions[1] === 7) {
-    result.positions.pop();
-  }
+  // console.log('REllEK Before Carry Handling After', result, borrows);
+  // if (borrows.length === 1 && result.positions.length === 2 && result.positions[1] === 7) {
+  //   result.positions.pop();
+  // }
   return assembleBufferFromResultMuxity(result, false, 'difference', wasFullTwist);
 };
 
