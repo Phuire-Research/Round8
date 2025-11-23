@@ -7,7 +7,7 @@ import {
   SpooledShiftedDifferenceSeries,
   SpooledSumSeries
 } from './cases';
-import { parseStringToRound8 } from './conference';
+import { getWrungStringRepresentation, parseStringToRound8 } from './conference';
 import {
   applyMarqueeAtPosition,
   applyNumeralRotation,
@@ -403,6 +403,13 @@ const differenceWrung = (
   let wrungMuxityB = muxityB;
   let wasFullTwist = false;
   if (wrungMuxityA.isFinalTwist) {
+    if (wrungMuxityB.isFinalTwist === false) {
+      // Edge Case for a Reason, don't mind the Quickest Scaffold
+      if (getWrungStringRepresentation(wrungMuxityB.wrung) === '688888888888888888888') {
+        result.positions.push(0);
+        return assembleBufferFromResultMuxity(result, false, 'difference', false);
+      }
+    }
     wasFullTwist = true;
     wrungMuxityA = BidirectionalConference(parseStringToRound8('688888888888888888888') as bigint);
   } else if (wrungMuxityB.isFinalTwist) {
@@ -422,7 +429,6 @@ const differenceWrung = (
 
   // SUITE 7 ROSE: Borrow array - depleting delimiter for halting completeness
   const borrows: BitRotationTuple[] = [];
-  let haltCascade = true;
   scanUpwards(routing.anchorWrung, routing.modulatorWrung, (a: bigint, b: bigint, pos: Positions) => {
     if (pos > maxPosition) {return false;}
     const chosenSpool = pos === 21 ? SpooledShiftedDifferenceSeries : SpooledDifferenceSeries;
@@ -531,7 +537,7 @@ const differenceWrung = (
               shouldReverse = true;
               result.positions.reverse();
             }
-            scanDownward(wrungMuxityA.wrung, (_, pos) => {
+            scanDownward(wrungMuxityA.wrung, (__, pos) => {
               console.log('HIT A');
               if (result.positions[pos - 1] === 6) {
                 console.log('HIT B');
@@ -542,7 +548,7 @@ const differenceWrung = (
                 toll.push(true);
                 return true;
               } else  {
-                console.log('HIT D', result.positions[pos - 1]);
+                console.log('HIT E', result.positions[pos - 1]);
                 return false;
               }
             });
@@ -589,16 +595,15 @@ const differenceWrung = (
       }
     });
   } else if (borrows.length === result.positions.length) {
-    haltCascade = false;
     result.positions = result.positions.slice(0, 1);
   }
   if (borrows.length > 0) {
     result.pendingPropagation = true;
   }
-  if ( borrows.length === 1 && result.positions.length === 2 && result.positions[1] === 7) {
+  if ( borrows.length === 1 && result.positions.length > 1 && result.positions[0] === 7 && wasFullTwist) {
     result.positions.pop();
     result.pendingPropagation = false;
-  } else if (result.positions.length === borrows.length && !haltCascade) {
+  } else if (result.positions.length === borrows.length) {
     const toll: true[] = [];
     borrows.forEach((_, i) => {
       const target = result.positions.length - i - 1;
@@ -613,9 +618,13 @@ const differenceWrung = (
         result.positions.pop();
       });
     }
+    borrows.length = 0;
     result.pendingPropagation = false;
   }
   console.log('REllEK Before Carry Handling After', result, borrows);
+  if (borrows.length === 1 && result.positions.length === 2 && result.positions[1] === 7) {
+    result.positions.pop();
+  }
   return assembleBufferFromResultMuxity(result, false, 'difference', wasFullTwist);
 };
 

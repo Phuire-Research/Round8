@@ -1,3 +1,4 @@
+import { r8_ } from '..';
 import { BidirectionalConference } from '../concepts/round8/model/bidirectional';
 import {
   createFormattedRound8BinaryString,
@@ -291,13 +292,39 @@ test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', ()
   expect(resultStr).toBe('11'); // Least significant = 1
 });
 
-//   const wrungA = r8('6888');
-//   const wrungB = r8('6887'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888868'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('1'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('21'); // Least significant = 1
+});
+test('DIAGNOSTIC: Start 11,11,11 → Decrement → Borrow cascade through all positions', (done) => {
+  // Parse the starting Round8 string "11,11,11"
+  const startString = '11,11,11';
+  const startBuffer = parseStringToRound8(startString)!;
+
+  const expectedString = '8,88,88';
+
+  // Perform decrement operation
+  const actualBuffer = r8_.operations.decrement(startBuffer);
+  const actualString = r8_.createRoundDisplay(actualBuffer);
+
+  // Assertion (will fail until bug is fixed)
+  expect(actualString).toBe(expectedString);
+  done();
+});
+
+test('Some Test of 1', (done) => {
+  const wrungA = r8('6888');
+  const wrungB = r8('6887'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
+
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('1'); // Least significant = 1
+  done();
+});
 
 // test('Is Near Max', () => {
 //   const wrungA = r8('688888888888888888888');
