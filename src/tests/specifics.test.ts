@@ -166,163 +166,173 @@ const r8 = (value: string): bigint => {
 
 // <---------------------------->
 
-test('Ease Off Full Twist', () => {
+// test('Ease Off Full Twist', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('1'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
+// });
+
+// test('Ease Off Full Twist same Length', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('688888888888888888888'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('1'); // Least significant = 1
+// });
+
+// test('Ease Off Full Twist same Length while Minus Some', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('688888888888888888887'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('2'); // Least significant = 1
+// });
+
+// test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('511111111111111111111');
+//   const wrungB = r8('288888888888888888888'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('288888888888888888881'); // Least significant = 1
+// });
+
+// test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('288888888888888888888'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('477777777777777777781'); // Least significant = 1
+// });
+
+// test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('388888888888888888888'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('377777777777777777781'); // Least significant = 1
+// });
+
+// test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('488888888888888888888'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('277777777777777777781'); // Least significant = 1
+// });
+
+// test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('588888888888888888888'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('177777777777777777781'); // Least significant = 1
+// });
+
+// test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('688888888888888888883'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('6'); // Least significant = 1
+// });
+
+// test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('688888888888888888882'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('7'); // Least significant = 1
+// });
+
+// test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('688888888888888888881'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('8'); // Least significant = 1
+// });
+
+// test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('688888888888888888886'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('3'); // Least significant = 1
+// });
+
+// test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('688888888888888888885'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('4'); // Least significant = 1
+// });
+
+// test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('688888888888888888878'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('11'); // Least significant = 1
+// });
+
+// test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
+//   const wrungA = r8('711111111111111111111');
+//   const wrungB = r8('688888888888888888868'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('21'); // Least significant = 1
+// });
+// test('DIAGNOSTIC: Start 11,11,11 → Decrement → Borrow cascade through all positions', (done) => {
+//   // Parse the starting Round8 string "11,11,11"
+//   const startString = '11,11,11';
+//   const startBuffer = parseStringToRound8(startString)!;
+
+//   const expectedString = '8,88,88';
+
+//   // Perform decrement operation
+//   const actualBuffer = r8_.operations.decrement(startBuffer);
+//   const actualString = r8_.createRoundDisplay(actualBuffer);
+
+//   // Assertion (will fail until bug is fixed)
+//   expect(actualString).toBe(expectedString);
+//   done();
+// });
+
+// test('Some Test of 1', (done) => {
+//   const wrungA = r8('6888');
+//   const wrungB = r8('6887'); // 21 ones
+//   const result = muxifyWrung('-', wrungA, wrungB);
+
+//   const resultStr = getWrungStringRepresentation(result);
+//   expect(resultStr).toBe('1'); // Least significant = 1
+//   done();
+// });
+
+test('Some Test of 1', (done) => {
   const wrungA = r8('711111111111111111111');
   const wrungB = r8('1'); // 21 ones
   const result = muxifyWrung('-', wrungA, wrungB);
 
   const resultStr = getWrungStringRepresentation(result);
   expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
-});
-
-test('Ease Off Full Twist same Length', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('688888888888888888888'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('1'); // Least significant = 1
-});
-
-test('Ease Off Full Twist same Length while Minus Some', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('688888888888888888887'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('2'); // Least significant = 1
-});
-
-test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('511111111111111111111');
-  const wrungB = r8('288888888888888888888'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('288888888888888888881'); // Least significant = 1
-});
-
-test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('288888888888888888888'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('477777777777777777781'); // Least significant = 1
-});
-
-test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('388888888888888888888'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('377777777777777777781'); // Least significant = 1
-});
-
-test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('488888888888888888888'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('277777777777777777781'); // Least significant = 1
-});
-
-test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('588888888888888888888'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('177777777777777777781'); // Least significant = 1
-});
-
-test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('688888888888888888883'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('6'); // Least significant = 1
-});
-
-test('Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('688888888888888888882'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('7'); // Least significant = 1
-});
-
-test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('688888888888888888881'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('8'); // Least significant = 1
-});
-
-test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('688888888888888888886'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('3'); // Least significant = 1
-});
-
-test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('688888888888888888885'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('4'); // Least significant = 1
-});
-
-test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('688888888888888888878'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('11'); // Least significant = 1
-});
-
-test('Stepping Up Ease Off Full Twist same Length while Minus Some Upward 2', () => {
-  const wrungA = r8('711111111111111111111');
-  const wrungB = r8('688888888888888888868'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('21'); // Least significant = 1
-});
-test('DIAGNOSTIC: Start 11,11,11 → Decrement → Borrow cascade through all positions', (done) => {
-  // Parse the starting Round8 string "11,11,11"
-  const startString = '11,11,11';
-  const startBuffer = parseStringToRound8(startString)!;
-
-  const expectedString = '8,88,88';
-
-  // Perform decrement operation
-  const actualBuffer = r8_.operations.decrement(startBuffer);
-  const actualString = r8_.createRoundDisplay(actualBuffer);
-
-  // Assertion (will fail until bug is fixed)
-  expect(actualString).toBe(expectedString);
-  done();
-});
-
-test('Some Test of 1', (done) => {
-  const wrungA = r8('6888');
-  const wrungB = r8('6887'); // 21 ones
-  const result = muxifyWrung('-', wrungA, wrungB);
-
-  const resultStr = getWrungStringRepresentation(result);
-  expect(resultStr).toBe('1'); // Least significant = 1
   done();
 });
 

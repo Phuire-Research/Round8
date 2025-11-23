@@ -289,7 +289,7 @@ const assembleBufferFromResultMuxity = (
     }
     if (wasFinalTwist) {
       console.log('WHERE Final Twist', muxity);
-      return muxifyWrung('+', buffer, parseStringToRound8('1') as bigint);
+      return muxifyWrung('+', buffer, parseStringToRound8('1') as bigint, true);
     }
   }
   console.log('WHERE END', muxity);
@@ -303,7 +303,8 @@ const assembleBufferFromResultMuxity = (
 const sumWrung = (
   routing: OperationRouting,
   wrungMuxityA: WrungMuxity,
-  wrungMuxityB: WrungMuxity
+  wrungMuxityB: WrungMuxity,
+  wasRan = false
 ): bigint => {
   const result = createResultMuxity(routing.resultSign);
   const lengthA = wrungMuxityA.marqueeRotation ? wrungMuxityA.marqueeRotation - 1 : 21;
@@ -335,9 +336,10 @@ const sumWrung = (
         }
         resultIndex += tuple[0] as number;
       } else {
+        const diff = wasRan ? 1 : 0;
         const some =
         resultIndex += pos === 21
-          ? spooledShiftedNumerals[b0][b1][b2] - 1  // Shifted returns index
+          ? spooledShiftedNumerals[b0][b1][b2] - diff  // Shifted returns index
           : spooledNumerals[b0][b1][b2] - 1;    // Convert display to index
       }
     } else {
@@ -384,6 +386,8 @@ const sumWrung = (
     const carry = carries.pop() as BitRotationTuple;
     const carryAsNumeral = spooledNumerals[carry[0]][carry[1]][carry[2]];
     result.positions.push(carryAsNumeral - 1);
+  } if (result.positions.length === 21 && carries.length === 1) {
+    result.positions[0] += 1;
   }
   return assembleBufferFromResultMuxity(result, isFinalTwistDetected, 'sum');
 };
@@ -643,7 +647,7 @@ const differenceWrung = (
  * - O(1) lookup time regardless of values
  * - Bidirectional integrity maintained
  */
-export const muxifyWrung = (operation: Operations, wrungA: bigint, wrungB: bigint): bigint => {
+export const muxifyWrung = (operation: Operations, wrungA: bigint, wrungB: bigint, wasRan = false): bigint => {
   const signA = getSignBit(wrungA);
   const signB = getSignBit(wrungB);
   const wrungMuxityA = BidirectionalConference(wrungA);
@@ -699,7 +703,7 @@ export const muxifyWrung = (operation: Operations, wrungA: bigint, wrungB: bigin
   // PROTO-MUXIUM DISPATCH: Route to proto-quality functions
   // This mirrors exactly how a Muxium routes actions to qualities
   if (effectiveOperation.effectiveOp === 'sum') {
-    return sumWrung(effectiveOperation, wrungMuxityA, wrungMuxityB);
+    return sumWrung(effectiveOperation, wrungMuxityA, wrungMuxityB, wasRan);
   } else {
     return differenceWrung(effectiveOperation, wrungMuxityA, wrungMuxityB);
   }
