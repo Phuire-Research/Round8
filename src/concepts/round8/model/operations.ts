@@ -671,11 +671,20 @@ const differenceWrung = (
       console.log('Borrow Fold F');
       if (result.positions[result.positions.length - 1] === 7) {
         console.log('Borrow Fold H');
-        result.positions.pop();
+        if (result.positions[result.positions.length - 2] && result.positions[result.positions.length - 2] === 7 && result.positions.length !== 2) {
+          console.log('Borrow Fold HA');
+          result.positions.pop();
+          result.positions.pop();
+        } else {
+          console.log('Borrow Fold HB');
+          result.positions.pop();
+        }
       } else if (result.positions[result.positions.length - 1] === 6) {
         console.log('Borrow Fold I');
         result.positions.push(0);
       }
+    } else if (borrows.length > result.positions.length) {
+      result.positions = [0];
     }
   }
   // borrows.forEach((borrow, i) => {
