@@ -46,87 +46,84 @@ const r8 = (value: string): bigint => {
 //   expect(getWrungStringRepresentation(result)).toBe('2');
 // });
 
-// test('8181 + 1818 = 11221 (inverse alternating)', () => {
-//   const result = muxifyWrung('+', r8('8181'), r8('1818'));
-//   expect(getWrungStringRepresentation(result)).toBe('12221');
-// });
+test('8181 + 1818 = 11221 (inverse alternating)', () => {
+  const result = muxifyWrung('+', r8('8181'), r8('1818'));
+  expect(getWrungStringRepresentation(result)).toBe('12221');
+});
 
-// test('5 + 123 = 128 (1 position + 3 positions)', () => {
-//   const wrungA = r8('5');
-//   const wrungB = r8('123');
-//   const result = muxifyWrung('+', wrungA, wrungB);
+test('5 + 123 = 128 (1 position + 3 positions)', () => {
+  const wrungA = r8('5');
+  const wrungB = r8('123');
+  const result = muxifyWrung('+', wrungA, wrungB);
 
-//   // Parse reversal: "123" → pos1=3, pos2=2, pos3=1
-//   // Sum: pos1=(5+3)=8, pos2=2, pos3=1
-//   // Stringify: "821" → reverse → "128"
-//   expect(getWrungStringRepresentation(result)).toBe('128');
-// });
+  // Parse reversal: "123" → pos1=3, pos2=2, pos3=1
+  // Sum: pos1=(5+3)=8, pos2=2, pos3=1
+  // Stringify: "821" → reverse → "128"
+  expect(getWrungStringRepresentation(result)).toBe('128');
+});
 
-// test('1818 + 1818 = 3636 (alternating low-high)', () => {
-//   const result = muxifyWrung('+', r8('1818'), r8('1818'));
-//   expect(getWrungStringRepresentation(result)).toBe('3838');
-// });
+test('1818 + 1818 = 3636 (alternating low-high)', () => {
+  const result = muxifyWrung('+', r8('1818'), r8('1818'));
+  expect(getWrungStringRepresentation(result)).toBe('3838');
+});
 
-// test('8 + 11 = 21 (carry extends shorter operand)', () => {
-//   const wrungA = r8('8');
-//   const wrungB = r8('11');
-//   const result = muxifyWrung('+', wrungA, wrungB);
+test('8 + 11 = 21 (carry extends shorter operand)', () => {
+  const wrungA = r8('8');
+  const wrungB = r8('11');
+  const result = muxifyWrung('+', wrungA, wrungB);
 
-//   // Parse reversal: "11" → pos1=1, pos2=1
-//   // Sum: pos1=(8+1)=9→1 carry1, pos2=(0+1+1)=2
-//   // Stringify: "12" → reverse → "21"
-//   expect(getWrungStringRepresentation(result)).toBe('21');
-// });
-// test('21 - 8 = 11 (position 2 consumed by borrow)', () => {
-//   // 21 in Round8 = 2*8 + 1 = 17 decimal
-//   // 8 in Round8 = 8 decimal
-//   // 17 - 8 = 9 = 1*8 + 1 = 11 in Round8
-//   const result = muxifyWrung('-', r8('21'), r8('8'));
-//   expect(getWrungStringRepresentation(result)).toBe('11');
-// });
+  // Parse reversal: "11" → pos1=1, pos2=1
+  // Sum: pos1=(8+1)=9→1 carry1, pos2=(0+1+1)=2
+  // Stringify: "12" → reverse → "21"
+  expect(getWrungStringRepresentation(result)).toBe('21');
+});
+test('21 - 8 = 11 (position 2 consumed by borrow)', () => {
+  // 21 in Round8 = 2*8 + 1 = 17 decimal
+  // 8 in Round8 = 8 decimal
+  // 17 - 8 = 9 = 1*8 + 1 = 11 in Round8
+  const result = muxifyWrung('-', r8('21'), r8('8'));
+  expect(getWrungStringRepresentation(result)).toBe('11');
+});
 
-// test('11 - 8 = 1 (borrow from position 2)', () => {
-//   // 11 in Round8 = 1*8 + 1 = 9 decimal
-//   // 8 in Round8 = 8 decimal
-//   // 9 - 8 = 1
-//   const result = muxifyWrung('-', r8('11'), r8('8'));
-//   expect(getWrungStringRepresentation(result)).toBe('1');
-// });
+test('11 - 8 = 1 (borrow from position 2)', () => {
+  // 11 in Round8 = 1*8 + 1 = 9 decimal
+  // 8 in Round8 = 8 decimal
+  // 9 - 8 = 1
+  const result = muxifyWrung('-', r8('11'), r8('8'));
+  expect(getWrungStringRepresentation(result)).toBe('1');
+});
 
-// test('33 - 14 = 17 (borrow from pos 2)', () => {
-//   // Position 1: 3 - 4 = 7 with borrow
-//   // Position 2: 3 - 1 - borrow = 3 - 1 - 1 = 1
-//   const result = muxifyWrung('-', r8('33'), r8('14'));
-//   expect(getWrungStringRepresentation(result)).toBe('17');
-// });
+test('33 - 14 = 17 (borrow from pos 2)', () => {
+  // Position 1: 3 - 4 = 7 with borrow
+  // Position 2: 3 - 1 - borrow = 3 - 1 - 1 = 1
+  const result = muxifyWrung('-', r8('33'), r8('14'));
+  expect(getWrungStringRepresentation(result)).toBe('17');
+});
 
-// test('1234 - 56 = 1156', () => {
-//   const result = muxifyWrung('-', r8('1234'), r8('56'));
-//   expect(getWrungStringRepresentation(result)).toBe('1156');
-// });
+test('1234 - 56 = 1156', () => {
+  const result = muxifyWrung('-', r8('1234'), r8('56'));
+  expect(getWrungStringRepresentation(result)).toBe('1156');
+});
 
-// test('111 - 88 = 1 (cascading borrow)', () => {
-//   // Parse reversal: "111" → pos1=1, pos2=1, pos3=1
-//   // Parse reversal: "88" → pos1=8, pos2=8
-//   // Difference: pos1=(1-8)→borrow, pos2=(1-8-borrow)→consumed, pos3=(1-0-borrow)→consumed
-//   // Result: pos1=1 only (higher positions consumed by cascading borrow)
-//   // Stringify: "1"
-//   const result = muxifyWrung('-', r8('111'), r8('88'));
-//   expect(getWrungStringRepresentation(result)).toBe('1');
-// });
+test('111 - 88 = 1 (cascading borrow)', () => {
+  // Parse reversal: "111" → pos1=1, pos2=1, pos3=1
+  // Parse reversal: "88" → pos1=8, pos2=8
+  // Difference: pos1=(1-8)→borrow, pos2=(1-8-borrow)→consumed, pos3=(1-0-borrow)→consumed
+  // Result: pos1=1 only (higher positions consumed by cascading borrow)
+  // Stringify: "1"
+  const result = muxifyWrung('-', r8('111'), r8('88'));
+  expect(getWrungStringRepresentation(result)).toBe('1');
+});
 
 // // Note applyShiftedNumeralRotation(resultIndex - 1, buffer, pos)
 // // This is apply an Offset, but is not regular
-// test('21 position subtraction', () => {
-//   const twentyOne2s = '222222222222222222222';
-//   const twentyOne1s = '111111111111111111111';
-//   const result = muxifyWrung('-', r8(twentyOne2s), r8(twentyOne1s));
-//   // Parse reversal applies to both operands (both palindromes, so same)
-//   // Difference: each position 2-1=1, result has 20 positions (pos 21 is shift-frame boundary)
+test('21 position subtraction', () => {
+  const twentyOne2s = '222222222222222222222';
+  const twentyOne1s = '111111111111111111111';
+  const result = muxifyWrung('-', r8(twentyOne2s), r8(twentyOne1s));
 
-//   // expect(getRotationValue(result, 21)).toBe('11111111111111111111');
-//   expect(getWrungStringRepresentation(result)).toBe('11111111111111111111');
-// });
+  expect(getWrungStringRepresentation(result)).toBe('111111111111111111111');
+});
 
 // test('20 positions minus 21 positions (smaller first should swap)', () => {
 //   // This tests that the anchor is always the larger magnitude
@@ -154,55 +151,55 @@ const r8 = (value: string): bigint => {
 //   expect(getSignBit(result)).toBe(0);
 // });
 
-// test('Mixed length edge case (1 position + 21 positions)', () => {
-//   const wrungA = r8('8');
-//   const wrungB = r8('111111111111111111111'); // 21 ones
-//   const result = muxifyWrung('+', wrungA, wrungB);
+test('Mixed length edge case (1 position + 21 positions)', () => {
+  const wrungA = r8('8');
+  const wrungB = r8('111111111111111111111'); // 21 ones
+  const result = muxifyWrung('+', wrungA, wrungB);
 
-//   // 8+1=9>8 → carry propagates through all 21 positions
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('111111111111111111121'); // Least significant = 1
-//   expect(resultStr.length).toBe(21);
-// });
+  // 8+1=9>8 → carry propagates through all 21 positions
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('111111111111111111121'); // Least significant = 1
+  expect(resultStr.length).toBe(21);
+});
 
 // <---------------------------->
 
-// test('Subtraction: 711111111111111111111 - 1 = 688888888888888888888 (21-position borrow cascade)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('1'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 1 = 688888888888888888888 (21-position borrow cascade)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('1'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
+});
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888888 = 1 (equal-length full twist)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888888'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888888 = 1 (equal-length full twist)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888888'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('1'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('1'); // Least significant = 1
+});
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888887 = 2 (single position variance)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888887'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888887 = 2 (single position variance)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888887'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('2'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('2'); // Least significant = 1
+});
 
-// test('111 - 88 = 1 (cascading borrow)', () => {
-//   // Parse reversal: "111" → pos1=1, pos2=1, pos3=1
-//   // Parse reversal: "88" → pos1=8, pos2=8
-//   // Difference: pos1=(1-8)→borrow, pos2=(1-8-borrow)→consumed, pos3=(1-0-borrow)→consumed
-//   // Result: pos1=1 only (higher positions consumed by cascading borrow)
-//   // Stringify: "1"
-//   const result = muxifyWrung('-', r8('111'), r8('88'));
-//   expect(getWrungStringRepresentation(result)).toBe('1');
-// });
+test('111 - 88 = 1 (cascading borrow)', () => {
+  // Parse reversal: "111" → pos1=1, pos2=1, pos3=1
+  // Parse reversal: "88" → pos1=8, pos2=8
+  // Difference: pos1=(1-8)→borrow, pos2=(1-8-borrow)→consumed, pos3=(1-0-borrow)→consumed
+  // Result: pos1=1 only (higher positions consumed by cascading borrow)
+  // Stringify: "1"
+  const result = muxifyWrung('-', r8('111'), r8('88'));
+  expect(getWrungStringRepresentation(result)).toBe('1');
+});
 
 test('Subtraction: 511111111111111111111 - 288888888888888888888 = 288888888888888888881 (high position difference)', () => {
   const wrungA = r8('511111111111111111111');
@@ -249,134 +246,145 @@ test('Subtraction: 711111111111111111111 - 588888888888888888888 = 1777777777777
   expect(resultStr).toBe('177777777777777777781'); // Least significant = 1
 });
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888883 = 6 (collapse to single digit)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888883'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888883 = 6 (collapse to single digit)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888883'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('6'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('6'); // Least significant = 1
+});
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888882 = 7 (collapse to single digit)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888882'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888882 = 7 (collapse to single digit)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888882'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('7'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('7'); // Least significant = 1
+});
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888881 = 8 (trailing digit variance, collapse)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888881'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888881 = 8 (trailing digit variance, collapse)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888881'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('8'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('8'); // Least significant = 1
+});
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888886 = 3 (trailing digit 6, collapse)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888886'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888886 = 3 (trailing digit 6, collapse)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888886'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('3'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('3'); // Least significant = 1
+});
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888885 = 4 (trailing digit 5, collapse)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888885'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888885 = 4 (trailing digit 5, collapse)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888885'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('4'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('4'); // Least significant = 1
+});
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888878 = 11 (position-2 borrow)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888878'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888878 = 11 (position-2 borrow)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888878'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('11'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('11'); // Least significant = 1
+});
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888868 = 21 (multi-position borrow)', () => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888868'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 711111111111111111111 - 688888888888888888868 = 21 (multi-position borrow)', () => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888868'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('21'); // Least significant = 1
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('21'); // Least significant = 1
+});
 
-// test('DIAGNOSTIC: Start 11,11,11 → Decrement → Borrow cascade through all positions', (done) => {
-//   // Parse the starting Round8 string "11,11,11"
-//   const startString = '11,11,11';
-//   const startBuffer = parseStringToRound8(startString)!;
+test('DIAGNOSTIC: Start 11,11,11 → Decrement → Borrow cascade through all positions', (done) => {
+  // Parse the starting Round8 string "11,11,11"
+  const startString = '11,11,11';
+  const startBuffer = parseStringToRound8(startString)!;
 
-//   const expectedString = '8,88,88';
+  const expectedString = '8,88,88';
 
-//   // Perform decrement operation
-//   const actualBuffer = r8_.operations.decrement(startBuffer);
-//   const actualString = r8_.createRoundDisplay(actualBuffer);
+  // Perform decrement operation
+  const actualBuffer = r8_.operations.decrement(startBuffer);
+  const actualString = r8_.createRoundDisplay(actualBuffer);
 
-//   // Assertion (will fail until bug is fixed)
-//   expect(actualString).toBe(expectedString);
-//   done();
-// });
+  // Assertion (will fail until bug is fixed)
+  expect(actualString).toBe(expectedString);
+  done();
+});
 
-// test('Subtraction: 6888 - 6887 = 1 (4-position single-digit difference)', (done) => {
-//   const wrungA = r8('6888');
-//   const wrungB = r8('6887'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('Subtraction: 6888 - 6887 = 1 (4-position single-digit difference)', (done) => {
+  console.log('BEGIN', 'Subtraction: 6888 - 6887 = 1 (4-position single-digit difference)');
+  const wrungA = r8('6888');
+  const wrungB = r8('6887'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('1'); // Least significant = 1
-//   done();
-// });
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('1'); // Least significant = 1
+  done();
+});
 
-// test('Subtraction: 711111111111111111111 - 1 = 688888888888888888888 (duplicate of line 169)', (done) => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('1'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+test('21 - 12 = 7 (borrow consumes position 2)', () => {
+  // Position 1: 1 - 2 = 7 with borrow
+  // Position 2: 2 - 1 - borrow = 2 - 1 - 1 = 0 → no numeral
+  // Result should be just "7"
+  const result = muxifyWrung('-', r8('21'), r8('12'));
+  expect(getWrungStringRepresentation(result)).toBe('7');
+});
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
-//   done();
-// });
+test('Subtraction: 711111111111111111111 - 1 = 688888888888888888888 (duplicate of line 169)', (done) => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('1'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888876 = 13 (two-digit result)', (done) => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888876'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('688888888888888888888'); // Least significant = 1
+  done();
+});
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('13'); // Least significant = 1
-//   done();
-// });
+test('Subtraction: 711111111111111111111 - 688888888888888888876 = 13 (two-digit result)', (done) => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888876'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888787 = 82 (position-3 borrow)', (done) => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888787'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('13'); // Least significant = 1
+  done();
+});
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('82'); // Least significant = 1
-//   done();
-// });
+test('Subtraction: 711111111111111111111 - 688888888888888888787 = 82 (position-3 borrow)', (done) => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888787'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
 
-// test('Subtraction: 711111111111111111111 - 688888888888888888788 = 181 (three-digit result)', (done) => {
-//   const wrungA = r8('711111111111111111111');
-//   const wrungB = r8('688888888888888888788'); // 21 ones
-//   const result = muxifyWrung('-', wrungA, wrungB);
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('82'); // Least significant = 1
+  done();
+});
 
-//   const resultStr = getWrungStringRepresentation(result);
-//   expect(resultStr).toBe('181'); // Least significant = 1
-//   done();
-// });
+test('Subtraction: 711111111111111111111 - 688888888888888888788 = 181 (three-digit result)', (done) => {
+  const wrungA = r8('711111111111111111111');
+  const wrungB = r8('688888888888888888788'); // 21 ones
+  const result = muxifyWrung('-', wrungA, wrungB);
+
+  const resultStr = getWrungStringRepresentation(result);
+  expect(resultStr).toBe('181'); // Least significant = 1
+  done();
+});
+
+// <---------------------->
 
 // test('Is Near Max', () => {
 //   const wrungA = r8('688888888888888888888');

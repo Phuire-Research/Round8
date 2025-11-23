@@ -7,7 +7,7 @@ import {
   SpooledShiftedDifferenceSeries,
   SpooledSumSeries
 } from './cases';
-import { getWrungStringRepresentation, parseStringToRound8 } from './conference';
+import { createFormattedRound8BinaryString, getWrungStringRepresentation, parseStringToRound8 } from './conference';
 import {
   applyMarqueeAtPosition,
   applyNumeralRotation,
@@ -283,16 +283,18 @@ const assembleBufferFromResultMuxity = (
     });
 
     // Apply marquee delimiter after last position
-    const marqueePosition = muxity.positions.length + 1;
-    if (marqueePosition <= 21) {
-      buffer = applyMarqueeAtPosition(buffer, marqueePosition as Positions);
+    if (muxity.positions.length < 21) {
+      const marqueePosition = muxity.positions.length + 1;
+      if (marqueePosition <= 21) {
+        buffer = applyMarqueeAtPosition(buffer, marqueePosition as Positions);
+      }
     }
     if (wasFinalTwist) {
       // console.log('WHERE Final Twist', muxity);
       return muxifyWrung('+', buffer, parseStringToRound8('1') as bigint, true);
     }
   }
-  // console.log('WHERE END', muxity);
+  console.log('WHERE END', muxity.positions.length, createFormattedRound8BinaryString(buffer));
   return buffer;
 };
 
@@ -382,7 +384,7 @@ const sumWrung = (
     result.positions.push(resultIndex);  // Push sequentially (index = position - 1)
     return true;
   });
-  if (carries.length > 0 && wasRan) {
+  if (carries.length > 0) {
     const carry = carries.pop() as BitRotationTuple;
     const carryAsNumeral = spooledNumerals[carry[0]][carry[1]][carry[2]];
     result.positions.push(carryAsNumeral - 1);
@@ -447,6 +449,7 @@ const differenceWrung = (
       // SUITE 7 ROSE PATCH: Pop from borrow array (depleting delimiter)
       if (borrows.length > 0) {
         const borrowMuxity = borrows.pop();  // Deplete borrow from array
+        // const borrowMuxity = borrows[0];  // Deplete borrow from array
         if (borrowMuxity && pos === 21) {
           const borrow = borrowMuxity.tuple;
           const someNumber = (spooledNumerals[borrow[0]][borrow[1]][borrow[2]]) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -483,7 +486,8 @@ const differenceWrung = (
       const [rtA0, rtA1, rtA2] = extractBitTuple(a, pos);
       const [rtB0, rtB1, rtB2] = extractBitTuple(b, pos);
       if (borrows.length > 0) {
-        const borrowMuxity = borrows[borrows.length - 1];  // Deplete borrow from array
+        // const borrowMuxity = borrows[borrows.length - 1];  // Deplete borrow from array
+        const borrowMuxity = borrows.pop();  // Deplete borrow from array
 
         if (borrowMuxity && borrowMuxity.position + 1 === pos && pos === 21) {
           const borrow = borrowMuxity.tuple;
@@ -535,118 +539,50 @@ const differenceWrung = (
     }
     return true;
   });
-  console.log('REllEK Before Carry Handling', result, borrows);
-  // if (borrows.length !== result.positions.length && borrows.length > 0) {
-  //   borrows.forEach((_, i) => {
-  //     if (result.positions.length === 21) {
-  //       if (result.positions[20] === getShiftedRotation(8) || result.positions[20] === getShiftedRotation(7)) {
-  //         if (wrungMuxityA.firstValidRotation === wrungMuxityB.firstValidRotation) {
-  //           let shouldReverse = false;
-  //           const toll: true[] = [];
-  //           if (result.positions[20] === getShiftedRotation(8)) {
-  //             shouldReverse = true;
-  //             result.positions.reverse();
-  //           }
-  //           scanDownward(wrungMuxityA.wrung, (__, pos) => {
-  //             console.log('HIT A');
-  //             if (result.positions[pos - 1] === 6) {
-  //               console.log('HIT B');
-  //               toll.push(true);
-  //               return true;
-  //             } else if (result.positions[pos - 1] === 7 && pos === 21) {
-  //               console.log('HIT C');
-  //               toll.push(true);
-  //               return true;
-  //             } else if (result.positions[pos - 1] === 7) {
-  //               console.log('HIT E', result.positions[pos - 1]);
-  //               // result.positions[pos - 1] = 0;
-  //               return false;
-  //             } else  {
-  //               console.log('HIT F', result.positions[pos - 1]);
-  //               return false;
-  //             }
-  //           });
-  //           if (toll.length > 0) {
-  //             toll.forEach(() => {
-  //               result.positions.pop();
-  //             });
-  //             if (shouldReverse) {
-  //               result.positions.reverse();
-  //             }
-  //             return;
-  //           }
-  //           if (shouldReverse) {
-  //             result.positions.reverse();
-  //           }
-  //         } else {
-  //           result.positions.pop();
-  //         }
-  //       }
-  //     } else if (result.positions[result.positions.length - 1] === getRegularRotation(8)) {
-  //       result.positions.pop();
-  //     } else {
-  //       if (wrungMuxityA.firstValidRotation === wrungMuxityB.firstValidRotation) {
-  //         const toll: true[] = [];
-  //         scanDownward(wrungMuxityA.wrung, (__, pos) => {
-  //           if (result.positions[pos] === 6) {
-  //             toll.push(true);
-  //             return true;
-  //           } else if (result.positions[pos] === 7) {
-  //             toll.push(true);
-  //             return false;
-  //           } else  {
-  //             return false;
-  //           }
-  //         }, wrungMuxityA.firstValidRotation as number - 1 as Positions);
-  //         if (toll.length > 0) {
-  //           toll.forEach(() => {
-  //             result.positions.pop();
-  //           });
-  //           return;
-  //         }
-  //       }
-  //       return;
-  //     }
-  //   });
-  // } else if (borrows.length === result.positions.length) {
-  //   result.positions = result.positions.slice(0, 1);
-  //   borrows.length = 0;
-  // }
-  // if (borrows.length > 0) {
-  //   result.pendingPropagation = true;
-  // }
-  // if (borrows.length > 0 && wasFullTwist) {
-  //   const toll: true[] = [];
-  //   borrows.forEach((_, i) => {
-  //     console.log('CHECK HITS', i, result.positions, borrows);
-  //     const target = result.positions.length - i - 1;
-  //     if (
-  //       // result.positions.length > 2 &&
-  //       result.positions[target - 1] && result.positions[target - 1] === 7 &&
-  //       result.positions[target] && result.positions[target] === 7
-  //       && i + 1 !== result.positions.length
-  //     ) {
-  //       // toll.push(true);
-  //     // } else if (result.positions[target] && result.positions[target] === 7 && i + 1 !== result.positions.length) {
-  //       toll.push(true);
-  //     } else {
-  //       return;
-  //     }
-  //   });
-  //   if (toll.length > 0) {
-  //     toll.forEach(() => {
-  //       result.positions.pop();
-  //     });
-  //   }
-  //   // borrows.length = 0;
-  //   result.pendingPropagation = false;
-  // }
-  // result.positions.reverse();
   console.log('REllEK Before Carry Handling Before', result, borrows);
   console.log('Borrow Fold A');
   if (borrows.length > 0) {
     console.log('Borrow Fold B');
-    if (borrows.length < result.positions.length) {
+    if (borrows.length === 1 && borrows[0].position === result.positions.length) {
+    // if (borrows.length === 1 && borrows[0].position === 21 && result.positions[result.positions.length - 1] === 7) {
+      console.log('Borrow Truncate');
+      let newPositions: number[] = [];
+      let bounce = false;
+
+      if (result.positions[result.positions.length - 1] === 7) {
+        result.positions.reverse().forEach((rt, i) => {
+          console.log('Truncating', rt, i, result.positions);
+          if (!bounce) {
+            if (i === 0 && rt === 7) {
+              //
+            } else {
+              console.log('Truncate at ', i, rt);
+              newPositions = result.positions.slice(i);
+              bounce = true;
+            }
+          }
+        });
+        newPositions.reverse();
+        result.positions = newPositions;
+      } else if (result.positions[result.positions.length - 1] === 6) {
+        result.positions.forEach((rt, i) => {
+          console.log('Truncating', rt, i, result.positions);
+          if (!bounce) {
+            console.log('Going to Truncate at ', i, rt);
+            if (i === 0) {
+              //
+            } else if (rt === 6) {
+              console.log('Truncate at ', i, rt);
+              bounce = true;
+              //
+              newPositions = result.positions.slice(0, i - 1);
+              console.log('New Positions', newPositions);
+            }
+          }
+        });
+        result.positions = newPositions;
+      }
+    } else if (borrows.length < result.positions.length) {
       console.log('Borrow Fold C');
       if (borrows.length === 1 && result.positions[result.positions.length - 1] === 7) {
         console.log('Borrow Fold G');
@@ -657,6 +593,7 @@ const differenceWrung = (
         result.positions[result.positions.length - 2] === 7
       ) {
         console.log('Borrow Fold D');
+        result.positions.pop();
         result.positions.pop();
       } else if (
         borrows.length === 2 &&
@@ -671,7 +608,11 @@ const differenceWrung = (
       console.log('Borrow Fold F');
       if (result.positions[result.positions.length - 1] === 7) {
         console.log('Borrow Fold H');
-        if (result.positions[result.positions.length - 2] && result.positions[result.positions.length - 2] === 7 && result.positions.length !== 2) {
+        if (
+          result.positions[result.positions.length - 2] &&
+          result.positions[result.positions.length - 2] === 7 &&
+          result.positions.length !== 2
+        ) {
           console.log('Borrow Fold HA');
           result.positions.pop();
           result.positions.pop();
