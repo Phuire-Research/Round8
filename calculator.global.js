@@ -13964,6 +13964,8 @@ var Round8Calculator = (() => {
         buffer: 0n,
         binary: ""
       },
+      decimalOutput: "In Progress",
+      // Default: not from Running Clock
       operation: null,
       activeInput: "input1",
       darkMode: true
@@ -13981,6 +13983,7 @@ var Round8Calculator = (() => {
         inputState.binary = binary;
         inputState.value = displayValue;
       }
+      state.decimalOutput = "In Progress";
     }
     function handleBackspace() {
       const inputState = state[state.activeInput];
@@ -14001,12 +14004,14 @@ var Round8Calculator = (() => {
         inputState.value = displayValue ? displayValue : "0";
         inputState.binary = binary ? binary : r8_.createBufferDisplay(0n);
       }
+      state.decimalOutput = "In Progress";
     }
     function handleZero() {
       const inputState = state[state.activeInput];
       inputState.value = r8_.createRoundDisplay(0n);
       inputState.buffer = 0n;
       inputState.binary = r8_.createBufferDisplay(0n);
+      state.decimalOutput = "In Progress";
     }
     function handleOperation(operation) {
       if (operation === null) {
@@ -14046,6 +14051,7 @@ var Round8Calculator = (() => {
       state.output.buffer = result;
       state.output.binary = r8_.createBufferDisplay(result);
       state.output.value = r8_.createRoundDisplay(result);
+      state.decimalOutput = "In Progress";
     }
     function handleClear() {
       state.input1.value = "0";
@@ -14057,6 +14063,7 @@ var Round8Calculator = (() => {
       state.output.value = "0";
       state.output.buffer = 0n;
       state.output.binary = r8_.createBufferDisplay(0n);
+      state.decimalOutput = "In Progress";
       state.operation = null;
       state.activeInput = "input1";
     }
@@ -14069,6 +14076,7 @@ var Round8Calculator = (() => {
       inputState.buffer = flipped;
       inputState.binary = r8_.createBufferDisplay(flipped);
       inputState.value = r8_.createRoundDisplay(flipped);
+      state.decimalOutput = "In Progress";
     }
     function handleIncrement() {
       const inputState = state[state.activeInput];
@@ -14076,6 +14084,7 @@ var Round8Calculator = (() => {
       inputState.buffer = incremented;
       inputState.binary = r8_.createBufferDisplay(incremented);
       inputState.value = r8_.createRoundDisplay(incremented);
+      state.decimalOutput = "In Progress";
     }
     function handleDecrement() {
       const inputState = state[state.activeInput];
@@ -14083,6 +14092,7 @@ var Round8Calculator = (() => {
       inputState.buffer = decremented;
       inputState.binary = r8_.createBufferDisplay(decremented);
       inputState.value = r8_.createRoundDisplay(decremented);
+      state.decimalOutput = "In Progress";
     }
     return {
       // State access
@@ -16189,8 +16199,135 @@ var Round8Calculator = (() => {
   };
 
   // demo/calculator.ts
-  function updateInputDisplay(calc, inputNumber) {
-    const inputState = inputNumber === 1 ? calc.state.input1 : calc.state.input2;
+  var FOREVER_CLOCK_ENDPOINT = "https://api.unhex.dev/count";
+  async function fetchClockSeedValue() {
+    try {
+      const response = await fetch(FOREVER_CLOCK_ENDPOINT);
+      const data = await response.json();
+      return data;
+    } catch {
+      return null;
+    }
+  }
+  function initializeClockInputs(calculator, seedRound8) {
+    const { iteration, currentRound8 } = seedRound8;
+    const seedBuffer = r8_2.parseStringToBuffer(currentRound8) ?? r8_2.parseStringToBuffer("0");
+    calculator.clockRunning = true;
+    calculator.count = iteration;
+    calculator.calc.state.input1.buffer = seedBuffer;
+    calculator.calc.state.input1.binary = r8_2.createBufferDisplay(seedBuffer);
+    calculator.calc.state.input1.value = r8_2.createRoundDisplay(seedBuffer);
+    calculator.calc.state.input2.buffer = r8_2.parseStringToBuffer("1");
+    calculator.calc.state.input2.binary = r8_2.createBufferDisplay(calculator.calc.state.input2.buffer);
+    calculator.calc.state.input2.value = r8_2.createRoundDisplay(calculator.calc.state.input2.buffer);
+    calculator.calc.state.operation = "+";
+    calculator.calc.state.activeInput = "input1";
+  }
+  function hopResultToInput1(calculator) {
+    calculator.calc.state.input1.buffer = calculator.calc.state.output.buffer;
+    calculator.calc.state.input1.binary = calculator.calc.state.output.binary;
+    calculator.calc.state.input1.value = calculator.calc.state.output.value;
+  }
+  var runningClockIntervalId = null;
+  function updateHeaderClockDisplay(round8Value) {
+    const display = document.getElementById("headerClockDisplay");
+    if (display) {
+      display.textContent = round8Value || "0";
+    }
+  }
+  function runClockCalculationCycle(calculator) {
+    calculator.calc.handleCalculate();
+    calculator.count += 1;
+    hopResultToInput1(calculator);
+    updateInputDisplay(calculator, 1);
+    updateInputDisplay(calculator, 2);
+    updateOutputDisplay(calculator);
+    updateOperationDisplay(calculator);
+    updateHeaderClockDisplay(calculator.calc.state.output.value);
+  }
+  async function startRunningClockCalculation(calculator) {
+    if (runningClockIntervalId !== null) {
+      return;
+    }
+    document.querySelector(".display-section")?.classList.add("processing-active");
+    const seedData = await fetchClockSeedValue();
+    const seedRound8 = seedData?.currentRound8 ?? "0";
+    console.log(`[RunningClock] Seed fetched: ${seedRound8}`);
+    initializeClockInputs(calculator, seedData);
+    updateInputDisplay(calculator, 1);
+    updateInputDisplay(calculator, 2);
+    updateOperationDisplay(calculator);
+    updateActiveInputHighlight(calculator);
+    calculator.calc.handleCalculate();
+    updateOutputDisplay(calculator);
+    updateHeaderClockDisplay(calculator.calc.state.output.value);
+    runningClockIntervalId = setInterval(() => {
+      runClockCalculationCycle(calculator);
+    }, 333);
+    console.log("[RunningClock] Started - 333ms calculation cycle (no API polling)");
+  }
+  function stopRunningClockRetainState() {
+    if (runningClockIntervalId !== null) {
+      clearInterval(runningClockIntervalId);
+      runningClockIntervalId = null;
+      console.log("[RunningClock] Stopped - calculator state retained");
+    }
+    document.querySelector(".display-section")?.classList.remove("processing-active");
+    const header = document.getElementById("calculatorHeader");
+    const outputModeToggle = document.getElementById("outputModeToggle");
+    const outputRow = document.getElementById("outputRow");
+    if (header && header.getAttribute("data-mode") === "clock") {
+      header.setAttribute("data-mode", "calc");
+      header.setAttribute("aria-pressed", "false");
+      header.classList.remove("header-clock-mode");
+    }
+    if (outputModeToggle) {
+      outputModeToggle.setAttribute("aria-pressed", "false");
+    }
+    if (outputRow) {
+      outputRow.classList.remove("viridian");
+    }
+  }
+  async function handleHeaderModeToggle(calculator) {
+    const header = document.getElementById("calculatorHeader");
+    const outputModeToggle = document.getElementById("outputModeToggle");
+    const outputRow = document.getElementById("outputRow");
+    const calcSubtitle = document.getElementById("calcSubtitle");
+    const clockSubtitle = document.getElementById("clockSubtitle");
+    setTimeout(() => {
+      updateOutputDisplay(calculator);
+    }, 3);
+    if (!header) {
+      return;
+    }
+    const currentMode = header.getAttribute("data-mode");
+    const newMode = currentMode === "calc" ? "clock" : "calc";
+    header.setAttribute("data-mode", newMode);
+    header.setAttribute("aria-pressed", newMode === "clock" ? "true" : "false");
+    header.classList.toggle("header-clock-mode", newMode === "clock");
+    if (newMode === "clock") {
+      calcSubtitle?.classList.add("inactive");
+      clockSubtitle?.classList.remove("inactive");
+    } else {
+      calcSubtitle?.classList.remove("inactive");
+      clockSubtitle?.classList.add("inactive");
+    }
+    if (newMode === "clock") {
+      await startRunningClockCalculation(calculator);
+      if (outputModeToggle) {
+        outputModeToggle.setAttribute("aria-pressed", "true");
+      }
+      if (outputRow) {
+        outputRow.classList.add("viridian");
+      }
+    } else {
+      calculator.clockRunning = false;
+      stopRunningClockRetainState();
+    }
+    console.log(`[HeaderMode] Toggled to: ${newMode.toUpperCase()}`);
+  }
+  function updateInputDisplay(calculator, inputNumber) {
+    const inputState = inputNumber === 1 ? calculator.calc.state.input1 : calculator.calc.state.input2;
     const valueElement = document.getElementById(`input${inputNumber}Value`);
     if (valueElement) {
       valueElement.textContent = inputState.value || "";
@@ -16200,19 +16337,25 @@ var Round8Calculator = (() => {
       binaryElement.textContent = inputState.binary || "";
     }
   }
-  function updateOutputDisplay(calc) {
-    const outputState = calc.state.output;
+  function updateOutputDisplay(calculator) {
+    const outputState = calculator.calc.state.output;
+    const outputModeToggle = document.getElementById("outputModeToggle");
+    const isDecimalMode = outputModeToggle?.getAttribute("aria-pressed") === "true";
     const valueElement = document.getElementById("outputValue");
     if (valueElement) {
-      valueElement.textContent = outputState.value || "";
+      if (isDecimalMode) {
+        valueElement.textContent = calculator.count !== -1 && calculator.clockRunning ? String(calculator.count) : "In Progress";
+      } else {
+        valueElement.textContent = outputState.value || "0";
+      }
     }
     const binaryElement = document.getElementById("outputBinary");
     if (binaryElement) {
       binaryElement.textContent = outputState.binary || "";
     }
   }
-  function updateOperationDisplay(calc) {
-    const operation = calc.state.operation;
+  function updateOperationDisplay(calculator) {
+    const operation = calculator.calc.state.operation;
     const symbolElement = document.getElementById("operandSymbol");
     const buttonElement = document.getElementById("operandButton");
     const operandRow = document.getElementById("operandRow");
@@ -16253,7 +16396,7 @@ var Round8Calculator = (() => {
       operandRow.setAttribute("data-operation", operation);
     }
   }
-  function updateActiveInputHighlight(calc) {
+  function updateActiveInputHighlight(calculator) {
     document.querySelectorAll(".input-row").forEach((row) => {
       row.classList.remove("input-row-active");
       const cursor = row.querySelector(".input-cursor");
@@ -16261,7 +16404,7 @@ var Round8Calculator = (() => {
         cursor.style.opacity = "0";
       }
     });
-    const activeRow = document.querySelector(`[data-input="${calc.state.activeInput}"]`);
+    const activeRow = document.querySelector(`[data-input="${calculator.calc.state.activeInput}"]`);
     if (activeRow) {
       activeRow.classList.add("input-row-active");
       const cursor = activeRow.querySelector(".input-cursor");
@@ -16280,7 +16423,11 @@ var Round8Calculator = (() => {
     }
   }
   function initializeCalculator() {
-    const calc = r8_2.createCalculator();
+    const calculator = {
+      calc: r8_2.createCalculator(),
+      count: 0,
+      clockRunning: false
+    };
     if (typeof window !== "undefined") {
       if (!window.r8) {
         window.r8 = r8_2;
@@ -16291,7 +16438,7 @@ var Round8Calculator = (() => {
         console.warn("\u26A0\uFE0F  window.r8 already exists - skipping Round8 API exposure");
       }
       if (!window.calculator) {
-        window.calculator = calc;
+        window.calculator = calculator.calc;
         console.log("\u{1F4CA} Calculator Instance exposed to console");
         console.log("   Access via: window.calculator");
         console.log("   Example: window.calculator.state.input1.buffer");
@@ -16303,182 +16450,228 @@ var Round8Calculator = (() => {
       const button = document.querySelector(`[data-position="${i}"]`);
       if (button) {
         button.addEventListener("click", () => {
-          calc.handleDigitEntry(i);
-          const inputNum = calc.state.activeInput === "input1" ? 1 : 2;
-          updateInputDisplay(calc, inputNum);
+          calculator.calc.handleDigitEntry(i);
+          const inputNum = calculator.calc.state.activeInput === "input1" ? 1 : 2;
+          updateInputDisplay(calculator, inputNum);
+          stopRunningClockRetainState();
         });
       }
     }
     const backspaceBtn = document.getElementById("backspaceBtn");
     if (backspaceBtn) {
       backspaceBtn.addEventListener("click", () => {
-        calc.handleBackspace();
-        const inputNum = calc.state.activeInput === "input1" ? 1 : 2;
-        updateInputDisplay(calc, inputNum);
+        calculator.calc.handleBackspace();
+        const inputNum = calculator.calc.state.activeInput === "input1" ? 1 : 2;
+        updateInputDisplay(calculator, inputNum);
+        stopRunningClockRetainState();
       });
     }
     const zeroBtn = document.getElementById("zeroBtn");
     if (zeroBtn) {
       zeroBtn.addEventListener("click", () => {
-        calc.handleZero();
-        const inputNum = calc.state.activeInput === "input1" ? 1 : 2;
-        updateInputDisplay(calc, inputNum);
+        calculator.calc.handleZero();
+        const inputNum = calculator.calc.state.activeInput === "input1" ? 1 : 2;
+        updateInputDisplay(calculator, inputNum);
+        stopRunningClockRetainState();
       });
     }
     const signedBtn = document.getElementById("signedBtn");
     if (signedBtn) {
       signedBtn.addEventListener("click", () => {
-        calc.handleSigned();
-        const inputNum = calc.state.activeInput === "input1" ? 1 : 2;
-        updateInputDisplay(calc, inputNum);
+        calculator.calc.handleSigned();
+        const inputNum = calculator.calc.state.activeInput === "input1" ? 1 : 2;
+        updateInputDisplay(calculator, inputNum);
+        stopRunningClockRetainState();
       });
     }
     bindRotationButton(
       "incrementInput1Btn",
       () => {
-        calc.state.activeInput = "input1";
-        calc.handleIncrement();
+        calculator.calc.state.activeInput = "input1";
+        calculator.calc.handleIncrement();
+        stopRunningClockRetainState();
       },
-      () => updateInputDisplay(calc, 1)
+      () => updateInputDisplay(calculator, 1)
     );
     bindRotationButton(
       "decrementInput1Btn",
       () => {
-        calc.state.activeInput = "input1";
-        calc.handleDecrement();
+        calculator.calc.state.activeInput = "input1";
+        calculator.calc.handleDecrement();
+        stopRunningClockRetainState();
       },
-      () => updateInputDisplay(calc, 1)
+      () => updateInputDisplay(calculator, 1)
     );
     bindRotationButton(
       "incrementInput2Btn",
       () => {
-        calc.state.activeInput = "input2";
-        calc.handleIncrement();
+        calculator.calc.state.activeInput = "input2";
+        calculator.calc.handleIncrement();
+        stopRunningClockRetainState();
       },
-      () => updateInputDisplay(calc, 2)
+      () => updateInputDisplay(calculator, 2)
     );
     bindRotationButton(
       "decrementInput2Btn",
       () => {
-        calc.state.activeInput = "input2";
-        calc.handleDecrement();
+        calculator.calc.state.activeInput = "input2";
+        calculator.calc.handleDecrement();
+        stopRunningClockRetainState();
       },
-      () => updateInputDisplay(calc, 2)
+      () => updateInputDisplay(calculator, 2)
     );
     const addBtn = document.getElementById("addBtn");
     if (addBtn) {
       addBtn.addEventListener("click", () => {
-        calc.handleOperation("+");
-        updateOperationDisplay(calc);
+        calculator.calc.handleOperation("+");
+        updateOperationDisplay(calculator);
+        stopRunningClockRetainState();
       });
     }
     const subtractBtn = document.getElementById("subtractBtn");
     if (subtractBtn) {
       subtractBtn.addEventListener("click", () => {
-        calc.handleOperation("-");
-        updateOperationDisplay(calc);
+        calculator.calc.handleOperation("-");
+        updateOperationDisplay(calculator);
+        stopRunningClockRetainState();
       });
     }
     const greaterBtn = document.getElementById("greaterBtn");
     if (greaterBtn) {
       greaterBtn.addEventListener("click", () => {
-        calc.handleOperation(">");
-        updateOperationDisplay(calc);
+        calculator.calc.handleOperation(">");
+        updateOperationDisplay(calculator);
+        stopRunningClockRetainState();
       });
     }
     const greaterEqualBtn = document.getElementById("greaterEqualBtn");
     if (greaterEqualBtn) {
       greaterEqualBtn.addEventListener("click", () => {
-        calc.handleOperation(">=");
-        updateOperationDisplay(calc);
+        calculator.calc.handleOperation(">=");
+        updateOperationDisplay(calculator);
+        stopRunningClockRetainState();
       });
     }
     const lessBtn = document.getElementById("lessBtn");
     if (lessBtn) {
       lessBtn.addEventListener("click", () => {
-        calc.handleOperation("<");
-        updateOperationDisplay(calc);
+        calculator.calc.handleOperation("<");
+        updateOperationDisplay(calculator);
+        stopRunningClockRetainState();
       });
     }
     const lessEqualBtn = document.getElementById("lessEqualBtn");
     if (lessEqualBtn) {
       lessEqualBtn.addEventListener("click", () => {
-        calc.handleOperation("<=");
-        updateOperationDisplay(calc);
+        calculator.calc.handleOperation("<=");
+        updateOperationDisplay(calculator);
+        stopRunningClockRetainState();
       });
     }
     const equalsBtn = document.getElementById("equalsBtn");
     if (equalsBtn) {
       equalsBtn.addEventListener("click", () => {
-        calc.handleOperation("==");
-        updateOperationDisplay(calc);
+        calculator.calc.handleOperation("==");
+        updateOperationDisplay(calculator);
+        stopRunningClockRetainState();
       });
     }
     const calculateBtn = document.getElementById("calculateBtn");
     if (calculateBtn) {
       calculateBtn.addEventListener("click", () => {
-        calc.handleCalculate();
-        updateOutputDisplay(calc);
-        const outputRow = document.getElementById("outputRow");
-        if (outputRow) {
-          outputRow.classList.add("output-row-active");
+        calculator.calc.handleCalculate();
+        updateOutputDisplay(calculator);
+        const outputRow2 = document.getElementById("outputRow");
+        if (outputRow2) {
+          outputRow2.classList.add("output-row-active");
         }
+        stopRunningClockRetainState();
       });
     }
     const clearBtn = document.getElementById("clearBtn");
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
-        calc.handleClear();
-        updateInputDisplay(calc, 1);
-        updateInputDisplay(calc, 2);
-        updateOutputDisplay(calc);
-        updateOperationDisplay(calc);
-        const outputRow = document.getElementById("outputRow");
-        if (outputRow) {
-          outputRow.classList.remove("output-row-active");
+        calculator.calc.handleClear();
+        updateInputDisplay(calculator, 1);
+        updateInputDisplay(calculator, 2);
+        updateOutputDisplay(calculator);
+        updateOperationDisplay(calculator);
+        calculator.calc.state.activeInput = "input1";
+        const outputRow2 = document.getElementById("outputRow");
+        if (outputRow2) {
+          outputRow2.classList.remove("output-row-active");
         }
+        stopRunningClockRetainState();
       });
     }
     const flipBtn = document.getElementById("flipBtn");
     if (flipBtn) {
       flipBtn.addEventListener("click", () => {
-        calc.handleInputSwitch();
-        updateActiveInputHighlight(calc);
+        calculator.calc.handleInputSwitch();
+        updateActiveInputHighlight(calculator);
+        stopRunningClockRetainState();
       });
     }
     const input1Row = document.getElementById("input1Row");
     if (input1Row) {
       input1Row.addEventListener("click", () => {
-        if (calc.state.activeInput !== "input1") {
-          calc.handleInputSwitch();
-          updateActiveInputHighlight(calc);
+        if (calculator.calc.state.activeInput !== "input1") {
+          calculator.calc.handleInputSwitch();
+          updateActiveInputHighlight(calculator);
+          stopRunningClockRetainState();
         }
       });
     }
     const input2Row = document.getElementById("input2Row");
     if (input2Row) {
       input2Row.addEventListener("click", () => {
-        if (calc.state.activeInput !== "input2") {
-          calc.handleInputSwitch();
-          updateActiveInputHighlight(calc);
+        if (calculator.calc.state.activeInput !== "input2") {
+          calculator.calc.handleInputSwitch();
+          updateActiveInputHighlight(calculator);
+          stopRunningClockRetainState();
         }
       });
     }
-    updateActiveInputHighlight(calc);
-    calc.state.activeInput = "input1";
-    calc.handleZero();
-    updateInputDisplay(calc, 1);
-    calc.state.activeInput = "input2";
-    calc.handleZero();
-    updateInputDisplay(calc, 2);
-    calc.state.output.value = "0";
-    calc.state.output.buffer = 0n;
-    calc.state.output.binary = r8_2.createBufferDisplay(0n);
-    updateOutputDisplay(calc);
-    calc.state.activeInput = "input1";
-    updateActiveInputHighlight(calc);
+    updateActiveInputHighlight(calculator);
+    calculator.calc.state.activeInput = "input1";
+    calculator.calc.handleZero();
+    updateInputDisplay(calculator, 1);
+    calculator.calc.state.activeInput = "input2";
+    calculator.calc.handleZero();
+    updateInputDisplay(calculator, 2);
+    calculator.calc.state.output.value = "0";
+    calculator.calc.state.output.buffer = 0n;
+    calculator.calc.state.output.binary = r8_2.createBufferDisplay(0n);
+    updateOutputDisplay(calculator);
+    calculator.calc.state.activeInput = "input1";
+    updateActiveInputHighlight(calculator);
+    const outputModeToggle = document.getElementById("outputModeToggle");
+    const outputRow = document.getElementById("outputRow");
+    if (outputModeToggle) {
+      outputModeToggle.addEventListener("click", () => {
+        const isCurrentlyPressed = outputModeToggle.getAttribute("aria-pressed") === "true";
+        const newState = !isCurrentlyPressed;
+        outputModeToggle.setAttribute("aria-pressed", String(newState));
+        if (outputRow) {
+          outputRow.classList.toggle("viridian", newState);
+        }
+        updateOutputDisplay(calculator);
+      });
+    }
+    const calculatorHeader = document.getElementById("calculatorHeader");
+    if (calculatorHeader) {
+      calculatorHeader.addEventListener("click", async () => {
+        await handleHeaderModeToggle(calculator);
+      });
+      calculatorHeader.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          await handleHeaderModeToggle(calculator);
+        }
+      });
+    }
     console.log("Calculator UI bindings initialized");
-    console.log("Round8 Calculator v0.0.14 - Display reactivity enabled");
+    console.log("Round8 Calculator v0.0.16 - Running Clock MVP (Calculator Integrated)");
   }
   if (typeof window !== "undefined") {
     if (document.readyState === "complete" || document.readyState === "interactive") {
