@@ -1104,6 +1104,12 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+  overflow: visible;
+  flex-wrap: nowrap;
+}
+
+.header-calc-content .ghost-chomper {
+  flex-shrink: 0;
 }
 
 .header-calc-content .calculator-title {
@@ -1173,6 +1179,21 @@
 .ghost-chomper.clock-icon.inactive:hover {
   animation-play-state: unset;
   filter: unset;
+}
+
+/* Mobile Ghost Sizing - Prevent clipping on narrow screens */
+@media (max-width: 520px) {
+  .ghost-chomper.clock-icon {
+    --ghost-size: 48px;
+    transform: scaleX(0.85);
+  }
+}
+
+@media (max-width: 374px) {
+  .ghost-chomper.clock-icon {
+    --ghost-size: 36px;
+    transform: scaleX(0.8);
+  }
 }
 
 .header-clock-content {
