@@ -1124,7 +1124,7 @@
 /* Clock Display Styling */
 .header-clock-display {
   font-family: 'Orbitron', monospace;
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--color-viridian);
   text-shadow:
