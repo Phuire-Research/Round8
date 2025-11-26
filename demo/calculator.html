@@ -529,14 +529,34 @@ MTK @ PhuirE Research</p>
         <!-- Ochre Grounding Card (Desk Surface) -->
         <div class="calculator-card">
 
-        <!-- Calculator Header -->
-        <div class="calculator-header">
-            <h1 class="calculator-title">
-                <span class="text-white">Round<span class="hifi-eight">8</span></span><span class="hifi-viridian">C</span><span class="hifi-cobalt">A</span><span class="hifi-amethyst">L</span><span class="hifi-rose">C</span>
-            </h1>
-            <p class="calculator-subtitle">
-                Base-72 UnHexed Shor's Proofed Binary
-            </p>
+        <!-- Calculator Header - Toggleable CALC/CLOCK Mode -->
+        <div class="calculator-header header-toggleable"
+             id="calculatorHeader"
+             data-mode="calc"
+             role="button"
+             tabindex="0"
+             aria-label="Toggle between Calculator and Forever Clock display"
+             aria-pressed="false">
+
+            <!-- CALC Mode Content (Default) -->
+            <div class="header-content header-calc-content" id="headerCalcContent">
+                <div class="ghost-chomper clock-icon inactive"></div>
+                <h1 class="calculator-title">
+                    <span class="text-white">Round<span class="hifi-eight">8</span></span><span class="hifi-viridian">C</span><span class="hifi-cobalt">A</span><span class="hifi-amethyst">L</span><span class="hifi-rose">C</span>
+                </h1>
+            </div>
+
+            <!-- CLOCK Mode Content (Hidden by default) -->
+            <div class="header-content header-clock-content" id="headerClockContent">
+                <div class="ghost-chomper clock-icon"></div>
+                <div class="header-clock-display" id="headerClockDisplay">0</div>
+            </div>
+        </div>
+
+        <!-- Subtitle Container - Gap between Header and Display -->
+        <div class="calculator-subtitle-container">
+            <p class="calculator-subtitle" id="calcSubtitle">Base-72 UnHexed Shor's Proofed Binary</p>
+            <p class="calculator-subtitle inactive" id="clockSubtitle">Forever Clock</p>
         </div>
 
         <!-- Four-Row Integrated Display Section -->
@@ -696,9 +716,18 @@ MTK @ PhuirE Research</p>
                         <div class="digital-noise-overlay" aria-hidden="true"></div>
                     </div>
 
-                    <!-- Binary Display (Quantum-Resistant Verification) -->
-                    <div class="binary-display" id="outputBinary">
-                        <!-- JavaScript updates this with binary value -->
+                    <!-- Binary Display with Output Mode Toggle -->
+                    <div class="binary-display-wrapper">
+                        <div class="binary-display" id="outputBinary">
+                            <!-- JavaScript updates this with binary value -->
+                        </div>
+
+                        <!-- Output Mode Toggle: R8 / DEC (Minimal: 2 elements) -->
+                        <button class="output-mode-toggle" id="outputModeToggle"
+                                aria-label="Toggle output format between Round8 and Decimal"
+                                aria-pressed="false">
+                            <span class="toggle-track"></span>
+                        </button>
                     </div>
                 </div>
             </div>

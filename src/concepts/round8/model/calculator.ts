@@ -31,6 +31,7 @@ export interface CalculatorState {
   input1: InputState;
   input2: InputState;
   output: InputState;
+  decimalOutput: string;          // Decimal mode display: "In Progress" or formatted decimal
   operation: OperationType;
   activeInput: ActiveInputIdentifier;
   darkMode: boolean;
@@ -65,6 +66,7 @@ function createCalculator() {
       buffer: 0n,
       binary: ''
     },
+    decimalOutput: 'In Progress',   // Default: not from Running Clock
     operation: null,
     activeInput: 'input1',
     darkMode: true
@@ -95,6 +97,7 @@ function createCalculator() {
       inputState.binary = binary;
       inputState.value = displayValue;  // Store formatted value for display
     }
+    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
   }
 
   function handleBackspace(): void {
@@ -122,6 +125,7 @@ function createCalculator() {
       inputState.value = displayValue ? displayValue : '0';
       inputState.binary = binary ? binary : r8_.createBufferDisplay(0n);
     }
+    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
   }
 
   function handleZero(): void {
@@ -129,6 +133,7 @@ function createCalculator() {
     inputState.value = r8_.createRoundDisplay(0n);
     inputState.buffer = 0n;
     inputState.binary = r8_.createBufferDisplay(0n);
+    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
   }
 
   function handleOperation(operation: OperationType): void {
@@ -176,6 +181,7 @@ function createCalculator() {
     state.output.buffer = result;
     state.output.binary = r8_.createBufferDisplay(result);
     state.output.value = r8_.createRoundDisplay(result);
+    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
   }
 
   function handleClear(): void {
@@ -193,6 +199,7 @@ function createCalculator() {
     state.output.buffer = 0n;
     state.output.binary = r8_.createBufferDisplay(0n);
 
+    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
     state.operation = null;
     state.activeInput = 'input1';
   }
@@ -207,6 +214,7 @@ function createCalculator() {
     inputState.buffer = flipped;
     inputState.binary = r8_.createBufferDisplay(flipped);
     inputState.value = r8_.createRoundDisplay(flipped);
+    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
   }
 
   function handleIncrement(): void {
@@ -215,6 +223,7 @@ function createCalculator() {
     inputState.buffer = incremented;
     inputState.binary = r8_.createBufferDisplay(incremented);
     inputState.value = r8_.createRoundDisplay(incremented);
+    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
   }
 
   function handleDecrement(): void {
@@ -223,6 +232,7 @@ function createCalculator() {
     inputState.buffer = decremented;
     inputState.binary = r8_.createBufferDisplay(decremented);
     inputState.value = r8_.createRoundDisplay(decremented);
+    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
   }
 
   // ============================================================
