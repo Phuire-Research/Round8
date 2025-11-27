@@ -793,7 +793,6 @@ export const decimalToRound8 = (decimal: number): string => {
   const difference: number[] = [];
   const A = 8;
   let B = 1;
-  console.log(final, A, B);
   const cycle = (index = 0) => {
     range.push(A * B);
     B = range[index] + 1;
@@ -807,10 +806,8 @@ export const decimalToRound8 = (decimal: number): string => {
     }
   };
   cycle();
-  console.log(final, range, difference);
   let marquee = -1;
   const climb = (index = 0) => {
-    console.log(decimal, range[index], decimal / range[index]);
     if (decimal / range[index] > 1) {
       marquee = index;
       if (index < 21) {
@@ -819,7 +816,6 @@ export const decimalToRound8 = (decimal: number): string => {
     }
   };
   climb();
-  console.log(final, marquee);
   let rolling = decimal;
   if (marquee !== -1) {
     const roll = (index = marquee) => {
