@@ -787,6 +787,82 @@ export const parseNumberToRound8 = (num: number): bigint | undefined => {
  *
  * SCAFFOLDED: Returns dummy data - algorithm TBD
  */
+// export const decimalToRound8 = (decimal: number): string => {
+//   let final = '';
+//   const range: number[] = [];
+//   const difference: number[] = [];
+//   const A = 8;
+//   let B = 1;
+//   const cycle = (index = 0) => {
+//     range.push(A * B);
+//     B = range[index] + 1;
+//     if (range[index - 1]) {
+//       difference.push(range[index] - range[index - 1]);
+//     } else {
+//       difference.push(range[index]);
+//     }
+//     if (index < 21) {
+//       cycle(index + 1);
+//     }
+//   };
+//   cycle();
+//   let marquee = 0;
+//   const climb = (index = 0) => {
+//     if (decimal / range[index] >= 1) {
+//       marquee = index;
+//       if (index < 21) {
+//         climb(index + 1);
+//       }
+//     }
+//   };
+//   climb();
+//   let rolling = decimal;
+//   console.log('Range:', range, 'Difference:', difference);
+//   console.log('Input', decimal, rolling, 'Marquee', marquee);
+//   const roll = (index = marquee + 1) => {
+//     const tier = difference[index];
+//     const amount = Math.floor(difference[index] / rolling);
+//     const degree = difference[index] / 8;
+//     console.log('What is the Amount?: ', amount, tier, degree);
+//     if (amount > degree) {
+//       if (amount === 64) {
+//         final += '1';
+//       } else if (amount === 32) {
+//         final += '2';
+//       } else if (amount === 21) {
+//         final += '3';
+//       } else if (amount === 16) {
+//         final += '4';
+//       } else if (amount === 12) {
+//         final += '5';
+//       } else if (amount === 10) {
+//         final += '6';
+//       } else if (amount === 9) {
+//         final += '7';
+//       }
+//     } else if (amount < degree) {
+//       rolling -= tier - amount * degree;
+//       console.log(decimal, 'Greater Degree', amount, degree, rolling);
+//       final += String(Math.abs(tier - amount * degree));
+//       if (rolling !== 0 && index > 1) {
+//         roll(index - 1);
+//       } else if (rolling !== 0) {
+//         final += rolling - 1;
+//       }
+//     } else {
+//       console.log('Amount and Degree are Equal', amount, degree);
+//       final += '8';
+//     }
+//     // if (amount >= 1) {
+//     //   console.log(`Degree: ${difference[index] / 8} = ${difference[index]} / 8`);
+//     // } else if (rolling !== 0) {
+//     //   final += String(rolling);
+//     // }
+//   };
+//   roll();
+//   return final;
+// };
+
 export const decimalToRound8 = (decimal: number): string => {
   let final = '';
   const range: number[] = [];
@@ -806,33 +882,32 @@ export const decimalToRound8 = (decimal: number): string => {
     }
   };
   cycle();
-  let marquee = -1;
-  const climb = (index = 0) => {
-    if (decimal / range[index] > 1) {
-      marquee = index;
-      if (index < 21) {
-        climb(index + 1);
-      }
+  let rolling = decimal;
+  const roll = (index = 0) => {
+    console.log('Rolling', rolling);
+    const tier = difference[index]; // 8
+    console.log('Tier', tier);
+    const degree = Math.floor(tier / 8); // 1
+    console.log('Degree', degree);
+    let division = Math.floor(rolling / degree);
+    const overflow = division > 8; //
+    if (overflow) {
+      const mod = rolling % 8;
+      division = mod === 0 ? 8 : mod;
+    }
+    console.log('Divisible', division);
+    const rotation = (degree * division);
+    console.log('Rotation', rotation);
+    rolling -= (rotation);
+    console.log('Next Rolling', rolling);
+    console.log('Track Decimal', decimal);
+    final = division + final;
+    if (rolling > 0) {
+      console.log('Rotate', final);
+      roll(index + 1);
     }
   };
-  climb();
-  let rolling = decimal;
-  if (marquee !== -1) {
-    const roll = (index = marquee) => {
-      const divided = Math.floor(rolling / range[index]);
-      if (divided > 1) {
-        rolling -= difference[index] * divided;
-        final += String(divided);
-        if (index > 0) {
-          roll(index - 1);
-        } else {
-          final += rolling;
-        }
-      }
-    };
-    roll();
-  }
-  // Dummy implementation - returns placeholder to indicate not implemented
+  roll();
   return final;
 };
 

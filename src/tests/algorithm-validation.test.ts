@@ -15,7 +15,12 @@
  * Reference: /reference/Round8_Forever_Clock/Cascades/PHASE-3-ALGORITHM-VALIDATION-WORKGAMEBOARD.md
  */
 
-import { decimalToRound8, round8ToDecimal } from '../concepts/round8/model/conference';
+import {
+  decimalToRound8,
+  round8ToDecimal,
+  parseStringToRound8,
+  createFormattedRound8BinaryString
+} from '../concepts/round8/model/conference';
 
 /**
  * Minimal fetch types for Node 18+ / Browser agnostic usage
@@ -79,147 +84,247 @@ interface LookupResponse {
  */
 const API_BASE_URL = process.env.ROUND8_API_URL || 'https://api.unhex.dev';
 
-// /**
-//  * Known formattedBinary values for testing
-//  * Format: 21 positions (3-bit each) pipe-separated + sign suffix
-//  */
-// const FORMATTED_BINARY = {
-//   // Round8 "1" = decimal 1: Position 1: 000, Position 2: 001 (Marquee)
-//   ONE: [
-//     '000 | 000 | 000 | 000 | 000 | 000 | 000',
-//     '000 | 000 | 000 | 000 | 000 | 000 | 000',
-//     '000 | 000 | 000 | 000 | 001 | 000 | 1 S'
-//   ].join(' | '),
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * RANDOM ROUND8 STRING GENERATOR (Construction)
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * String-based generator for bijective validation testing.
+ * Uses Round8 string comparison - NO decimal conversion (avoids circular logic).
+ *
+ * Key Insight: JavaScript lexicographic comparison works for Round8 because:
+ * - Round8 uses digits 1-8 only (Unicode 49-56, sequential)
+ * - Same-length strings: lexicographic = numeric order ("18" < "81")
+ * - Different-length strings: shorter = smaller in Round8 counting
+ *
+ * Reference: https://javascript.info/comparison
+ */
 
-//   // Round8 "8" = decimal 8: Position 1: 111, Position 2: 001 (Marquee)
-//   EIGHT: [
-//     '000 | 000 | 000 | 000 | 000 | 000 | 000',
-//     '000 | 000 | 000 | 000 | 000 | 000 | 000',
-//     '000 | 000 | 000 | 000 | 001 | 111 | 1 S'
-//   ].join(' | '),
+/**
+ * isRound8LessOrEqual - Compare two Round8 strings without decimal conversion
+ *
+ * For Round8 (digits 1-8, no zeros):
+ * - Shorter string is always smaller value
+ * - Same length: lexicographic comparison is valid
+ *
+ * CRITICAL: Both strings must be same format (both formatted OR both unformatted)
+ */
+const isRound8LessOrEqual = (a: string, b: string): boolean => {
+  // Remove commas for length comparison (normalize to unformatted)
+  const aNorm = a.replace(/,/g, '');
+  const bNorm = b.replace(/,/g, '');
 
-//   // Round8 "11" = decimal 9: Pos1: 000, Pos2: 000, Pos3: 001 (Marquee)
-//   ELEVEN: [
-//     '000 | 000 | 000 | 000 | 000 | 000 | 000',
-//     '000 | 000 | 000 | 000 | 000 | 000 | 000',
-//     '000 | 000 | 000 | 001 | 000 | 000 | 1 S'
-//   ].join(' | '),
+  if (aNorm.length !== bNorm.length) {
+    return aNorm.length < bNorm.length;  // Shorter = smaller in Round8
+  }
+  return aNorm <= bNorm;  // Same length: lexicographic works for 1-8
+};
 
-//   // Round8 "711842" = decimal 234530
-//   SAMPLE_LARGE: [
-//     '000 | 000 | 000 | 000 | 000 | 000 | 000',
-//     '000 | 000 | 000 | 000 | 000 | 000 | 000',
-//     '001 | 110 | 000 | 000 | 111 | 011 | 001 | 1 S'
-//   ].join(' | ')
-// };
+/**
+ * formatWithCommas - Format raw Round8 string with columnar commas
+ *
+ * Input:  "88881" (raw digits)
+ * Output: "8,88,81" (columnar format)
+ *
+ * Columnar grouping: pairs from right, odd digit at left
+ */
+const formatWithCommas = (raw: string): string => {
+  if (raw.length <= 2) {
+    return raw;
+  }
 
-// /**
-//  * ═══════════════════════════════════════════════════════════════════════════
-//  * PHASE 1: ENDPOINT CONNECTIVITY
-//  * ═══════════════════════════════════════════════════════════════════════════
-//  *
-//  * Validate Forever Clock endpoints are accessible before testing algorithm
-//  */
+  const isOdd = raw.length % 2 === 1;
+  const columns: string[] = [];
+  let startIndex = 0;
 
-// describe('Phase 1: Endpoint Connectivity', () => {
-//   /**
-//    * Test Suite 1: /count Endpoint
-//    *
-//    * Validates Forever Clock is running and returning iteration data
-//    */
-//   describe('Test Suite 1: /count Endpoint Connectivity', () => {
-//     test('1.1: GET /count returns valid iteration data', async () => {
-//       const { ok, data } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
-//       expect(ok).toBe(true);
+  if (isOdd) {
+    columns.push(raw[0]);
+    startIndex = 1;
+  }
 
-//       expect(data.iteration).toBeDefined();
-//       expect(typeof data.iteration).toBe('number');
-//       expect(data.iteration).toBeGreaterThan(0);
+  for (let i = startIndex; i < raw.length; i += 2) {
+    columns.push(raw.slice(i, i + 2));
+  }
 
-//       console.log('[Connectivity] /count iteration:', data.iteration);
-//       console.log('[Connectivity] /count currentRound8:', data.currentRound8);
-//     });
+  return columns.join(',');
+};
 
-//     test('1.2: /count iteration provides testable range', async () => {
-//       const { data } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
+/**
+ * generateRandomRound8String - Generate valid Round8 string within max range
+ *
+ * Algorithm (NO decimal conversion - uses string comparison):
+ * 1. Get maxRound8 string length
+ * 2. Generate random length (1 to maxLength)
+ * 3. If shorter than max: any digits 1-8 are valid
+ * 4. If same length as max: ensure lexicographically <= max
+ * 5. Validate using Round8 string comparison
+ *
+ * @param maxRound8 - Current Round8 from API (unformatted, e.g., "88881")
+ * @returns Raw Round8 string (unformatted)
+ */
+const generateRandomRound8String = (maxRound8: string): string => {
+  const maxNorm = maxRound8.replace(/,/g, '');  // Normalize to unformatted
+  const maxLength = maxNorm.length;
 
-//       // Need at least some iterations to test
-//       expect(data.iteration).toBeGreaterThanOrEqual(1);
+  // Generate random length (1 to maxLength)
+  const length = Math.floor(Math.random() * maxLength) + 1;
 
-//       console.log('[Connectivity] Testable range: [1, ' + data.iteration + ']');
-//     });
-//   });
+  // Generate random digits 1-8 for each position
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    const digit = Math.floor(Math.random() * 8) + 1; // 1-8
+    result += String(digit);
+  }
 
-//   /**
-//    * Test Suite 2: /lookup Endpoint
-//    *
-//    * Validates lookup endpoint is accessible and properly configured
-//    */
-//   describe('Test Suite 2: /lookup Endpoint Connectivity', () => {
-//     test('2.1: GET /lookup without binary param returns 400', async () => {
-//       const { status, data } = await httpGet<LookupResponse>(`${API_BASE_URL}/lookup`);
+  // Validate using Round8 string comparison (not decimal)
+  if (!isRound8LessOrEqual(result, maxNorm)) {
+    return generateRandomRound8String(maxRound8); // Retry
+  }
 
-//       // Should return 400 for missing parameter
-//       expect(status).toBe(400);
-//       expect(data.found).toBe(false);
-//       expect(data.error).toBeDefined();
+  return result;
+};
 
-//       console.log('[Connectivity] /lookup error response:', data.error);
-//     });
+/**
+ * Known formattedBinary values for testing
+ * Format: 21 positions (3-bit each) pipe-separated + sign suffix
+ */
+const FORMATTED_BINARY = {
+  // Round8 "1" = decimal 1: Position 1: 000, Position 2: 001 (Marquee)
+  ONE: [
+    '000 | 000 | 000 | 000 | 000 | 000 | 000',
+    '000 | 000 | 000 | 000 | 000 | 000 | 000',
+    '000 | 000 | 000 | 000 | 001 | 000 | 1 S'
+  ].join(' | '),
 
-//     test('2.2: GET /lookup with invalid binary returns not found', async () => {
-//       const url = `${API_BASE_URL}/lookup?binary=INVALID_BINARY_VALUE`;
-//       const { ok, data } = await httpGet<LookupResponse>(url);
+  // Round8 "8" = decimal 8: Position 1: 111, Position 2: 001 (Marquee)
+  EIGHT: [
+    '000 | 000 | 000 | 000 | 000 | 000 | 000',
+    '000 | 000 | 000 | 000 | 000 | 000 | 000',
+    '000 | 000 | 000 | 000 | 001 | 111 | 1 S'
+  ].join(' | '),
 
-//       expect(ok).toBe(true);
-//       expect(data.found).toBe(false);
+  // Round8 "11" = decimal 9: Pos1: 000, Pos2: 000, Pos3: 001 (Marquee)
+  ELEVEN: [
+    '000 | 000 | 000 | 000 | 000 | 000 | 000',
+    '000 | 000 | 000 | 000 | 000 | 000 | 000',
+    '000 | 000 | 000 | 001 | 000 | 000 | 1 S'
+  ].join(' | '),
 
-//       console.log('[Connectivity] /lookup not found response:', data.message);
-//     });
+  // Round8 "711842" = decimal 234530
+  SAMPLE_LARGE: [
+    '000 | 000 | 000 | 000 | 000 | 000 | 000',
+    '000 | 000 | 000 | 000 | 000 | 000 | 000',
+    '001 | 110 | 000 | 000 | 111 | 011 | 001 | 1 S'
+  ].join(' | ')
+};
 
-//     test('2.3: GET /lookup with first iteration binary returns found', async () => {
-//       // Round8 "1" = decimal 1
-//       const url = `${API_BASE_URL}/lookup?binary=${encodeURIComponent(FORMATTED_BINARY.ONE)}`;
-//       const { ok, data } = await httpGet<LookupResponse>(url);
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PHASE 1: ENDPOINT CONNECTIVITY
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Validate Forever Clock endpoints are accessible before testing algorithm
+ */
 
-//       expect(ok).toBe(true);
+describe('Phase 1: Endpoint Connectivity', () => {
+  /**
+   * Test Suite 1: /count Endpoint
+   *
+   * Validates Forever Clock is running and returning iteration data
+   */
+  describe('Test Suite 1: /count Endpoint Connectivity', () => {
+    test('1.1: GET /count returns valid iteration data', async () => {
+      const { ok, data } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
+      expect(ok).toBe(true);
 
-//       if (data.found) {
-//         expect(data.entry).toBeDefined();
-//         expect(data.entry?.decimalPairing).toBe(1);
-//         expect(data.entry?.stringOutput).toBe('1');
-//         console.log('[Connectivity] First iteration found:', data.entry?.formattedString);
-//         console.log('[Connectivity] formattedBinary format confirmed');
-//       } else {
-//         console.log('[Connectivity] First iteration not yet counted');
-//       }
-//     });
+      expect(data.iteration).toBeDefined();
+      expect(typeof data.iteration).toBe('number');
+      expect(data.iteration).toBeGreaterThan(0);
 
-//     test('2.4: GET /lookup with iteration 8 (Round8 "8") returns found', async () => {
-//       // Round8 "8" = decimal 8
-//       const url = `${API_BASE_URL}/lookup?binary=${encodeURIComponent(FORMATTED_BINARY.EIGHT)}`;
-//       const { data } = await httpGet<LookupResponse>(url);
+      console.log('[Connectivity] /count iteration:', data.iteration);
+      console.log('[Connectivity] /count currentRound8:', data.currentRound8);
+    });
 
-//       if (data.found) {
-//         expect(data.entry?.decimalPairing).toBe(8);
-//         expect(data.entry?.stringOutput).toBe('8');
-//         console.log('[Connectivity] Iteration 8 verified: decimal=8, Round8="8"');
-//       }
-//     });
+    test('1.2: /count iteration provides testable range', async () => {
+      const { data } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
 
-//     test('2.5: GET /lookup with iteration 9 (Round8 "11") returns found', async () => {
-//       // Round8 "11" = decimal 9 (first 2-digit number)
-//       const url = `${API_BASE_URL}/lookup?binary=${encodeURIComponent(FORMATTED_BINARY.ELEVEN)}`;
-//       const { data } = await httpGet<LookupResponse>(url);
+      // Need at least some iterations to test
+      expect(data.iteration).toBeGreaterThanOrEqual(1);
 
-//       if (data.found) {
-//         expect(data.entry?.decimalPairing).toBe(9);
-//         expect(data.entry?.stringOutput).toBe('11');
-//         console.log('[Connectivity] Iteration 9 verified: decimal=9, Round8="11"');
-//       }
-//     });
-//   });
-// });
+      console.log('[Connectivity] Testable range: [1, ' + data.iteration + ']');
+    });
+  });
+
+  /**
+   * Test Suite 2: /lookup Endpoint
+   *
+   * Validates lookup endpoint is accessible and properly configured
+   */
+  describe('Test Suite 2: /lookup Endpoint Connectivity', () => {
+    test('2.1: GET /lookup without binary param returns 400', async () => {
+      const { status, data } = await httpGet<LookupResponse>(`${API_BASE_URL}/lookup`);
+
+      // Should return 400 for missing parameter
+      expect(status).toBe(400);
+      expect(data.found).toBe(false);
+      expect(data.error).toBeDefined();
+
+      console.log('[Connectivity] /lookup error response:', data.error);
+    });
+
+    test('2.2: GET /lookup with invalid binary returns not found', async () => {
+      const url = `${API_BASE_URL}/lookup?binary=INVALID_BINARY_VALUE`;
+      const { ok, data } = await httpGet<LookupResponse>(url);
+
+      expect(ok).toBe(true);
+      expect(data.found).toBe(false);
+
+      console.log('[Connectivity] /lookup not found response:', data.message);
+    });
+
+    test('2.3: GET /lookup with first iteration binary returns found', async () => {
+      // Round8 "1" = decimal 1
+      const url = `${API_BASE_URL}/lookup?binary=${encodeURIComponent(FORMATTED_BINARY.ONE)}`;
+      const { ok, data } = await httpGet<LookupResponse>(url);
+
+      expect(ok).toBe(true);
+
+      if (data.found) {
+        expect(data.entry).toBeDefined();
+        expect(data.entry?.decimalPairing).toBe(1);
+        expect(data.entry?.stringOutput).toBe('1');
+        console.log('[Connectivity] First iteration found:', data.entry?.formattedString);
+        console.log('[Connectivity] formattedBinary format confirmed');
+      } else {
+        console.log('[Connectivity] First iteration not yet counted');
+      }
+    });
+
+    test('2.4: GET /lookup with iteration 8 (Round8 "8") returns found', async () => {
+      // Round8 "8" = decimal 8
+      const url = `${API_BASE_URL}/lookup?binary=${encodeURIComponent(FORMATTED_BINARY.EIGHT)}`;
+      const { data } = await httpGet<LookupResponse>(url);
+
+      if (data.found) {
+        expect(data.entry?.decimalPairing).toBe(8);
+        expect(data.entry?.stringOutput).toBe('8');
+        console.log('[Connectivity] Iteration 8 verified: decimal=8, Round8="8"');
+      }
+    });
+
+    test('2.5: GET /lookup with iteration 9 (Round8 "11") returns found', async () => {
+      // Round8 "11" = decimal 9 (first 2-digit number)
+      const url = `${API_BASE_URL}/lookup?binary=${encodeURIComponent(FORMATTED_BINARY.ELEVEN)}`;
+      const { data } = await httpGet<LookupResponse>(url);
+
+      if (data.found) {
+        expect(data.entry?.decimalPairing).toBe(9);
+        expect(data.entry?.stringOutput).toBe('11');
+        console.log('[Connectivity] Iteration 9 verified: decimal=9, Round8="11"');
+      }
+    });
+  });
+});
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -276,238 +381,360 @@ describe('Phase 2: Scaffolded Function Validation', () => {
   });
 });
 
-// /**
-//  * ═══════════════════════════════════════════════════════════════════════════
-//  * PHASE 3: ALGORITHM VALIDATION (BIJECTIVE MAPPING)
-//  * ═══════════════════════════════════════════════════════════════════════════
-//  *
-//  * Core validation: Prove decimalToRound8 and round8ToDecimal are bijective
-//  * These tests will PASS once algorithm internals are implemented
-//  */
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PHASE 3: CONCEPTION VALIDATION (Full Model Pipeline)
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Construction → Conception Validation:
+ * - Construction: Random Round8 string generator (string comparison, no decimal)
+ * - Conception: Full model pipeline (parseStringToRound8 → buffer → formattedBinary → API lookup)
+ *
+ * This proves the model files work correctly without circular decimal logic.
+ */
 
-// describe('Phase 3: Algorithm Validation - Bijective Mapping', () => {
-//   /**
-//    * Test Suite 5: Forward Mapping (Decimal → Round8 → Lookup)
-//    *
-//    * Flow: decimal → decimalToRound8() → formattedBinary → /lookup → verify
-//    */
-//   describe('Test Suite 5: Forward Mapping Validation', () => {
-//     test('5.1: Validate decimal 1 maps correctly', async () => {
-//       const decimal = 1;
+describe('Phase 3: Conception Validation - Full Model Pipeline', () => {
+  /**
+   * Test Suite 5: Construction → Conception Pipeline
+   *
+   * Flow: Random Round8 String → parseStringToRound8 → buffer → formattedBinary → /lookup → verify
+   */
+  describe('Test Suite 5: Construction to Conception Pipeline', () => {
+    test('5.1: Single random Round8 validates through full pipeline', async () => {
+      // Step 1: Get current Round8 from API (max testable value)
+      const { data: countData } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
+      const currentRound8 = countData.currentRound8;
+      console.log(`[Pipeline] Max Round8: ${currentRound8}`);
 
-//       // Step 1: Convert decimal to Round8
-//       const round8String = decimalToRound8(decimal);
-//       console.log(`[Forward] Decimal ${decimal} → Round8: ${round8String}`);
+      // Step 2: Generate random Round8 string (Construction - string comparison only)
+      const rawRound8 = generateRandomRound8String(currentRound8);
+      const formattedRound8 = formatWithCommas(rawRound8);
+      console.log(`[Pipeline] Generated: raw="${rawRound8}", formatted="${formattedRound8}"`);
 
-//       // Skip validation if scaffolded
-//       if (round8String.includes('SCAFFOLDED')) {
-//         console.log('[Forward] SKIPPED: Algorithm not yet implemented');
-//         return;
-//       }
+      // Step 3: Convert to BigInt buffer via parseStringToRound8 (Conception)
+      const buffer = parseStringToRound8(formattedRound8);
+      expect(buffer).toBeDefined();
+      if (buffer === undefined) {
+        throw new Error(`parseStringToRound8 failed for: ${formattedRound8}`);
+      }
+      console.log(`[Pipeline] Buffer: ${buffer.toString()}`);
 
-//       // Step 2: Convert Round8 to formattedBinary (requires implementation)
-//       // For now, we'd need the round8ToBinary function
-//       // This test will be completed when algorithm is implemented
+      // Step 4: Convert buffer to formattedBinary (Conception)
+      const formattedBinary = createFormattedRound8BinaryString(buffer);
+      console.log(`[Pipeline] FormattedBinary: ${formattedBinary}`);
 
-//       console.log('[Forward] Algorithm implementation required for full validation');
-//     });
+      // Step 5: Lookup via API
+      const lookupUrl = `${API_BASE_URL}/lookup?binary=${encodeURIComponent(formattedBinary)}`;
+      const { data: lookupData } = await httpGet<LookupResponse>(lookupUrl);
 
-//     test('5.2: Random decimal validation against Forever Clock', async () => {
-//       // Step 1: Get current iteration (max testable range)
-//       const { data: countData } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
-//       const maxIteration = countData.iteration;
+      // Step 6: Validate - API's stringOutput should match our generated string
+      if (lookupData.found && lookupData.entry) {
+        const apiRound8 = lookupData.entry.stringOutput;
+        console.log(`[Pipeline] API returned: "${apiRound8}", decimal=${lookupData.entry.decimalPairing}`);
 
-//       // Step 2: Generate random decimal in range
-//       const randomDecimal = Math.floor(Math.random() * maxIteration) + 1;
-//       console.log(`[Forward] Testing random decimal: ${randomDecimal} (max: ${maxIteration})`);
+        // Compare unformatted strings (both should match)
+        expect(apiRound8).toBe(rawRound8);
+        console.log('[Pipeline] ✓ Construction → Conception pipeline validated');
+      } else {
+        console.log('[Pipeline] Entry not yet in Forever Clock (value too new)');
+      }
+    });
 
-//       // Step 3: Convert decimal to Round8
-//       const round8String = decimalToRound8(randomDecimal);
-//       console.log(`[Forward] Decimal ${randomDecimal} → Round8: ${round8String}`);
+    test('5.2: Known value "1" validates through pipeline', async () => {
+      const rawRound8 = '1';
+      const formattedRound8 = '1';
 
-//       // Skip validation if scaffolded
-//       if (round8String.includes('SCAFFOLDED')) {
-//         console.log('[Forward] SKIPPED: Algorithm not yet implemented');
-//         return;
-//       }
+      // Conception pipeline
+      const buffer = parseStringToRound8(formattedRound8);
+      expect(buffer).toBeDefined();
+      if (buffer === undefined) {
+        throw new Error('parseStringToRound8 failed');
+      }
 
-//       // Step 4: Would need round8ToBinary to complete
-//       // Step 5: Would call /lookup with formattedBinary
-//       // Step 6: Would assert entry.decimalPairing === randomDecimal
+      const formattedBinary = createFormattedRound8BinaryString(buffer);
+      console.log(`[Pipeline] "1" → formattedBinary: ${formattedBinary}`);
 
-//       console.log('[Forward] Algorithm implementation required for full validation');
-//     });
-//   });
+      // Lookup and validate
+      const { data } = await httpGet<LookupResponse>(
+        `${API_BASE_URL}/lookup?binary=${encodeURIComponent(formattedBinary)}`
+      );
 
-//   /**
-//    * Test Suite 6: Reverse Mapping (Lookup → Round8 → Decimal)
-//    *
-//    * Flow: /lookup (known entry) → round8ToDecimal() → verify === decimalPairing
-//    */
-//   describe('Test Suite 6: Reverse Mapping Validation', () => {
-//     test('6.1: Validate lookup entry maps back to decimal (iteration 1)', async () => {
-//       // Fetch iteration 1 from Forever Clock
-//       const url = `${API_BASE_URL}/lookup?binary=${encodeURIComponent(FORMATTED_BINARY.ONE)}`;
-//       const { data } = await httpGet<LookupResponse>(url);
+      if (data.found && data.entry) {
+        expect(data.entry.stringOutput).toBe(rawRound8);
+        expect(data.entry.decimalPairing).toBe(1);
+        console.log('[Pipeline] ✓ Known value "1" validated');
+      }
+    });
 
-//       if (!data.found || !data.entry) {
-//         console.log('[Reverse] SKIPPED: Entry not found in database');
-//         return;
-//       }
+    test('5.3: Known value "8" validates through pipeline', async () => {
+      const rawRound8 = '8';
 
-//       const entry = data.entry;
-//       console.log(`[Reverse] Lookup: Round8="${entry.stringOutput}", decimal=${entry.decimalPairing}`);
+      const buffer = parseStringToRound8(rawRound8);
+      expect(buffer).toBeDefined();
+      if (buffer === undefined) {
+        throw new Error('parseStringToRound8 failed');
+      }
 
-//       // Convert Round8 back to decimal using stringOutput (unformatted)
-//       const computedDecimal = round8ToDecimal(entry.stringOutput);
-//       console.log(`[Reverse] round8ToDecimal("${entry.stringOutput}") = ${computedDecimal}`);
+      const formattedBinary = createFormattedRound8BinaryString(buffer);
+      console.log(`[Pipeline] "8" → formattedBinary: ${formattedBinary}`);
 
-//       // Skip validation if scaffolded
-//       if (computedDecimal === -1) {
-//         console.log('[Reverse] SKIPPED: Algorithm not yet implemented');
-//         return;
-//       }
+      const { data } = await httpGet<LookupResponse>(
+        `${API_BASE_URL}/lookup?binary=${encodeURIComponent(formattedBinary)}`
+      );
 
-//       // Validate 1-to-1 mapping
-//       expect(computedDecimal).toBe(entry.decimalPairing);
-//       console.log('[Reverse] ✓ 1-to-1 mapping verified');
-//     });
+      if (data.found && data.entry) {
+        expect(data.entry.stringOutput).toBe(rawRound8);
+        expect(data.entry.decimalPairing).toBe(8);
+        console.log('[Pipeline] ✓ Known value "8" validated');
+      }
+    });
 
-//     test('6.2: Validate lookup entry maps back to decimal (iteration 234530)', async () => {
-//       // Fetch a larger iteration to test multi-digit conversion
-//       const url = `${API_BASE_URL}/lookup?binary=${encodeURIComponent(FORMATTED_BINARY.SAMPLE_LARGE)}`;
-//       const { data } = await httpGet<LookupResponse>(url);
+    test('5.4: Known value "11" (decimal 9) validates through pipeline', async () => {
+      const rawRound8 = '11';
 
-//       if (!data.found || !data.entry) {
-//         console.log('[Reverse] SKIPPED: Entry not found in database');
-//         return;
-//       }
+      const buffer = parseStringToRound8(rawRound8);
+      expect(buffer).toBeDefined();
+      if (buffer === undefined) {
+        throw new Error('parseStringToRound8 failed');
+      }
 
-//       const entry = data.entry;
-//       expect(entry.stringOutput).toBe('711842');
-//       expect(entry.decimalPairing).toBe(234530);
-//       console.log(`[Reverse] Lookup: Round8="${entry.stringOutput}", decimal=${entry.decimalPairing}`);
+      const formattedBinary = createFormattedRound8BinaryString(buffer);
+      console.log(`[Pipeline] "11" → formattedBinary: ${formattedBinary}`);
 
-//       // Convert Round8 back to decimal
-//       const computedDecimal = round8ToDecimal(entry.stringOutput);
-//       console.log(`[Reverse] round8ToDecimal("${entry.stringOutput}") = ${computedDecimal}`);
+      const { data } = await httpGet<LookupResponse>(
+        `${API_BASE_URL}/lookup?binary=${encodeURIComponent(formattedBinary)}`
+      );
 
-//       // Skip validation if scaffolded
-//       if (computedDecimal === -1) {
-//         console.log('[Reverse] SKIPPED: Algorithm not yet implemented');
-//         return;
-//       }
+      if (data.found && data.entry) {
+        expect(data.entry.stringOutput).toBe(rawRound8);
+        expect(data.entry.decimalPairing).toBe(9);
+        console.log('[Pipeline] ✓ Known value "11" (decimal 9) validated');
+      }
+    });
+  });
 
-//       // Validate 1-to-1 mapping
-//       expect(computedDecimal).toBe(234530);
-//       console.log('[Reverse] ✓ 1-to-1 mapping verified for 6-digit Round8');
-//     });
-//   });
+  /**
+   * Test Suite 6: Decimal Conversion Validation (uses API as ground truth)
+   *
+   * Flow: API lookup → decimalPairing → decimalToRound8 → compare with stringOutput
+   */
+  describe('Test Suite 6: Decimal Conversion Against Ground Truth', () => {
+    test('6.1: decimalToRound8 matches API stringOutput for iteration 1', async () => {
+      const { data } = await httpGet<LookupResponse>(
+        `${API_BASE_URL}/lookup?binary=${encodeURIComponent(FORMATTED_BINARY.ONE)}`
+      );
 
-//   /**
-//    * Test Suite 7: Round-Trip Validation
-//    *
-//    * Flow: decimal → decimalToRound8 → round8ToDecimal → verify === original
-//    */
-//   describe('Test Suite 7: Round-Trip Validation', () => {
-//     test('7.1: Round-trip validation for small values', () => {
-//       const testDecimals = [1, 2, 3, 8, 9, 64, 72, 73];
+      if (data.found && data.entry) {
+        const apiDecimal = data.entry.decimalPairing;
+        const apiRound8 = data.entry.stringOutput;
 
-//       testDecimals.forEach(decimal => {
-//         const round8 = decimalToRound8(decimal);
+        const computedRound8 = decimalToRound8(apiDecimal);
+        console.log(`[Decimal] API: decimal=${apiDecimal}, round8="${apiRound8}"`);
+        console.log(`[Decimal] Computed: decimalToRound8(${apiDecimal}) = "${computedRound8}"`);
 
-//         // Skip if scaffolded
-//         if (round8.includes('SCAFFOLDED')) {
-//           console.log(`[RoundTrip] SKIPPED decimal ${decimal}: Algorithm not implemented`);
-//           return;
-//         }
+        expect(computedRound8).toBe(apiRound8);
+        console.log('[Decimal] ✓ decimalToRound8 matches ground truth');
+      }
+    });
 
-//         const backToDecimal = round8ToDecimal(round8);
+    test('6.2: round8ToDecimal matches API decimalPairing for iteration 1', async () => {
+      const { data } = await httpGet<LookupResponse>(
+        `${API_BASE_URL}/lookup?binary=${encodeURIComponent(FORMATTED_BINARY.ONE)}`
+      );
 
-//         console.log(`[RoundTrip] ${decimal} → ${round8} → ${backToDecimal}`);
+      if (data.found && data.entry) {
+        const apiDecimal = data.entry.decimalPairing;
+        const apiRound8 = data.entry.stringOutput;
 
-//         expect(backToDecimal).toBe(decimal);
-//       });
-//     });
+        const computedDecimal = round8ToDecimal(formatWithCommas(apiRound8));
+        console.log(`[Decimal] API: round8="${apiRound8}", decimal=${apiDecimal}`);
+        console.log(`[Decimal] Computed: round8ToDecimal("${apiRound8}") = ${computedDecimal}`);
 
-//     test('7.2: Round-trip validation for boundary values', () => {
-//       // Base-72 boundaries
-//       const boundaryDecimals = [
-//         72,           // First column overflow
-//         72 * 72,      // Second column overflow
-//         72 * 72 * 72  // Third column overflow
-//       ];
+        expect(computedDecimal).toBe(apiDecimal);
+        console.log('[Decimal] ✓ round8ToDecimal matches ground truth');
+      }
+    });
+  });
+});
 
-//       boundaryDecimals.forEach(decimal => {
-//         const round8 = decimalToRound8(decimal);
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PHASE 4: 8-SAMPLE STATISTICAL VALIDATION
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Run 8 random samples per test (corresponds to Round8 base symbol count 1-8)
+ * Uses Construction → Conception flow with API ground truth validation
+ */
 
-//         if (round8.includes('SCAFFOLDED')) {
-//           console.log(`[RoundTrip] SKIPPED boundary ${decimal}: Algorithm not implemented`);
-//           return;
-//         }
+describe('Phase 4: 8-Sample Statistical Validation', () => {
+  /**
+   * Test Suite 7: 8-Sample Random Pipeline Validation
+   *
+   * Generates 8 random Round8 strings and validates each through full Conception pipeline
+   */
+  describe('Test Suite 7: 8-Sample Random Pipeline Validation', () => {
+    test('7.1: 8 random Round8 strings validate through Conception pipeline', async () => {
+      const SAMPLE_COUNT = 8;  // Corresponds to Round8 base (1-8)
 
-//         const backToDecimal = round8ToDecimal(round8);
+      // Get current Round8 from API (max testable value)
+      const { data: countData } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
+      const currentRound8 = countData.currentRound8;
+      const maxIteration = countData.iteration;
 
-//         console.log(`[RoundTrip] Boundary: ${decimal} → ${round8} → ${backToDecimal}`);
+      console.log(`[8-Sample] Max Round8: ${currentRound8}, iteration: ${maxIteration}`);
+      console.log(`[8-Sample] Running ${SAMPLE_COUNT} samples...`);
 
-//         expect(backToDecimal).toBe(decimal);
-//       });
-//     });
-//   });
-// });
+      let passCount = 0;
+      let notFoundCount = 0;
+      let failCount = 0;
 
-// /**
-//  * ═══════════════════════════════════════════════════════════════════════════
-//  * PHASE 4: STATISTICAL VALIDATION
-//  * ═══════════════════════════════════════════════════════════════════════════
-//  *
-//  * Run multiple random samples to build confidence in bijective mapping
-//  */
+      for (let i = 0; i < SAMPLE_COUNT; i++) {
+        // Construction: Generate random Round8 string (string comparison only)
+        const rawRound8 = generateRandomRound8String(currentRound8);
+        const formattedRound8 = formatWithCommas(rawRound8);
 
-// describe('Phase 4: Statistical Validation', () => {
-//   /**
-//    * Test Suite 8: Batch Random Validation
-//    */
-//   describe('Test Suite 8: Batch Random Validation', () => {
-//     test('8.1: Validate N random samples against Forever Clock', async () => {
-//       const SAMPLE_COUNT = 10;
+        // Conception: Full pipeline
+        const buffer = parseStringToRound8(formattedRound8);
+        if (buffer === undefined) {
+          failCount++;
+          console.log(`[8-Sample] FAIL #${i + 1}: parseStringToRound8 failed for "${formattedRound8}"`);
+          continue;
+        }
 
-//       // Get max iteration
-//       const { data: countData } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
-//       const maxIteration = countData.iteration;
+        const formattedBinary = createFormattedRound8BinaryString(buffer);
 
-//       console.log(`[Statistical] Running ${SAMPLE_COUNT} samples (max: ${maxIteration})`);
+        // API Lookup
+        const { data } = await httpGet<LookupResponse>(
+          `${API_BASE_URL}/lookup?binary=${encodeURIComponent(formattedBinary)}`
+        );
 
-//       let passCount = 0;
-//       let skipCount = 0;
-//       let failCount = 0;
+        if (data.found && data.entry) {
+          // Validate: API's stringOutput should match our generated string
+          if (data.entry.stringOutput === rawRound8) {
+            passCount++;
+            console.log(`[8-Sample] ✓ #${i + 1}: "${rawRound8}" → decimal ${data.entry.decimalPairing}`);
+          } else {
+            failCount++;
+            console.log(`[8-Sample] FAIL #${i + 1}: Expected "${rawRound8}", got "${data.entry.stringOutput}"`);
+          }
+        } else {
+          notFoundCount++;
+          console.log(`[8-Sample] ~ #${i + 1}: "${rawRound8}" not yet in Forever Clock`);
+        }
+      }
 
-//       for (let i = 0; i < SAMPLE_COUNT; i++) {
-//         const randomDecimal = Math.floor(Math.random() * maxIteration) + 1;
-//         const round8 = decimalToRound8(randomDecimal);
+      console.log(`[8-Sample] Results: ${passCount} pass, ${notFoundCount} not found, ${failCount} fail`);
 
-//         if (round8.includes('SCAFFOLDED')) {
-//           skipCount++;
-//           continue;
-//         }
+      // All found entries must pass; not-found entries are acceptable (value beyond current iteration)
+      expect(failCount).toBe(0);
+      console.log('[8-Sample] ✓ All found entries validated through Conception pipeline');
+    });
+  });
 
-//         const backToDecimal = round8ToDecimal(round8);
+  /**
+   * Test Suite 8: Decimal Conversion Statistical Validation
+   *
+   * Uses API as ground truth to validate decimalToRound8 and round8ToDecimal
+   */
+  describe('Test Suite 8: Decimal Conversion Statistical Validation', () => {
+    test('8.1: 8 random API lookups validate decimalToRound8', async () => {
+      const SAMPLE_COUNT = 8;
 
-//         if (backToDecimal === randomDecimal) {
-//           passCount++;
-//         } else {
-//           failCount++;
-//           console.log(`[Statistical] FAIL: ${randomDecimal} → ${round8} → ${backToDecimal}`);
-//         }
-//       }
+      const { data: countData } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
+      const currentRound8 = countData.currentRound8;
 
-//       console.log(`[Statistical] Results: ${passCount} pass, ${skipCount} skip, ${failCount} fail`);
+      console.log(`[DecimalStats] Running ${SAMPLE_COUNT} decimalToRound8 validations...`);
 
-//       if (skipCount === SAMPLE_COUNT) {
-//         console.log('[Statistical] All samples skipped - algorithm not yet implemented');
-//       } else {
-//         expect(failCount).toBe(0);
-//       }
-//     });
-//   });
-// });
+      let passCount = 0;
+      let notFoundCount = 0;
+      let failCount = 0;
+
+      for (let i = 0; i < SAMPLE_COUNT; i++) {
+        // Generate random Round8 and lookup to get ground truth decimal
+        const rawRound8 = generateRandomRound8String(currentRound8);
+        const formattedRound8 = formatWithCommas(rawRound8);
+
+        const buffer = parseStringToRound8(formattedRound8);
+        if (buffer === undefined) {
+          failCount++;
+          continue;
+        }
+
+        const formattedBinary = createFormattedRound8BinaryString(buffer);
+        const { data } = await httpGet<LookupResponse>(
+          `${API_BASE_URL}/lookup?binary=${encodeURIComponent(formattedBinary)}`
+        );
+
+        if (data.found && data.entry) {
+          // Use API's decimalPairing as ground truth
+          const apiDecimal = data.entry.decimalPairing;
+          const apiRound8 = data.entry.stringOutput;
+
+          // Validate decimalToRound8
+          const computedRound8 = decimalToRound8(apiDecimal);
+          if (computedRound8 === apiRound8) {
+            passCount++;
+            console.log(`[DecimalStats] ✓ #${i + 1}: decimalToRound8(${apiDecimal}) = "${computedRound8}"`);
+          } else {
+            failCount++;
+            console.log(`[DecimalStats] FAIL #${i + 1}: decimalToRound8(${apiDecimal}) = "${computedRound8}", expected "${apiRound8}"`);
+          }
+        } else {
+          notFoundCount++;
+        }
+      }
+
+      console.log(`[DecimalStats] Results: ${passCount} pass, ${notFoundCount} not found, ${failCount} fail`);
+      expect(failCount).toBe(0);
+    });
+
+    test('8.2: 8 random API lookups validate round8ToDecimal', async () => {
+      const SAMPLE_COUNT = 8;
+
+      const { data: countData } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
+      const currentRound8 = countData.currentRound8;
+
+      console.log(`[DecimalStats] Running ${SAMPLE_COUNT} round8ToDecimal validations...`);
+
+      let passCount = 0;
+      let notFoundCount = 0;
+      let failCount = 0;
+
+      for (let i = 0; i < SAMPLE_COUNT; i++) {
+        const rawRound8 = generateRandomRound8String(currentRound8);
+        const formattedRound8 = formatWithCommas(rawRound8);
+
+        const buffer = parseStringToRound8(formattedRound8);
+        if (buffer === undefined) {
+          failCount++;
+          continue;
+        }
+
+        const formattedBinary = createFormattedRound8BinaryString(buffer);
+        const { data } = await httpGet<LookupResponse>(
+          `${API_BASE_URL}/lookup?binary=${encodeURIComponent(formattedBinary)}`
+        );
+
+        if (data.found && data.entry) {
+          const apiDecimal = data.entry.decimalPairing;
+          const apiRound8 = data.entry.stringOutput;
+
+          // Validate round8ToDecimal
+          const computedDecimal = round8ToDecimal(formatWithCommas(apiRound8));
+          if (computedDecimal === apiDecimal) {
+            passCount++;
+            console.log(`[DecimalStats] ✓ #${i + 1}: round8ToDecimal("${apiRound8}") = ${computedDecimal}`);
+          } else {
+            failCount++;
+            console.log(`[DecimalStats] FAIL #${i + 1}: round8ToDecimal("${apiRound8}") = ${computedDecimal}, expected ${apiDecimal}`);
+          }
+        } else {
+          notFoundCount++;
+        }
+      }
+
+      console.log(`[DecimalStats] Results: ${passCount} pass, ${notFoundCount} not found, ${failCount} fail`);
+      expect(failCount).toBe(0);
+    });
+  });
+});
