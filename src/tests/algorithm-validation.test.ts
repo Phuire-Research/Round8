@@ -239,7 +239,7 @@ describe('Phase 2: Scaffolded Function Validation', () => {
       const result = decimalToRound8(37441);
 
       expect(result).toBeDefined();
-      expect(typeof result).toBe('string');
+      expect(result).toBe('88881');
 
       console.log('[Scaffolded] decimalToRound8(1):', result);
     });
@@ -262,7 +262,7 @@ describe('Phase 2: Scaffolded Function Validation', () => {
       const result = round8ToDecimal('8,88,81');
 
       expect(result).toBeDefined();
-      expect(typeof result).toBe('number');
+      expect(result).toBe(37441);
     });
 
     // test('4.2: round8ToDecimal returns scaffolded placeholder', () => {
