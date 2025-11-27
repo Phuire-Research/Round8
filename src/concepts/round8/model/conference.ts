@@ -17,7 +17,6 @@
 
 import {
   BidirectionalConference,
-  type WrungMuxity
 } from './bidirectional';
 
 import {
@@ -742,4 +741,149 @@ export const parseStringToRound8 = (input: string): bigint | undefined => {
 export const parseNumberToRound8 = (num: number): bigint | undefined => {
   // Compositional: Convert to string, then parse
   return parseStringToRound8(String(num));
+};
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ITERATION COUNT ↔ ROUND8 CONVERSION FUNCTIONS (Algorithm Validation)
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * These functions establish the bijective mapping between:
+ * - Decimal iteration count (0, 1, 2, ..., n) from Forever Clock
+ * - Round8 string representation ("0", "0,1", "0,2", ..., "0,8", "1,1", ...)
+ *
+ * Key Distinction:
+ * - Existing functions convert buffer ↔ string (structural representation)
+ * - These functions convert iteration ↔ Round8 (counting sequence)
+ *
+ * The Forever Clock increments:
+ *   Iteration 0 → Round8 "0" (Absolute Zero)
+ *   Iteration 1 → Round8 "0,1" (first count)
+ *   Iteration 8 → Round8 "0,8"
+ *   Iteration 9 → Round8 "1,1" (column rollover)
+ *   ...continues through base-72 unhexed counting sequence
+ *
+ * Validation Endpoint: GET https://api.unhex.dev/lookup?binary=<formattedBinary>
+ *   Returns: { found: true, entry: { decimalPairing: iteration, formattedString: round8, ... } }
+ *
+ * SCAFFOLDED: Algorithm internals to be designed by user
+ */
+
+/**
+ * decimalToRound8 - Convert decimal iteration count to Round8 string
+ *
+ * @param decimal - Iteration count from Forever Clock (0, 1, 2, ...)
+ * @returns Round8 formatted string representation
+ *
+ * INTENT:
+ * - Take decimal iteration count (as stored in entry.decimalPairing)
+ * - Apply base-72 unhexed counting algorithm
+ * - Return Round8 string that matches entry.formattedString
+ *
+ * VALIDATION:
+ * - decimalToRound8(1) should return "0,1"
+ * - decimalToRound8(72) should return "1,0,0" (first column complete)
+ * - Result must match Forever Clock's formattedString for same iteration
+ *
+ * SCAFFOLDED: Returns dummy data - algorithm TBD
+ */
+export const decimalToRound8 = (decimal: number): string => {
+  let final = '';
+  const range: number[] = [];
+  const difference: number[] = [];
+  const A = 8;
+  let B = 1;
+  const cycle = (index = 0) => {
+    range.push(A * B);
+    B = range[index] + 1;
+    if (range[index - 1]) {
+      difference.push(range[index] - range[index - 1]);
+    } else {
+      difference.push(range[index]);
+    }
+    if (index < 21) {
+      cycle(index + 1);
+    }
+  };
+  cycle();
+  let marquee = -1;
+  const climb = (index = 0) => {
+    if (decimal / range[index] > 1) {
+      marquee = index;
+    } else if (index < 21) {
+      climb(index + 1);
+    }
+  };
+  climb();
+  let rolling = decimal;
+  if (marquee !== -1) {
+    const roll = (index = marquee) => {
+      const set = difference[index];
+      const divided = Math.floor(rolling / difference[index]);
+      if (divided > 1) {
+        final = String(divided) + final;
+        if (index > 0) {
+          roll(index - 1);
+        }
+      }
+    };
+  }
+  // Dummy implementation - returns placeholder to indicate not implemented
+  return final;
+};
+
+/**
+ * round8ToDecimal - Convert Round8 string to decimal iteration count
+ *
+ * @param round8Value - Formatted Round8 string (e.g., "0,1" or "1,0,0")
+ * @returns Decimal iteration count
+ *
+ * INTENT:
+ * - Parse Round8 counting string representation
+ * - Apply inverse base-72 unhexed algorithm
+ * - Return decimal iteration count (as stored in entry.decimalPairing)
+ *
+ * VALIDATION:
+ * - round8ToDecimal("0,1") should return 1
+ * - round8ToDecimal("1,0,0") should return 72
+ * - Result must match Forever Clock's decimalPairing for same Round8 value
+ *
+ * SCAFFOLDED: Returns dummy data - algorithm TBD
+ */
+export const round8ToDecimal = (round8Value: string): number => {
+  let final = 0;
+  const range: number[] = [];
+  const difference: number[] = [];
+  const A = 8;
+  let B = 1;
+  const cycle = (index = 0) => {
+    range.push(A * B);
+    B = range[index] + 1;
+    if (range[index - 1]) {
+      difference.push(range[index] - range[index - 1]);
+    } else {
+      difference.push(range[index]);
+    }
+    if (index < 21) {
+      cycle(index + 1);
+    }
+  };
+  cycle();
+  console.log('What is our Range?', range);
+  const prepared = round8Value.split(',').join('').split('').reverse();
+  const cascade = (index = 0) => {
+    const set = difference[index];
+    const division = set / 8;
+    const next = prepared[index];
+    console.log('Set: ', set, 'Division', division, 'Next', next);
+    if (next) {
+      final += Number(next) * division;
+      if (index < 21) {
+        cascade(index + 1);
+      }
+    }
+  };
+  cascade();
+  console.log('Input', round8Value, 'Output', final);
+  return final;
 };
