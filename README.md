@@ -6,7 +6,9 @@
 [![Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://phuire-research.github.io/Round8/)
 **Pure Binary Calculator - Quantum-Resistant Architecture Demonstration**
 
-Round8 is a proof-of-concept demonstrating spool-based indexed lookups for binary operations. (Similar to Lattice Boltzmann Method or LBM) This PoC validates that the underlying binary system is operational and proven. All foundational operations work - it's now just pushing the boulder up the hill with incremental feature releases.
+Round8 is a quantum-resistant binary system demonstrating spool-based indexed lookups for binary operations (similar to Lattice Boltzmann Method).
+
+With v0.0.168, the **Bidirectional R8/DEC Interchange System** completes the foundational architecture - enabling seamless conversion between Round8 and Decimal representations. All core operations are validated across 568 tests. The foundation is proven and operational; each release now extends capability toward multiplication, division, and the eventual RoundX Base-100 interchange.
 
 ## Installation
 ```bash
@@ -266,5 +268,6 @@ Micah T. Keller - Founder @ PhuirE Research ([public@phuire.org](mailto:public@p
 [https://github.com/Phuire-Research/Round8](https://github.com/Phuire-Research/Round8)
 
 ---
+
 
 **Round8** - Pure spatial coordinate stratimuxian mathematics with data density as proven energy efficiency.
