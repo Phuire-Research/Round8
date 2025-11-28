@@ -906,6 +906,10 @@ export const decimalToRound8 = (decimal: number): string => {
         division = 6;
       } else if (division === 15) {
         division = 7;
+      } else if (division === 16) {
+        division = 8;
+      } else if (division === 73) {
+        division = 1;
       } else {
         const mod = rolling % 8;
         console.log(index, ' Overflow', mod, rolling, division);

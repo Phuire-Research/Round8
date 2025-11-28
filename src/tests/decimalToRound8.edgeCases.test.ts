@@ -185,9 +185,11 @@ const BOUNDARY_CASES = [
   { decimal: 128, expected: '178', note: 'First 3-digit value' },
   { decimal: 129, expected: '181', note: 'First 3-digit value' },
   { decimal: 130, expected: '182', note: 'First 3-digit value' },
+  { decimal: 583, expected: '887', note: 'Max 3-digit value' },
   { decimal: 584, expected: '888', note: 'Max 3-digit value' },
   { decimal: 585, expected: '1111', note: 'First 4-digit value' },
   { decimal: 586, expected: '1112', note: 'First 4-digit value' },
+  { decimal: 70216, expected: '188888', note: 'First 4-digit value' },
 ];
 
 describe('decimalToRound8 Edge Cases - Static Failing Values', () => {
