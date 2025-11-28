@@ -884,27 +884,49 @@ export const decimalToRound8 = (decimal: number): string => {
   cycle();
   let rolling = decimal;
   const roll = (index = 0) => {
-    console.log('Rolling', rolling);
+    console.log(index, ' Rolling', rolling);
     const tier = difference[index]; // 8
-    console.log('Tier', tier);
+    console.log(index, ' Tier', tier);
     const degree = Math.floor(tier / 8); // 1
-    console.log('Degree', degree);
+    console.log(index, ' Degree', degree);
     let division = Math.floor(rolling / degree);
     const overflow = division > 8; //
     if (overflow) {
-      const mod = rolling % 8;
-      division = mod === 0 ? 8 : mod;
+      if (division === 9) {
+        division = 1;
+      } else if (division === 10) {
+        division = 2;
+      } else if (division === 11) {
+        division = 3;
+      } else if (division === 12) {
+        division = 4;
+      } else if (division === 13) {
+        division = 5;
+      } else if (division === 14) {
+        division = 6;
+      } else if (division === 15) {
+        division = 7;
+      } else {
+        const mod = rolling % 8;
+        console.log(index, ' Overflow', mod, rolling, division);
+        division = mod === 0 ? 8 : mod;
+      }
     }
-    console.log('Divisible', division);
+    console.log(index, ' Divisible', division);
     const rotation = (degree * division);
-    console.log('Rotation', rotation);
+    console.log(index, ' Rotation', rotation);
     rolling -= (rotation);
-    console.log('Next Rolling', rolling);
-    console.log('Track Decimal', decimal);
-    final = division + final;
-    if (rolling > 0) {
-      console.log('Rotate', final);
-      roll(index + 1);
+    console.log(index, ' Next Rolling', rolling);
+    console.log(index, ' Track Decimal', decimal);
+    // Stop Gap
+    if (division === 0) {
+      //
+    } else {
+      final = division + final;
+      if (rolling > 0) {
+        console.log('Rotate', final);
+        roll(index + 1);
+      }
     }
   };
   roll();
