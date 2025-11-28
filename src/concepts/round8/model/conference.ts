@@ -750,7 +750,6 @@ export const parseNumberToRound8 = (num: number): bigint | undefined => {
  *
  * These functions establish the bijective mapping between:
  * - Decimal iteration count (0, 1, 2, ..., n) from Forever Clock
- * - Round8 string representation ("0", "0,1", "0,2", ..., "0,8", "1,1", ...)
  *
  * Key Distinction:
  * - Existing functions convert buffer ↔ string (structural representation)
@@ -781,88 +780,8 @@ export const parseNumberToRound8 = (num: number): bigint | undefined => {
  * - Return Round8 string that matches entry.formattedString
  *
  * VALIDATION:
- * - decimalToRound8(1) should return "0,1"
- * - decimalToRound8(72) should return "1,0,0" (first column complete)
  * - Result must match Forever Clock's formattedString for same iteration
- *
- * SCAFFOLDED: Returns dummy data - algorithm TBD
  */
-// export const decimalToRound8 = (decimal: number): string => {
-//   let final = '';
-//   const range: number[] = [];
-//   const difference: number[] = [];
-//   const A = 8;
-//   let B = 1;
-//   const cycle = (index = 0) => {
-//     range.push(A * B);
-//     B = range[index] + 1;
-//     if (range[index - 1]) {
-//       difference.push(range[index] - range[index - 1]);
-//     } else {
-//       difference.push(range[index]);
-//     }
-//     if (index < 21) {
-//       cycle(index + 1);
-//     }
-//   };
-//   cycle();
-//   let marquee = 0;
-//   const climb = (index = 0) => {
-//     if (decimal / range[index] >= 1) {
-//       marquee = index;
-//       if (index < 21) {
-//         climb(index + 1);
-//       }
-//     }
-//   };
-//   climb();
-//   let rolling = decimal;
-//   console.log('Range:', range, 'Difference:', difference);
-//   console.log('Input', decimal, rolling, 'Marquee', marquee);
-//   const roll = (index = marquee + 1) => {
-//     const tier = difference[index];
-//     const amount = Math.floor(difference[index] / rolling);
-//     const degree = difference[index] / 8;
-//     console.log('What is the Amount?: ', amount, tier, degree);
-//     if (amount > degree) {
-//       if (amount === 64) {
-//         final += '1';
-//       } else if (amount === 32) {
-//         final += '2';
-//       } else if (amount === 21) {
-//         final += '3';
-//       } else if (amount === 16) {
-//         final += '4';
-//       } else if (amount === 12) {
-//         final += '5';
-//       } else if (amount === 10) {
-//         final += '6';
-//       } else if (amount === 9) {
-//         final += '7';
-//       }
-//     } else if (amount < degree) {
-//       rolling -= tier - amount * degree;
-//       console.log(decimal, 'Greater Degree', amount, degree, rolling);
-//       final += String(Math.abs(tier - amount * degree));
-//       if (rolling !== 0 && index > 1) {
-//         roll(index - 1);
-//       } else if (rolling !== 0) {
-//         final += rolling - 1;
-//       }
-//     } else {
-//       console.log('Amount and Degree are Equal', amount, degree);
-//       final += '8';
-//     }
-//     // if (amount >= 1) {
-//     //   console.log(`Degree: ${difference[index] / 8} = ${difference[index]} / 8`);
-//     // } else if (rolling !== 0) {
-//     //   final += String(rolling);
-//     // }
-//   };
-//   roll();
-//   return final;
-// };
-
 export const decimalToRound8 = (decimal: number): string => {
   let final = '';
   const range: number[] = [];
@@ -892,25 +811,30 @@ export const decimalToRound8 = (decimal: number): string => {
     let division = Math.floor(rolling / degree);
     const overflow = division > 8; //
     if (overflow) {
-      if (division === 9) {
-        division = 1;
-      } else if (division === 10) {
-        division = 2;
-      } else if (division === 11) {
-        division = 3;
-      } else if (division === 12) {
-        division = 4;
-      } else if (division === 13) {
-        division = 5;
-      } else if (division === 14) {
-        division = 6;
-      } else if (division === 15) {
-        division = 7;
-      } else if (division === 16) {
-        division = 8;
-      } else if (division === 73) {
-        division = 1;
-      } else {
+      if (division > 8) {
+        division %= 8;
+      }
+      // if (division === 9) {
+      //   division = 1;
+      // } else if (division === 10) {
+      //   division = 2;
+      // } else if (division === 11) {
+      //   division = 3;
+      // } else if (division === 12) {
+      //   division = 4;
+      // } else if (division === 13) {
+      //   division = 5;
+      // } else if (division === 14) {
+      //   division = 6;
+      // } else if (division === 15) {
+      //   division = 7;
+      // } else if (division === 16) {
+      //   division = 8;
+      // } else if (division === 73) {
+      //   division = 1;
+      // }
+      // else {
+      if (division === 0) {
         const mod = rolling % 8;
         console.log(index, ' Overflow', mod, rolling, division);
         division = mod === 0 ? 8 : mod;
@@ -934,6 +858,7 @@ export const decimalToRound8 = (decimal: number): string => {
     }
   };
   roll();
+  console.log(range);
   return final;
 };
 

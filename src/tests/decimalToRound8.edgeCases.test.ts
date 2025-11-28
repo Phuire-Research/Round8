@@ -83,24 +83,18 @@ const formatWithCommas = (raw: string): string => {
  */
 
 const FAILING_CASES = [
-  // {
-  //   decimal: 11905,
-  //   computed: '26416515',
-  //   expected: '27681',
-  //   note: 'Multi-position divergence'
-  // },
-  // {
-  //   decimal: 5521,
-  //   computed: '9817',
-  //   expected: '15761',
-  //   note: 'Position calculation error'
-  // },
-  // {
-  //   decimal: 128061,
-  //   computed: '36815155',
-  //   expected: '371875',
-  //   note: 'Large value divergence'
-  // }
+  {
+    decimal: 11905,
+    expected: '27681',
+  },
+  {
+    decimal: 5521,
+    expected: '15761',
+  },
+  {
+    decimal: 128061,
+    expected: '371875',
+  }
 ];
 
 /**
@@ -185,6 +179,24 @@ const BOUNDARY_CASES = [
   { decimal: 128, expected: '178', note: 'First 3-digit value' },
   { decimal: 129, expected: '181', note: 'First 3-digit value' },
   { decimal: 130, expected: '182', note: 'First 3-digit value' },
+
+  { decimal: 567, expected: '867', note: 'Max 3-digit value' },
+  { decimal: 568, expected: '868', note: 'Max 3-digit value' },
+  { decimal: 569, expected: '871', note: 'Max 3-digit value' },
+  { decimal: 570, expected: '872', note: 'Max 3-digit value' },
+  { decimal: 571, expected: '873', note: 'Max 3-digit value' },
+  { decimal: 572, expected: '874', note: 'Max 3-digit value' },
+  { decimal: 573, expected: '875', note: 'Max 3-digit value' },
+  { decimal: 574, expected: '876', note: 'Max 3-digit value' },
+  { decimal: 575, expected: '877', note: 'Max 3-digit value' },
+  { decimal: 576, expected: '878', note: 'Max 3-digit value' },
+
+  { decimal: 577, expected: '881', note: 'Max 3-digit value' },
+  { decimal: 578, expected: '882', note: 'Max 3-digit value' },
+  { decimal: 579, expected: '883', note: 'Max 3-digit value' },
+  { decimal: 580, expected: '884', note: 'Max 3-digit value' },
+  { decimal: 581, expected: '885', note: 'Max 3-digit value' },
+  { decimal: 582, expected: '886', note: 'Max 3-digit value' },
   { decimal: 583, expected: '887', note: 'Max 3-digit value' },
   { decimal: 584, expected: '888', note: 'Max 3-digit value' },
   { decimal: 585, expected: '1111', note: 'First 4-digit value' },
@@ -197,14 +209,13 @@ describe('decimalToRound8 Edge Cases - Static Failing Values', () => {
    * Test Suite 1: Known Failing Cases from Validation Run
    */
   // describe('Known Failing Cases', () => {
-  //   FAILING_CASES.forEach(({ decimal, computed, expected, note }) => {
-  //     test(`FAIL: decimal ${decimal} → expected "${expected}", got "${computed}" (${note})`, () => {
+  //   FAILING_CASES.forEach(({ decimal, expected  }) => {
+  //     test(`FAIL: decimal ${decimal} → expected "${expected}"`, () => {
   //       const result = decimalToRound8(decimal);
 
   //       console.log(`[EdgeCase] decimal=${decimal}`);
   //       console.log(`[EdgeCase]   computed: "${result}"`);
   //       console.log(`[EdgeCase]   expected: "${expected}"`);
-  //       console.log(`[EdgeCase]   note: ${note}`);
 
   //       // This will FAIL until algorithm is fixed
   //       expect(result).toBe(expected);
