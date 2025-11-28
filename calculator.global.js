@@ -10513,6 +10513,87 @@ var Round8Calculator = (() => {
     }
     return void 0;
   };
+  var decimalToRound8 = (decimal) => {
+    let final = "";
+    const range = [];
+    const difference = [];
+    const A = 8;
+    let B = 1;
+    const cycle = (index = 0) => {
+      range.push(A * B);
+      B = range[index] + 1;
+      if (range[index - 1]) {
+        difference.push(range[index] - range[index - 1]);
+      } else {
+        difference.push(range[index]);
+      }
+      if (index < 21) {
+        cycle(index + 1);
+      }
+    };
+    cycle();
+    let rolling = decimal;
+    const roll = (index = 0) => {
+      const tier = difference[index];
+      const degree = Math.floor(tier / 8);
+      let division = Math.floor(rolling / degree);
+      const overflow = division > 8;
+      if (overflow) {
+        if (division > 8) {
+          division %= 8;
+        }
+        if (division === 0) {
+          const mod = rolling % 8;
+          division = mod === 0 ? 8 : mod;
+        }
+      }
+      const rotation = degree * division;
+      rolling -= rotation;
+      if (division === 0) {
+      } else {
+        final = division + final;
+        if (rolling > 0) {
+          roll(index + 1);
+        }
+      }
+    };
+    roll();
+    return final;
+  };
+  var round8ToDecimal = (round8Value) => {
+    let final = 0;
+    const range = [];
+    const difference = [];
+    const A = 8;
+    let B = 1;
+    const cycle = (index = 0) => {
+      range.push(A * B);
+      B = range[index] + 1;
+      if (range[index - 1]) {
+        difference.push(range[index] - range[index - 1]);
+      } else {
+        difference.push(range[index]);
+      }
+      if (index < 21) {
+        cycle(index + 1);
+      }
+    };
+    cycle();
+    const prepared = round8Value.split(",").join("").split("").reverse();
+    const cascade = (index = 0) => {
+      const set = difference[index];
+      const division = set / 8;
+      const next = prepared[index];
+      if (next) {
+        final += Number(next) * division;
+        if (index < 21) {
+          cascade(index + 1);
+        }
+      }
+    };
+    cascade();
+    return final;
+  };
 
   // src/concepts/round8/model/series/sum.cases.ts
   var SumSeries = {
@@ -13943,6 +14024,13 @@ var Round8Calculator = (() => {
       applyNumeralRotation,
       scanDownward,
       scanUpward
+    },
+    // ============================================================
+    // Interchange - Number System Interoperability
+    // ============================================================
+    interchange: {
+      decimalToRound8,
+      round8ToDecimal
     }
   };
 
@@ -13952,24 +14040,34 @@ var Round8Calculator = (() => {
       input1: {
         value: "",
         buffer: 0n,
-        binary: ""
+        binary: "",
+        decimal: null
       },
       input2: {
         value: "",
         buffer: 0n,
-        binary: ""
+        binary: "",
+        decimal: null
       },
       output: {
         value: "",
         buffer: 0n,
-        binary: ""
+        binary: "",
+        decimal: null
       },
-      decimalOutput: "In Progress",
-      // Default: not from Running Clock
       operation: null,
       activeInput: "input1",
-      darkMode: true
+      darkMode: true,
+      // Interchange defaults
+      displayMode: "R8",
+      interchange: false
     };
+    function updateDecimalCache() {
+      if (!state.interchange) return;
+      state.input1.decimal = state.input1.value ? r8_.interchange.round8ToDecimal(state.input1.value) : 0;
+      state.input2.decimal = state.input2.value ? r8_.interchange.round8ToDecimal(state.input2.value) : 0;
+      state.output.decimal = state.output.value ? r8_.interchange.round8ToDecimal(state.output.value) : 0;
+    }
     function handleDigitEntry(digit) {
       const inputState = state[state.activeInput];
       const currentSequence = inputState.value;
@@ -13983,7 +14081,7 @@ var Round8Calculator = (() => {
         inputState.binary = binary;
         inputState.value = displayValue;
       }
-      state.decimalOutput = "In Progress";
+      updateDecimalCache();
     }
     function handleBackspace() {
       const inputState = state[state.activeInput];
@@ -14004,14 +14102,14 @@ var Round8Calculator = (() => {
         inputState.value = displayValue ? displayValue : "0";
         inputState.binary = binary ? binary : r8_.createBufferDisplay(0n);
       }
-      state.decimalOutput = "In Progress";
+      updateDecimalCache();
     }
     function handleZero() {
       const inputState = state[state.activeInput];
       inputState.value = r8_.createRoundDisplay(0n);
       inputState.buffer = 0n;
       inputState.binary = r8_.createBufferDisplay(0n);
-      state.decimalOutput = "In Progress";
+      updateDecimalCache();
     }
     function handleOperation(operation) {
       if (operation === null) {
@@ -14051,19 +14149,21 @@ var Round8Calculator = (() => {
       state.output.buffer = result;
       state.output.binary = r8_.createBufferDisplay(result);
       state.output.value = r8_.createRoundDisplay(result);
-      state.decimalOutput = "In Progress";
+      updateDecimalCache();
     }
     function handleClear() {
       state.input1.value = "0";
       state.input1.buffer = 0n;
       state.input1.binary = r8_.createBufferDisplay(0n);
+      state.input1.decimal = null;
       state.input2.value = "0";
       state.input2.buffer = 0n;
       state.input2.binary = r8_.createBufferDisplay(0n);
+      state.input2.decimal = null;
       state.output.value = "0";
       state.output.buffer = 0n;
       state.output.binary = r8_.createBufferDisplay(0n);
-      state.decimalOutput = "In Progress";
+      state.output.decimal = null;
       state.operation = null;
       state.activeInput = "input1";
     }
@@ -14076,7 +14176,7 @@ var Round8Calculator = (() => {
       inputState.buffer = flipped;
       inputState.binary = r8_.createBufferDisplay(flipped);
       inputState.value = r8_.createRoundDisplay(flipped);
-      state.decimalOutput = "In Progress";
+      updateDecimalCache();
     }
     function handleIncrement() {
       const inputState = state[state.activeInput];
@@ -14084,7 +14184,7 @@ var Round8Calculator = (() => {
       inputState.buffer = incremented;
       inputState.binary = r8_.createBufferDisplay(incremented);
       inputState.value = r8_.createRoundDisplay(incremented);
-      state.decimalOutput = "In Progress";
+      updateDecimalCache();
     }
     function handleDecrement() {
       const inputState = state[state.activeInput];
@@ -14092,7 +14192,42 @@ var Round8Calculator = (() => {
       inputState.buffer = decremented;
       inputState.binary = r8_.createBufferDisplay(decremented);
       inputState.value = r8_.createRoundDisplay(decremented);
-      state.decimalOutput = "In Progress";
+      updateDecimalCache();
+    }
+    function handleDisplayMode(mode) {
+      state.displayMode = mode;
+      if (mode === "DEC") {
+        state.interchange = true;
+        updateDecimalCache();
+      }
+    }
+    function handleDecimalInput(decimal) {
+      const inputState = state[state.activeInput];
+      const round8String = r8_.interchange.decimalToRound8(decimal);
+      const buffer = r8_.parseStringToBuffer(round8String);
+      if (buffer) {
+        inputState.buffer = buffer;
+        inputState.binary = r8_.createBufferDisplay(buffer);
+        inputState.value = r8_.createRoundDisplay(buffer);
+        inputState.decimal = decimal;
+      }
+      state.interchange = true;
+      updateDecimalCache();
+    }
+    function handleInterchangeOff() {
+      state.interchange = false;
+      state.displayMode = "R8";
+      state.input1.decimal = null;
+      state.input2.decimal = null;
+      state.output.decimal = null;
+    }
+    function getDisplayValue(inputKey) {
+      const inputState = state[inputKey];
+      if (state.displayMode === "DEC" && state.interchange) {
+        if (inputState.decimal === null) return "0";
+        return inputState.decimal.toLocaleString("en-US");
+      }
+      return inputState.value || "0";
     }
     return {
       // State access
@@ -14107,7 +14242,12 @@ var Round8Calculator = (() => {
       handleIncrement,
       handleDecrement,
       handleClear,
-      handleInputSwitch
+      handleInputSwitch,
+      // Interchange operations
+      handleDisplayMode,
+      handleDecimalInput,
+      handleInterchangeOff,
+      getDisplayValue
     };
   }
   var r8Calculator = createCalculator;
@@ -15793,22 +15933,28 @@ var Round8Calculator = (() => {
         input1: {
           value: zeroDisplay,
           buffer: zeroBuffer,
-          binary: zeroBinary
+          binary: zeroBinary,
+          decimal: null
         },
         input2: {
           value: zeroDisplay,
           buffer: zeroBuffer,
-          binary: zeroBinary
+          binary: zeroBinary,
+          decimal: null
         },
         output: {
           value: zeroDisplay,
           buffer: zeroBuffer,
-          binary: zeroBinary
+          binary: zeroBinary,
+          decimal: null
         },
         operation: null,
         activeInput: "input1",
         darkMode: state.globalDarkMode,
-        history: []
+        history: [],
+        // Interchange defaults (v0.0.168)
+        displayMode: "R8",
+        interchange: false
       };
       return {
         calculators: [...state.calculators, newCalculator]
@@ -15838,13 +15984,15 @@ var Round8Calculator = (() => {
       }
       const binary = r8_.createBufferDisplay(buffer);
       const displayValue = r8_.createRoundDisplay(buffer);
+      const updatedInput = {
+        value: displayValue,
+        buffer,
+        binary,
+        decimal: calculator.interchange ? r8_.interchange.round8ToDecimal(displayValue) : calculator[calculator.activeInput].decimal
+      };
       const updatedCalculator = {
         ...calculator,
-        [calculator.activeInput]: {
-          value: displayValue,
-          buffer,
-          binary
-        }
+        [calculator.activeInput]: updatedInput
       };
       return {
         calculators: [
@@ -15929,12 +16077,14 @@ var Round8Calculator = (() => {
         input2: calculator.input2.value,
         result: r8_.createRoundDisplay(result)
       };
+      const resultDisplay = r8_.createRoundDisplay(result);
       const updatedCalculator = {
         ...calculator,
         output: {
           buffer: result,
           binary: r8_.createBufferDisplay(result),
-          value: r8_.createRoundDisplay(result)
+          value: resultDisplay,
+          decimal: calculator.interchange ? r8_.interchange.round8ToDecimal(resultDisplay) : calculator.output.decimal
         },
         history: [...calculator.history, historyEntry]
       };
@@ -15968,20 +16118,24 @@ var Round8Calculator = (() => {
         input1: {
           value: zeroDisplay,
           buffer: zeroBuffer,
-          binary: zeroBinary
+          binary: zeroBinary,
+          decimal: null
         },
         input2: {
           value: zeroDisplay,
           buffer: zeroBuffer,
-          binary: zeroBinary
+          binary: zeroBinary,
+          decimal: null
         },
         output: {
           value: zeroDisplay,
           buffer: zeroBuffer,
-          binary: zeroBinary
+          binary: zeroBinary,
+          decimal: null
         },
         operation: null,
         activeInput: "input1"
+        // Note: Does NOT reset displayMode or interchange
       };
       return {
         calculators: [
@@ -16192,6 +16346,129 @@ var Round8Calculator = (() => {
     methodCreator: defaultMethodCreator
   });
 
+  // src/concepts/round8/qualities/setDisplayMode.quality.ts
+  var round8SetDisplayMode = createQualityCardWithPayload({
+    type: "Round8 Set Display Mode",
+    reducer: (state, action) => {
+      const { calculatorId, mode } = action.payload;
+      const calculatorIndex = state.calculators.findIndex((c) => c.id === calculatorId);
+      if (calculatorIndex === -1) {
+        return {};
+      }
+      const calculator = state.calculators[calculatorIndex];
+      if (mode === "DEC") {
+        const updatedCalculator2 = {
+          ...calculator,
+          displayMode: mode,
+          interchange: true,
+          input1: {
+            ...calculator.input1,
+            decimal: calculator.input1.value ? r8_.interchange.round8ToDecimal(calculator.input1.value) : 0
+          },
+          input2: {
+            ...calculator.input2,
+            decimal: calculator.input2.value ? r8_.interchange.round8ToDecimal(calculator.input2.value) : 0
+          },
+          output: {
+            ...calculator.output,
+            decimal: calculator.output.value ? r8_.interchange.round8ToDecimal(calculator.output.value) : 0
+          }
+        };
+        const updatedCalculators2 = [...state.calculators];
+        updatedCalculators2[calculatorIndex] = updatedCalculator2;
+        return { calculators: updatedCalculators2 };
+      }
+      const updatedCalculator = {
+        ...calculator,
+        displayMode: mode
+      };
+      const updatedCalculators = [...state.calculators];
+      updatedCalculators[calculatorIndex] = updatedCalculator;
+      return { calculators: updatedCalculators };
+    },
+    methodCreator: defaultMethodCreator
+  });
+
+  // src/concepts/round8/qualities/decimalInput.quality.ts
+  var round8DecimalInput = createQualityCardWithPayload({
+    type: "Round8 Decimal Input",
+    reducer: (state, action) => {
+      const { calculatorId, decimal } = action.payload;
+      const calculatorIndex = state.calculators.findIndex((c) => c.id === calculatorId);
+      if (calculatorIndex === -1) {
+        return {};
+      }
+      const calculator = state.calculators[calculatorIndex];
+      const activeInputKey = calculator.activeInput;
+      const round8String = r8_.interchange.decimalToRound8(decimal);
+      const buffer = r8_.parseStringToBuffer(round8String);
+      if (!buffer) {
+        return {};
+      }
+      const updatedInput = {
+        buffer,
+        binary: r8_.createBufferDisplay(buffer),
+        value: r8_.createRoundDisplay(buffer),
+        decimal
+      };
+      const updatedCalculator = {
+        ...calculator,
+        [activeInputKey]: updatedInput,
+        interchange: true,
+        input1: {
+          ...calculator.input1,
+          decimal: activeInputKey === "input1" ? decimal : calculator.input1.value ? r8_.interchange.round8ToDecimal(calculator.input1.value) : 0
+        },
+        input2: {
+          ...calculator.input2,
+          decimal: activeInputKey === "input2" ? decimal : calculator.input2.value ? r8_.interchange.round8ToDecimal(calculator.input2.value) : 0
+        },
+        output: {
+          ...calculator.output,
+          decimal: calculator.output.value ? r8_.interchange.round8ToDecimal(calculator.output.value) : 0
+        }
+      };
+      const updatedCalculators = [...state.calculators];
+      updatedCalculators[calculatorIndex] = updatedCalculator;
+      return { calculators: updatedCalculators };
+    },
+    methodCreator: defaultMethodCreator
+  });
+
+  // src/concepts/round8/qualities/interchangeOff.quality.ts
+  var round8InterchangeOff = createQualityCardWithPayload({
+    type: "Round8 Interchange Off",
+    reducer: (state, action) => {
+      const { calculatorId } = action.payload;
+      const calculatorIndex = state.calculators.findIndex((c) => c.id === calculatorId);
+      if (calculatorIndex === -1) {
+        return {};
+      }
+      const calculator = state.calculators[calculatorIndex];
+      const updatedCalculator = {
+        ...calculator,
+        interchange: false,
+        displayMode: "R8",
+        input1: {
+          ...calculator.input1,
+          decimal: null
+        },
+        input2: {
+          ...calculator.input2,
+          decimal: null
+        },
+        output: {
+          ...calculator.output,
+          decimal: null
+        }
+      };
+      const updatedCalculators = [...state.calculators];
+      updatedCalculators[calculatorIndex] = updatedCalculator;
+      return { calculators: updatedCalculators };
+    },
+    methodCreator: defaultMethodCreator
+  });
+
   // src/index.ts
   var r8_2 = {
     ...r8_,
@@ -16266,11 +16543,14 @@ var Round8Calculator = (() => {
     }, 333);
     console.log("[RunningClock] Started - 333ms calculation cycle (no API polling)");
   }
-  function stopRunningClockRetainState() {
+  function stopRunningClockRetainState(calculator) {
     if (runningClockIntervalId !== null) {
       clearInterval(runningClockIntervalId);
       runningClockIntervalId = null;
       console.log("[RunningClock] Stopped - calculator state retained");
+    }
+    if (calculator) {
+      calculator.clockRunning = false;
     }
     document.querySelector(".display-section")?.classList.remove("processing-active");
     const header = document.getElementById("calculatorHeader");
@@ -16281,11 +16561,21 @@ var Round8Calculator = (() => {
       header.setAttribute("aria-pressed", "false");
       header.classList.remove("header-clock-mode");
     }
-    if (outputModeToggle) {
-      outputModeToggle.setAttribute("aria-pressed", "false");
-    }
-    if (outputRow) {
-      outputRow.classList.remove("viridian");
+    if (calculator) {
+      const isDecMode = calculator.calc.state.displayMode === "DEC";
+      if (outputModeToggle) {
+        outputModeToggle.setAttribute("aria-pressed", String(isDecMode));
+      }
+      if (outputRow) {
+        outputRow.classList.toggle("viridian", isDecMode);
+      }
+    } else {
+      if (outputModeToggle) {
+        outputModeToggle.setAttribute("aria-pressed", "false");
+      }
+      if (outputRow) {
+        outputRow.classList.remove("viridian");
+      }
     }
   }
   async function handleHeaderModeToggle(calculator) {
@@ -16314,6 +16604,7 @@ var Round8Calculator = (() => {
     }
     if (newMode === "clock") {
       await startRunningClockCalculation(calculator);
+      calculator.calc.handleDisplayMode("DEC");
       if (outputModeToggle) {
         outputModeToggle.setAttribute("aria-pressed", "true");
       }
@@ -16322,15 +16613,16 @@ var Round8Calculator = (() => {
       }
     } else {
       calculator.clockRunning = false;
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     }
     console.log(`[HeaderMode] Toggled to: ${newMode.toUpperCase()}`);
   }
   function updateInputDisplay(calculator, inputNumber) {
+    const inputKey = inputNumber === 1 ? "input1" : "input2";
     const inputState = inputNumber === 1 ? calculator.calc.state.input1 : calculator.calc.state.input2;
     const valueElement = document.getElementById(`input${inputNumber}Value`);
     if (valueElement) {
-      valueElement.textContent = inputState.value || "";
+      valueElement.textContent = calculator.calc.getDisplayValue(inputKey);
     }
     const binaryElement = document.getElementById(`input${inputNumber}Binary`);
     if (binaryElement) {
@@ -16339,15 +16631,9 @@ var Round8Calculator = (() => {
   }
   function updateOutputDisplay(calculator) {
     const outputState = calculator.calc.state.output;
-    const outputModeToggle = document.getElementById("outputModeToggle");
-    const isDecimalMode = outputModeToggle?.getAttribute("aria-pressed") === "true";
     const valueElement = document.getElementById("outputValue");
     if (valueElement) {
-      if (isDecimalMode) {
-        valueElement.textContent = calculator.count !== -1 && calculator.clockRunning ? String(calculator.count) : "In Progress";
-      } else {
-        valueElement.textContent = outputState.value || "0";
-      }
+      valueElement.textContent = calculator.calc.getDisplayValue("output");
     }
     const binaryElement = document.getElementById("outputBinary");
     if (binaryElement) {
@@ -16453,7 +16739,7 @@ var Round8Calculator = (() => {
           calculator.calc.handleDigitEntry(i);
           const inputNum = calculator.calc.state.activeInput === "input1" ? 1 : 2;
           updateInputDisplay(calculator, inputNum);
-          stopRunningClockRetainState();
+          stopRunningClockRetainState(calculator);
         });
       }
     }
@@ -16463,7 +16749,7 @@ var Round8Calculator = (() => {
         calculator.calc.handleBackspace();
         const inputNum = calculator.calc.state.activeInput === "input1" ? 1 : 2;
         updateInputDisplay(calculator, inputNum);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const zeroBtn = document.getElementById("zeroBtn");
@@ -16472,7 +16758,7 @@ var Round8Calculator = (() => {
         calculator.calc.handleZero();
         const inputNum = calculator.calc.state.activeInput === "input1" ? 1 : 2;
         updateInputDisplay(calculator, inputNum);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const signedBtn = document.getElementById("signedBtn");
@@ -16481,7 +16767,7 @@ var Round8Calculator = (() => {
         calculator.calc.handleSigned();
         const inputNum = calculator.calc.state.activeInput === "input1" ? 1 : 2;
         updateInputDisplay(calculator, inputNum);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     bindRotationButton(
@@ -16489,7 +16775,7 @@ var Round8Calculator = (() => {
       () => {
         calculator.calc.state.activeInput = "input1";
         calculator.calc.handleIncrement();
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       },
       () => updateInputDisplay(calculator, 1)
     );
@@ -16498,7 +16784,7 @@ var Round8Calculator = (() => {
       () => {
         calculator.calc.state.activeInput = "input1";
         calculator.calc.handleDecrement();
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       },
       () => updateInputDisplay(calculator, 1)
     );
@@ -16507,7 +16793,7 @@ var Round8Calculator = (() => {
       () => {
         calculator.calc.state.activeInput = "input2";
         calculator.calc.handleIncrement();
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       },
       () => updateInputDisplay(calculator, 2)
     );
@@ -16516,7 +16802,7 @@ var Round8Calculator = (() => {
       () => {
         calculator.calc.state.activeInput = "input2";
         calculator.calc.handleDecrement();
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       },
       () => updateInputDisplay(calculator, 2)
     );
@@ -16525,7 +16811,7 @@ var Round8Calculator = (() => {
       addBtn.addEventListener("click", () => {
         calculator.calc.handleOperation("+");
         updateOperationDisplay(calculator);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const subtractBtn = document.getElementById("subtractBtn");
@@ -16533,7 +16819,7 @@ var Round8Calculator = (() => {
       subtractBtn.addEventListener("click", () => {
         calculator.calc.handleOperation("-");
         updateOperationDisplay(calculator);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const greaterBtn = document.getElementById("greaterBtn");
@@ -16541,7 +16827,7 @@ var Round8Calculator = (() => {
       greaterBtn.addEventListener("click", () => {
         calculator.calc.handleOperation(">");
         updateOperationDisplay(calculator);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const greaterEqualBtn = document.getElementById("greaterEqualBtn");
@@ -16549,7 +16835,7 @@ var Round8Calculator = (() => {
       greaterEqualBtn.addEventListener("click", () => {
         calculator.calc.handleOperation(">=");
         updateOperationDisplay(calculator);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const lessBtn = document.getElementById("lessBtn");
@@ -16557,7 +16843,7 @@ var Round8Calculator = (() => {
       lessBtn.addEventListener("click", () => {
         calculator.calc.handleOperation("<");
         updateOperationDisplay(calculator);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const lessEqualBtn = document.getElementById("lessEqualBtn");
@@ -16565,7 +16851,7 @@ var Round8Calculator = (() => {
       lessEqualBtn.addEventListener("click", () => {
         calculator.calc.handleOperation("<=");
         updateOperationDisplay(calculator);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const equalsBtn = document.getElementById("equalsBtn");
@@ -16573,7 +16859,7 @@ var Round8Calculator = (() => {
       equalsBtn.addEventListener("click", () => {
         calculator.calc.handleOperation("==");
         updateOperationDisplay(calculator);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const calculateBtn = document.getElementById("calculateBtn");
@@ -16585,7 +16871,7 @@ var Round8Calculator = (() => {
         if (outputRow2) {
           outputRow2.classList.add("output-row-active");
         }
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const clearBtn = document.getElementById("clearBtn");
@@ -16601,7 +16887,7 @@ var Round8Calculator = (() => {
         if (outputRow2) {
           outputRow2.classList.remove("output-row-active");
         }
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const flipBtn = document.getElementById("flipBtn");
@@ -16609,7 +16895,7 @@ var Round8Calculator = (() => {
       flipBtn.addEventListener("click", () => {
         calculator.calc.handleInputSwitch();
         updateActiveInputHighlight(calculator);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
     const input1Row = document.getElementById("input1Row");
@@ -16618,7 +16904,7 @@ var Round8Calculator = (() => {
         if (calculator.calc.state.activeInput !== "input1") {
           calculator.calc.handleInputSwitch();
           updateActiveInputHighlight(calculator);
-          stopRunningClockRetainState();
+          stopRunningClockRetainState(calculator);
         }
       });
     }
@@ -16628,7 +16914,7 @@ var Round8Calculator = (() => {
         if (calculator.calc.state.activeInput !== "input2") {
           calculator.calc.handleInputSwitch();
           updateActiveInputHighlight(calculator);
-          stopRunningClockRetainState();
+          stopRunningClockRetainState(calculator);
         }
       });
     }
@@ -16655,6 +16941,9 @@ var Round8Calculator = (() => {
         if (outputRow) {
           outputRow.classList.toggle("viridian", newState);
         }
+        calculator.calc.handleDisplayMode(newState ? "DEC" : "R8");
+        updateInputDisplay(calculator, 1);
+        updateInputDisplay(calculator, 2);
         updateOutputDisplay(calculator);
       });
     }
@@ -16671,7 +16960,7 @@ var Round8Calculator = (() => {
       });
     }
     console.log("Calculator UI bindings initialized");
-    console.log("Round8 Calculator v0.0.16 - Running Clock MVP (Calculator Integrated)");
+    console.log("Round8 Calculator v0.0.168 - Interchange Enhancement (R8/DEC Display)");
   }
   if (typeof window !== "undefined") {
     if (document.readyState === "complete" || document.readyState === "interactive") {
