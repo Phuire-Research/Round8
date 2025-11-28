@@ -1,6 +1,7 @@
 // ============================================================================
-// ROUND8 QUALITIES BUNDLE
+// ROUND8 QUALITIES BUNDLE v0.0.168
 // All qualities traversing the r8_ manifold for calculator operations
+// Interchange Enhancement: setDisplayMode, decimalInput, interchangeOff
 // ============================================================================
 
 import { round8CreateCalculator } from './qualities/createCalculator.quality';
@@ -14,6 +15,10 @@ import { round8Increment } from './qualities/increment.quality';
 import { round8Decrement } from './qualities/decrement.quality';
 import { round8DeleteCalculator } from './qualities/deleteCalculator.quality';
 import { round8Backspace } from './qualities/backspace.quality';
+// Interchange Qualities (v0.0.168)
+import { round8SetDisplayMode } from './qualities/setDisplayMode.quality';
+import { round8DecimalInput } from './qualities/decimalInput.quality';
+import { round8InterchangeOff } from './qualities/interchangeOff.quality';
 
 /**
  * Bundle of all Round8 qualities
@@ -31,7 +36,11 @@ export const round8Qualities = {
   round8Increment,
   round8Decrement,
   round8DeleteCalculator,
-  round8Backspace
+  round8Backspace,
+  // Interchange Qualities (v0.0.168)
+  round8SetDisplayMode,
+  round8DecimalInput,
+  round8InterchangeOff
 };
 
 // Export type for concept definition

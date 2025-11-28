@@ -745,15 +745,22 @@ export const parseNumberToRound8 = (num: number): bigint | undefined => {
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * ITERATION COUNT ↔ ROUND8 CONVERSION FUNCTIONS (Algorithm Validation)
+ * INTERCHANGE ALGORITHMS - Number System Interoperability
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * These functions establish the bijective mapping between:
  * - Decimal iteration count (0, 1, 2, ..., n) from Forever Clock
+ * - Round8 formatted string representation
+ *
+ * Design Intent: Round8 is designed for interoperability with ANY number system:
+ * - Decimal ↔ Round8
+ * - Binary ↔ Round8
+ * - Hexadecimal ↔ Round8
+ * - (Future) Any Base-N ↔ Round8
  *
  * Key Distinction:
- * - Existing functions convert buffer ↔ string (structural representation)
- * - These functions convert iteration ↔ Round8 (counting sequence)
+ * - Existing functions interchange buffer ↔ string (structural representation)
+ * - These functions interchange iteration ↔ Round8 (counting sequence)
  *
  * The Forever Clock increments:
  *   Iteration 0 → Round8 "0" (Absolute Zero)
@@ -764,23 +771,23 @@ export const parseNumberToRound8 = (num: number): bigint | undefined => {
  *
  * Validation Endpoint: GET https://api.unhex.dev/lookup?binary=<formattedBinary>
  *   Returns: { found: true, entry: { decimalPairing: iteration, formattedString: round8, ... } }
- *
- * SCAFFOLDED: Algorithm internals to be designed by user
  */
 
 /**
- * decimalToRound8 - Convert decimal iteration count to Round8 string
+ * decimalToRound8 - Interchange decimal iteration count to Round8 string
  *
  * @param decimal - Iteration count from Forever Clock (0, 1, 2, ...)
- * @returns Round8 formatted string representation
+ * @returns Round8 string representation (unformatted - no commas)
  *
- * INTENT:
- * - Take decimal iteration count (as stored in entry.decimalPairing)
- * - Apply base-72 unhexed counting algorithm
- * - Return Round8 string that matches entry.formattedString
+ * Algorithm: Range/difference cycle → marquee climbing → rolling descent
+ * - Build difference array via range accumulation cycle
+ * - Roll through differences, computing symbol at each tier
+ * - Handle overflow for multi-column representation
  *
- * VALIDATION:
- * - Result must match Forever Clock's formattedString for same iteration
+ * Note: Returns unformatted string (e.g., "123" not "1,2,3")
+ * Use formatWithCommas() if formatted output is needed.
+ *
+ * Validated: 118 tests passing against Forever Clock API ground truth
  */
 export const decimalToRound8 = (decimal: number): string => {
   let final = '';
@@ -803,82 +810,51 @@ export const decimalToRound8 = (decimal: number): string => {
   cycle();
   let rolling = decimal;
   const roll = (index = 0) => {
-    console.log(index, ' Rolling', rolling);
     const tier = difference[index]; // 8
-    console.log(index, ' Tier', tier);
     const degree = Math.floor(tier / 8); // 1
-    console.log(index, ' Degree', degree);
     let division = Math.floor(rolling / degree);
     const overflow = division > 8; //
     if (overflow) {
       if (division > 8) {
         division %= 8;
       }
-      // if (division === 9) {
-      //   division = 1;
-      // } else if (division === 10) {
-      //   division = 2;
-      // } else if (division === 11) {
-      //   division = 3;
-      // } else if (division === 12) {
-      //   division = 4;
-      // } else if (division === 13) {
-      //   division = 5;
-      // } else if (division === 14) {
-      //   division = 6;
-      // } else if (division === 15) {
-      //   division = 7;
-      // } else if (division === 16) {
-      //   division = 8;
-      // } else if (division === 73) {
-      //   division = 1;
-      // }
-      // else {
       if (division === 0) {
         const mod = rolling % 8;
-        console.log(index, ' Overflow', mod, rolling, division);
         division = mod === 0 ? 8 : mod;
       }
     }
-    console.log(index, ' Divisible', division);
     const rotation = (degree * division);
-    console.log(index, ' Rotation', rotation);
     rolling -= (rotation);
-    console.log(index, ' Next Rolling', rolling);
-    console.log(index, ' Track Decimal', decimal);
     // Stop Gap
     if (division === 0) {
       //
     } else {
       final = division + final;
       if (rolling > 0) {
-        console.log('Rotate', final);
         roll(index + 1);
       }
     }
   };
   roll();
-  console.log(range);
   return final;
 };
 
 /**
- * round8ToDecimal - Convert Round8 string to decimal iteration count
+ * round8ToDecimal - Interchange Round8 string to decimal iteration count
  *
- * @param round8Value - Formatted Round8 string (e.g., "0,1" or "1,0,0")
+ * @param round8Value - Round8 string (formatted "1,2,3" or unformatted "123")
  * @returns Decimal iteration count
  *
- * INTENT:
- * - Parse Round8 counting string representation
- * - Apply inverse base-72 unhexed algorithm
- * - Return decimal iteration count (as stored in entry.decimalPairing)
+ * Algorithm: Reversed cascade through difference divisions
+ * - Build difference array via range accumulation cycle
+ * - Parse Round8 string, reverse for position traversal
+ * - Cascade through differences, accumulating decimal value
  *
- * VALIDATION:
- * - round8ToDecimal("0,1") should return 1
- * - round8ToDecimal("1,0,0") should return 72
- * - Result must match Forever Clock's decimalPairing for same Round8 value
+ * Examples:
+ * - round8ToDecimal("1") returns 1
+ * - round8ToDecimal("1,0,0") returns 72
  *
- * SCAFFOLDED: Returns dummy data - algorithm TBD
+ * Validated: 118 tests passing against Forever Clock API ground truth
  */
 export const round8ToDecimal = (round8Value: string): number => {
   let final = 0;

@@ -1,8 +1,10 @@
 import {
   createFormattedRound8BinaryString,
+  decimalToRound8,
   getFormattedColumnarWrungRepresentation,
   getWrungStringRepresentation,
-  parseStringToRound8
+  parseStringToRound8,
+  round8ToDecimal
 } from './conference';
 import type {
   Positions,
@@ -142,7 +144,15 @@ export const r8_ = {
     applyNumeralRotation,
     scanDownward,
     scanUpward,
-  }
+  },
+
+  // ============================================================
+  // Interchange - Number System Interoperability
+  // ============================================================
+  interchange: {
+    decimalToRound8,
+    round8ToDecimal,
+  },
 };
 
 export type {

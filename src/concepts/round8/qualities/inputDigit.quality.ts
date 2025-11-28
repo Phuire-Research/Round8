@@ -1,6 +1,7 @@
 // ============================================================================
-// ROUND8 INPUT DIGIT QUALITY
+// ROUND8 INPUT DIGIT QUALITY (v0.0.168)
 // Calculator routing via ID, traversing r8_ manifold for parsing
+// Interchange: Updates decimal cache when interchange active
 // ============================================================================
 
 import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
@@ -42,14 +43,19 @@ export const round8InputDigit = createQualityCardWithPayload<Round8State, Round8
     const binary = r8_.createBufferDisplay(buffer);
     const displayValue = r8_.createRoundDisplay(buffer);
 
-    // Update calculator with new input state
+    // Update calculator with new input state, including decimal cache if interchange active
+    const updatedInput = {
+      value: displayValue,
+      buffer: buffer,
+      binary: binary,
+      decimal: calculator.interchange
+        ? r8_.interchange.round8ToDecimal(displayValue)
+        : calculator[calculator.activeInput].decimal
+    };
+
     const updatedCalculator = {
       ...calculator,
-      [calculator.activeInput]: {
-        value: displayValue,
-        buffer: buffer,
-        binary: binary
-      }
+      [calculator.activeInput]: updatedInput
     };
 
     // Return only changed properties

@@ -1,4 +1,4 @@
-# Round8 v0.0.167 - Proof of Concept
+# Round8 v0.0.168 - Proof of Concept
 
 [![Node.js CI](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml/badge.svg)](https://github.com/Phuire-Research/Round8/actions/workflows/node.js.yml)
 [![npm version](https://badge.fury.io/js/round8.svg)](https://www.npmjs.com/package/round8)
@@ -17,16 +17,31 @@ npm install round8
 1. [Stratimux](https://github.com/Phuire-Research/Stratimux) - Higher Ordered Graph Programming Framework
 2. [SCS](https://youtu.be/tNsZyfANW8A) - Proof of Concept Bidirectional Higher Ordered Computation Paradigm.
 
-## Change Log
+# Change Log
 
-### v0.0.167 **(HOTFIX)** *"Complete"*
-- Exported in r8_.anor the BidirectionalConference to be able to determine the associated Muxity of the Wrung.
-- Exported the Round8Calculator Type for the Stratimux State Pairing of the Base Enhancement.
-- Ensured the Stratimux Round8 Concept Qualities have a Method Creator for Usage in ActionStrategies.
-- Enhanced differencing during a maximum difference case of equal length wrungs.
-- Accounted for the additional complexity that the Full Twist Muxity Imposes on the System.
+## v0.0.168 *"Interchange"*
+**Bidirectional Round8 ↔ Decimal Interchange System**
 
-### v0.0.15
+- Exposed `r8_.interchange.decimalToRound8()` and `r8_.interchange.round8ToDecimal()` for bidirectional conversion
+- Calculator Interchange Enhancement: `displayMode` ('R8' | 'DEC') and `interchange` caching system
+- New calculator operations: `handleDisplayMode()`, `handleDecimalInput()`, `handleInterchangeOff()`, `getDisplayValue()`
+- Stratimux Concept cascade: 3 new interchange qualities with full type exports
+- 159 interchange edge case tests validating boundary transitions and carry patterns
+- Renamed "Conversion" nomenclature to "Interchange" throughout codebase
+- **568 total tests** across 23 suites (up from 373)
+
+## v0.0.167 *"Complete"*
+**Series Complete - Foundation Validated**
+
+This release marks the completion of the foundational proof-of-concept series. All core operations validated, architecture proven, ready for RoadMap expansion.
+
+- Exported in r8_.anor the BidirectionalConference to determine associated Muxity of the Wrung
+- Exported Round8Calculator Type for Stratimux State Pairing
+- Ensured Stratimux Round8 Concept Qualities have Method Creator for ActionStrategies
+- Enhanced differencing during maximum difference case of equal length wrungs
+- Accounted for Full Twist Muxity complexity
+
+## v0.0.15
 **Stratimux Concept Integration** - Muxified state management for Round8 operations.
 
 **New Features:**
@@ -47,7 +62,7 @@ npm install round8
 - Tests flat array architecture and ID routing
 - 393 total tests (up from 388)
 
-### v0.0.14
+## v0.0.14
 **Documentation Update** - Comment renewal based on working test suite.
 
 **Documentation Changes:**
@@ -96,8 +111,8 @@ npm install round8
 - 33 new r8 API integration tests
 - 100% test coverage maintained
 
-### v0.0.1-0.0.13
-Hunted down a hallucinated tests that reversed or did not prepare our signed output properly. Now Aligned.
+## v0.0.1-0.0.13
+Hunted down hallucinated tests that reversed or did not prepare signed output properly. Now Aligned.
 
 ## What This PoC Demonstrates
 This proof-of-concept validates:
@@ -127,18 +142,11 @@ But 7% is only the beginning as the means of being Quantum resistant also brings
 
 # Road Map
 
-## v0.0.15 -> v0.0.16
-Determining the most effective Round8 to Decimal Conversion without Look Up Table. Currently building out the initial dataset to validate potential algorithms. Already have the means for multiplication and the following lined up, but currently focusing on the most practical aspect of hex being able to convert to decimal. Where Round8 has friction due to fundamental differences in the design of the Number System.
-
 ## v0.0.17
 - `multiply(a, b)` - Awaiting MultiplyWrung validation
 
 ## v0.0.18
-- Round8 Decimals
 - `divide(a, b)` - Awaiting DivideWrung validation
-
-## v0.0.2+
-- `from(decimal)` - Decimal input conversion (As of 0.0.14's progress have a method to handle the conversion)
 
 # Stratimux Theorem's
 1. Proportional Spherical Measurement and Round Framework
@@ -151,41 +159,86 @@ Determining the most effective Round8 to Decimal Conversion without Look Up Tabl
 3. [Round8 by 11rds Multiplied to Max](https://github.com/Phuire-Research/Round8/blob/master/Round8%208%20by%2011rds%20Multiplied%20to%20Max.md)
 4. [UnHex Binary](https://github.com/Phuire-Research/Round8/blob/master/UnHex%20Binary.md)
 
-**Proof of Concept**: v0.0.1 establishes the string-only API pattern with proving our Spool Manifold Method. v0.0.14-17+ will expand operations using the same validated approach.
+**Proof of Concept**: v0.0.1 establishes the string-only API pattern with proving our Spool Manifold Method. v0.0.168 expands with bidirectional Interchange and Calculator displayMode caching.
 
 ## Test Coverage
-**Status**: 15/15 Test Suites ✅ | 373/373 Tests ✅ | 100% Coverage
+**Status**: 23/23 Test Suites ✅ | 568/568 Tests ✅ | 100% Coverage
 
-Round8 v0.0.14 validates complete foundation architecture across three tiers, proving all core operations including public API and calculator enhancements.
+Round8 v0.0.168 validates complete foundation architecture across four tiers: Foundation, Core Operations, Interchange System, and Test Infrastructure. This version introduces bidirectional Round8 ↔ Decimal interchange and Calculator Interchange with displayMode caching.
 
-### Architectural Validation (Foundation → Operations → Tests)
+### Architectural Validation (Foundation → Operations → Interchange → Tests)
+
 **Tier 0 - Foundation** (100% Validated ✅)
 - Sign-at-Origin architecture (bit 0 anchor, upward expansion)
 - Quality-First ANOR mathematics (magnitude before operations)
 - Muxity pattern consistency (ResultMuxity forward-only, WrungMuxity self-referential)
+- Spool Manifold Method (pure lookup-based symbol resolution)
+
 **Tier 1 - Core Operations** (100% Validated ✅)
 - Magnitude comparison (sign-agnostic via compareMagnitude)
 - Sign routing (sign-aware via determineEffectiveOperation)
 - Signed arithmetic (sum/difference with all sign combinations)
+- Logical operations (AND, OR, XOR, NOT via r8_.logical)
 - Quality container pattern (WrungMuxity self-referential containers)
 
-**Tier 2 - Test Infrastructure** (100% Validated ✅)
+**Tier 2 - Interchange System** (100% Validated ✅) - v0.0.168
+- Bidirectional interchange (Round8 ↔ Decimal via r8_.interchange)
+- Calculator interchange (displayMode, decimal caching)
+- 159 edge case validations (boundary transitions, carry patterns)
+
+**Tier 3 - Test Infrastructure** (100% Validated ✅)
 - Round8-native test tools (getRegularBitRotation, not binary reimplementation)
 - Quality-First test patterns (validate tools, not binary logic)
 - Complete coverage (all operations, all sign cases, all edge conditions)
 
 ### Test Suite Summary
+
+#### Arithmetic Operations (171 tests)
 | Suite | Tests | Purpose | Validates |
 |-------|-------|---------|-----------|
-| **muxifyWrung.test.ts** | 125 | Signed arithmetic routing | All 8 operation+sign combinations, WrungMuxity pattern |
-| **anorWrung.test.ts** | 29 | ANOR magnitude comparison | Sign-agnostic compareMagnitude, Quality-First tier separation |
-| **comparison-operators.test.ts** | 60 | Derived comparisons | >=, <=, != built from base operations |
-| **greater-than-wrung.test.ts** | 60 | Base comparisons | >, < using independent spools |
-| **calculator.operations.test.ts** | 16 | **v0.0.14** Calculator increment/decrement | Composing functions orchestrating muxifyWrung |
-| **r8.api.test.ts** | 33 | **v0.0.14** Public API integration | All categories (conference, operations, logical, anor, terminology) |
-| **bidirectionalConference.test.ts** | ~30 | String parsing | Round8 ↔ Buffer conversion, Marquee delimiters |
-| **anorBenefits.test.ts** | ~20 | ANOR foundation | Quality-First mathematics principles |
-| **+ 7 additional suites** | ~40 | Complete infrastructure | MaskStore, NumeralStore, Spools, terminology |
+| **muxifyWrung.positiveSummation** | 50 | Positive addition | Summation routing, carry propagation |
+| **muxifyWrung.positiveDifference** | 49 | Positive subtraction | Difference routing, borrow cascade |
+| **muxifyWrung.mixedSign.a** | 19 | Mixed sign operations A | Sign routing with ANOR |
+| **muxifyWrung.mixedSign.b** | 7 | Mixed sign operations B | Edge case combinations |
+| **differencing.specifics** | 37 | Subtraction specifics | Borrow patterns, boundary cases |
+| **decrement-borrow-cascade** | 8 | Borrow cascade patterns | Multi-position borrow propagation |
+| **differencing.edge-cases** | 1 | Differencing edge cases | Critical boundary validation |
+
+#### ANOR Foundation (66 tests)
+| Suite | Tests | Purpose | Validates |
+|-------|-------|---------|-----------|
+| **anorWrung.test** | 29 | ANOR magnitude comparison | Sign-agnostic compareMagnitude, tier separation |
+| **anor.test** | 19 | Core ANOR operations | Base ANOR functionality |
+| **anorBenefits.test** | 18 | ANOR foundation benefits | Quality-First mathematics principles |
+
+#### Comparison & Logical Operations (90 tests)
+| Suite | Tests | Purpose | Validates |
+|-------|-------|---------|-----------|
+| **logical-operators** | 35 | Logical operations | AND, OR, XOR, NOT via r8_.logical |
+| **comparison-operators** | 30 | Derived comparisons | >=, <=, !=, == built from base operations |
+| **greater-than-wrung** | 25 | Base comparisons | >, < using independent spools |
+
+#### Interchange System (159 tests) - v0.0.168
+| Suite | Tests | Purpose | Validates |
+|-------|-------|---------|-----------|
+| **decimalToRound8.edgeCases** | 99 | Interchange edge cases | Boundary transitions, carry patterns |
+| **bidirectionalConference** | 41 | Bidirectional interchange | Round8 ↔ Decimal roundtrip validation |
+| **decimalToRound8** | 19 | Decimal → Round8 conversion | Core interchange algorithm |
+
+#### Calculator (36 tests)
+| Suite | Tests | Purpose | Validates |
+|-------|-------|---------|-----------|
+| **calculator.interchange** | 20 | **v0.0.168** Calculator interchange | displayMode, decimal caching, getDisplayValue |
+| **calculator.operations** | 16 | Calculator increment/decrement | Composing functions orchestrating muxifyWrung |
+
+#### Infrastructure & API (46 tests)
+| Suite | Tests | Purpose | Validates |
+|-------|-------|---------|-----------|
+| **r8.api** | 33 | Public API integration | All r8_ categories (interchange, operations, logical, anor) |
+| **round8-stratimux** | 5 | Stratimux concept | Quality routing, concept composition |
+| **mapping-display** | 5 | Spool/mapping validation | Regular/Shifted frame correspondence |
+| **parser-position21-trace** | 2 | Position 21 parsing | Marquee delimiter handling |
+| **terminology** | 1 | Terminology validation | Core terminology consistency |
 
 ### Round8-Native Testing Philosophy
 **Total Binary Replacement**: Tests use Round8's native tools (getRegularBitRotation, NumeralStore, Spools), not binary logic reimplementation. This proves Round8 tools validate Round8 operations using Round8's own infrastructure.
@@ -201,7 +254,7 @@ Round8 validates **self-referential quality containers** across all operations:
 npm test
 ```
 
-**Expected**: `Test Suites: 15 passed | Tests: 373 passed | Time: ~0.8s`
+**Expected**: `Test Suites: 23 passed | Tests: 568 passed | Time: ~9s`
 
 ## License
 GPL-3.0

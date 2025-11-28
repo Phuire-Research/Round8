@@ -1,6 +1,7 @@
 // ============================================================================
-// ROUND8 CLEAR QUALITY
+// ROUND8 CLEAR QUALITY (v0.0.168)
 // Clears specific calculator to zero state using r8_ manifold
+// Note: Does NOT reset interchange - use round8InterchangeOff for that
 // ============================================================================
 
 import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
@@ -27,26 +28,30 @@ export const round8Clear = createQualityCardWithPayload<Round8State, Round8Clear
     const zeroBinary = r8_.createBufferDisplay(zeroBuffer);
     const zeroDisplay = r8_.createRoundDisplay(zeroBuffer);
 
-    // Reset calculator to zero state
+    // Reset calculator to zero state (preserves interchange, clears decimal caches)
     const updatedCalculator = {
       ...calculator,
       input1: {
         value: zeroDisplay,
         buffer: zeroBuffer,
-        binary: zeroBinary
+        binary: zeroBinary,
+        decimal: null
       },
       input2: {
         value: zeroDisplay,
         buffer: zeroBuffer,
-        binary: zeroBinary
+        binary: zeroBinary,
+        decimal: null
       },
       output: {
         value: zeroDisplay,
         buffer: zeroBuffer,
-        binary: zeroBinary
+        binary: zeroBinary,
+        decimal: null
       },
       operation: null,
       activeInput: 'input1' as const
+      // Note: Does NOT reset displayMode or interchange
     };
 
     // Return only changed properties

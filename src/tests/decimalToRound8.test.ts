@@ -348,15 +348,6 @@ describe('Phase 2: Scaffolded Function Validation', () => {
 
       console.log('[Scaffolded] decimalToRound8(1):', result);
     });
-
-    // test('3.2: decimalToRound8 returns scaffolded placeholder', () => {
-    //   const result = decimalToRound8(42);
-
-    //   // Scaffolded function returns 'SCAFFOLDED:{decimal}'
-    //   expect(result).toContain('SCAFFOLDED');
-
-    //   console.log('[Scaffolded] decimalToRound8(42):', result);
-    // });
   });
 
   /**
@@ -369,15 +360,6 @@ describe('Phase 2: Scaffolded Function Validation', () => {
       expect(result).toBeDefined();
       expect(result).toBe(37441);
     });
-
-    // test('4.2: round8ToDecimal returns scaffolded placeholder', () => {
-    //   const result = round8ToDecimal('12345');
-
-    //   // Scaffolded function returns -1
-    //   expect(result).toBe(-1);
-
-    //   console.log('[Scaffolded] round8ToDecimal("12345"):', result);
-    // });
   });
 });
 
@@ -735,6 +717,83 @@ describe('Phase 4: 8-Sample Statistical Validation', () => {
 
       console.log(`[DecimalStats] Results: ${passCount} pass, ${notFoundCount} not found, ${failCount} fail`);
       expect(failCount).toBe(0);
+    });
+  });
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PHASE 5: FINAL BIDIRECTIONAL INTERCHANGE VALIDATION
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Proves complete bidirectional interoperability:
+ *
+ * DIRECTION A: Decimal → Round8 → API Validation
+ *   1. Start with known decimal (from API ground truth)
+ *   2. decimalToRound8(decimal) → round8String
+ *   3. Validate against API: round8String === entry.stringOutput
+ *
+ * DIRECTION B: Round8 → Decimal → API Validation
+ *   4. Take same round8String
+ *   5. round8ToDecimal(round8String) → computedDecimal
+ *   6. Validate: computedDecimal === entry.decimalPairing
+ *
+ * BIDIRECTIONAL PROOF:
+ *   decimal → decimalToRound8 → round8String → round8ToDecimal → decimal
+ *      ↑                                                            ↓
+ *      └──────────────── MUST BE IDENTICAL ────────────────────────┘
+ */
+describe('PHASE 5: Final Bidirectional Interchange Validation', () => {
+  describe('Test Suite 5: Complete Bidirectional Interchange Cycle', () => {
+    test('5.1: Complete bidirectional interchange cycle validates against API', async () => {
+      const { data: countData } = await httpGet<CountResponse>(`${API_BASE_URL}/count`);
+      const maxRound8 = countData.currentRound8;
+      const SAMPLE_COUNT = 8;
+
+      console.log('[Bidirectional] Testing bidirectional interchange with API ground truth');
+
+      let passCount = 0;
+      let notFoundCount = 0;
+
+      for (let i = 0; i < SAMPLE_COUNT; i++) {
+        const rawRound8 = generateRandomRound8String(maxRound8);
+        const formattedRound8 = formatWithCommas(rawRound8);
+
+        const buffer = parseStringToRound8(formattedRound8);
+        if (buffer === undefined) {
+          continue;
+        }
+
+        const formattedBinary = createFormattedRound8BinaryString(buffer);
+        const { data } = await httpGet<LookupResponse>(
+          `${API_BASE_URL}/lookup?binary=${encodeURIComponent(formattedBinary)}`
+        );
+
+        if (data.found && data.entry) {
+          const groundTruthDecimal = data.entry.decimalPairing;
+          const groundTruthRound8 = data.entry.stringOutput;
+
+          // DIRECTION A: Decimal → Round8 → Validate
+          const interchangedRound8 = decimalToRound8(groundTruthDecimal);
+          expect(interchangedRound8).toBe(groundTruthRound8);
+
+          // DIRECTION B: Round8 → Decimal → Validate
+          const interchangedDecimal = round8ToDecimal(formatWithCommas(groundTruthRound8));
+          expect(interchangedDecimal).toBe(groundTruthDecimal);
+
+          // BIDIRECTIONAL PROOF: Full cycle must return to origin
+          const fullCycleDecimal = round8ToDecimal(formatWithCommas(interchangedRound8));
+          expect(fullCycleDecimal).toBe(groundTruthDecimal);
+
+          passCount++;
+          console.log(`[Bidirectional] ✓ #${i + 1}: ${groundTruthDecimal} ↔ "${groundTruthRound8}"`);
+        } else {
+          notFoundCount++;
+        }
+      }
+
+      console.log(`[Bidirectional] Results: ${passCount} pass, ${notFoundCount} not found`);
+      expect(passCount).toBeGreaterThan(0);
     });
   });
 });

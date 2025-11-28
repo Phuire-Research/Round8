@@ -1,6 +1,7 @@
 // ============================================================================
-// ROUND8 CALCULATE QUALITY
+// ROUND8 CALCULATE QUALITY (v0.0.168)
 // Executes calculation for specific calculator using r8_ manifold
+// Interchange: Updates output decimal cache when interchange active
 // ============================================================================
 
 import { createQualityCardWithPayload, defaultMethodCreator } from 'stratimux';
@@ -65,13 +66,17 @@ export const round8Calculate = createQualityCardWithPayload<Round8State, Round8C
       result: r8_.createRoundDisplay(result)
     };
 
-    // Update calculator with result
+    // Update calculator with result, including decimal cache if interchange active
+    const resultDisplay = r8_.createRoundDisplay(result);
     const updatedCalculator = {
       ...calculator,
       output: {
         buffer: result,
         binary: r8_.createBufferDisplay(result),
-        value: r8_.createRoundDisplay(result)
+        value: resultDisplay,
+        decimal: calculator.interchange
+          ? r8_.interchange.round8ToDecimal(resultDisplay)
+          : calculator.output.decimal
       },
       history: [...calculator.history, historyEntry]
     };

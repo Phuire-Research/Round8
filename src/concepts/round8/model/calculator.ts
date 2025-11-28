@@ -1,5 +1,5 @@
 /**
- * Round8 Calculator v0.0.14 - Binary-First Implementation
+ * Round8 Calculator v0.0.168 - Interchange Enhancement
  *
  * Quantum-Resistant Architecture:
  * - Pure spool-based lookups (no binary operands)
@@ -8,7 +8,13 @@
  * - Full Twist special case handling
  * - Increment/Decrement operations (composing functions orchestrating muxifyWrung)
  *
- * @version 0.0.14
+ * Interchange System (v0.0.168):
+ * - Display mode: 'R8' or 'DEC' for output format
+ * - Interchange caching: Decimal values cached when active
+ * - Decimal input: Accept decimal, convert to Round8
+ * - Bidirectional: Round8 ↔ Decimal via r8_.interchange
+ *
+ * @version 0.0.168
  * @purpose Compositional calculator API - create multiple instances inline
  */
 
@@ -20,21 +26,25 @@ import { r8_ } from './r8';
 
 type ActiveInputIdentifier = 'input1' | 'input2';
 export type OperationType = '+' | '-' | '>' | '<' | '>=' | '<=' | '==' | '!=' | null;
+export type DisplayMode = 'R8' | 'DEC';
 
 export interface InputState {
-  value: string;                        // Round8 string ("1,2,3") - DISPLAY value (reversed)
-  buffer: bigint;      // 64-bit buffer
+  value: string;                        // Round8 string ("1,2,3") - DISPLAY value
+  buffer: bigint;                       // 64-bit buffer
   binary: string;                       // Binary display ("1|001|010|011|...")
+  decimal: number | null;               // Cached decimal value (when interchange active)
 }
 
 export interface CalculatorState {
   input1: InputState;
   input2: InputState;
   output: InputState;
-  decimalOutput: string;          // Decimal mode display: "In Progress" or formatted decimal
   operation: OperationType;
   activeInput: ActiveInputIdentifier;
   darkMode: boolean;
+  // Interchange System
+  displayMode: DisplayMode;             // What to display: 'R8' or 'DEC'
+  interchange: boolean;                 // Whether decimal caching is active
 }
 
 // ============================================================
@@ -54,23 +64,47 @@ function createCalculator() {
     input1: {
       value: '',
       buffer: 0n,
-      binary: ''
+      binary: '',
+      decimal: null,
     },
     input2: {
       value: '',
       buffer: 0n,
-      binary: ''
+      binary: '',
+      decimal: null,
     },
     output: {
       value: '',
       buffer: 0n,
-      binary: ''
+      binary: '',
+      decimal: null,
     },
-    decimalOutput: 'In Progress',   // Default: not from Running Clock
     operation: null,
     activeInput: 'input1',
-    darkMode: true
+    darkMode: true,
+    // Interchange defaults
+    displayMode: 'R8',
+    interchange: false,
   };
+
+  // ============================================================
+  // Interchange Helper - Cache decimal values when active
+  // ============================================================
+
+  function updateDecimalCache(): void {
+    if (!state.interchange) return;
+
+    // Cache all decimal values via interchange
+    state.input1.decimal = state.input1.value
+      ? r8_.interchange.round8ToDecimal(state.input1.value)
+      : 0;
+    state.input2.decimal = state.input2.value
+      ? r8_.interchange.round8ToDecimal(state.input2.value)
+      : 0;
+    state.output.decimal = state.output.value
+      ? r8_.interchange.round8ToDecimal(state.output.value)
+      : 0;
+  }
 
   // ============================================================
   // Calculator Operations (closure over THIS state)
@@ -97,7 +131,7 @@ function createCalculator() {
       inputState.binary = binary;
       inputState.value = displayValue;  // Store formatted value for display
     }
-    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
+    updateDecimalCache();  // Guard built-in: no-op if interchange false
   }
 
   function handleBackspace(): void {
@@ -125,7 +159,7 @@ function createCalculator() {
       inputState.value = displayValue ? displayValue : '0';
       inputState.binary = binary ? binary : r8_.createBufferDisplay(0n);
     }
-    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
+    updateDecimalCache();
   }
 
   function handleZero(): void {
@@ -133,7 +167,7 @@ function createCalculator() {
     inputState.value = r8_.createRoundDisplay(0n);
     inputState.buffer = 0n;
     inputState.binary = r8_.createBufferDisplay(0n);
-    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
+    updateDecimalCache();
   }
 
   function handleOperation(operation: OperationType): void {
@@ -181,7 +215,7 @@ function createCalculator() {
     state.output.buffer = result;
     state.output.binary = r8_.createBufferDisplay(result);
     state.output.value = r8_.createRoundDisplay(result);
-    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
+    updateDecimalCache();
   }
 
   function handleClear(): void {
@@ -189,19 +223,22 @@ function createCalculator() {
     state.input1.value = '0';
     state.input1.buffer = 0n;
     state.input1.binary = r8_.createBufferDisplay(0n);
+    state.input1.decimal = null;
 
     state.input2.value = '0';
     state.input2.buffer = 0n;
     state.input2.binary = r8_.createBufferDisplay(0n);
+    state.input2.decimal = null;
 
     // Set output to absolute 0
     state.output.value = '0';
     state.output.buffer = 0n;
     state.output.binary = r8_.createBufferDisplay(0n);
+    state.output.decimal = null;
 
-    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
     state.operation = null;
     state.activeInput = 'input1';
+    // Note: Does NOT reset interchange - user must explicitly call handleInterchangeOff()
   }
 
   function handleInputSwitch(): void {
@@ -214,7 +251,7 @@ function createCalculator() {
     inputState.buffer = flipped;
     inputState.binary = r8_.createBufferDisplay(flipped);
     inputState.value = r8_.createRoundDisplay(flipped);
-    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
+    updateDecimalCache();
   }
 
   function handleIncrement(): void {
@@ -223,7 +260,7 @@ function createCalculator() {
     inputState.buffer = incremented;
     inputState.binary = r8_.createBufferDisplay(incremented);
     inputState.value = r8_.createRoundDisplay(incremented);
-    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
+    updateDecimalCache();
   }
 
   function handleDecrement(): void {
@@ -232,7 +269,63 @@ function createCalculator() {
     inputState.buffer = decremented;
     inputState.binary = r8_.createBufferDisplay(decremented);
     inputState.value = r8_.createRoundDisplay(decremented);
-    state.decimalOutput = 'In Progress';  // Reset decimal (not from Running Clock)
+    updateDecimalCache();
+  }
+
+  // ============================================================
+  // Interchange Operations
+  // ============================================================
+
+  function handleDisplayMode(mode: DisplayMode): void {
+    state.displayMode = mode;
+
+    // DEC display activates interchange
+    if (mode === 'DEC') {
+      state.interchange = true;
+      updateDecimalCache();
+    }
+  }
+
+  function handleDecimalInput(decimal: number): void {
+    const inputState = state[state.activeInput];
+
+    // Interchange: Decimal → Round8
+    const round8String = r8_.interchange.decimalToRound8(decimal);
+    const buffer = r8_.parseStringToBuffer(round8String);
+
+    if (buffer) {
+      inputState.buffer = buffer;
+      inputState.binary = r8_.createBufferDisplay(buffer);
+      inputState.value = r8_.createRoundDisplay(buffer);
+      inputState.decimal = decimal;  // Direct cache
+    }
+
+    // Activate interchange and update all caches
+    state.interchange = true;
+    updateDecimalCache();
+  }
+
+  function handleInterchangeOff(): void {
+    state.interchange = false;
+    state.displayMode = 'R8';
+
+    // Clear all decimal caches
+    state.input1.decimal = null;
+    state.input2.decimal = null;
+    state.output.decimal = null;
+  }
+
+  function getDisplayValue(inputKey: 'input1' | 'input2' | 'output'): string {
+    const inputState = state[inputKey];
+
+    if (state.displayMode === 'DEC' && state.interchange) {
+      if (inputState.decimal === null) return '0';
+      // Format decimal with three-column comma ticks (e.g., 1,234,567)
+      // Note: Round8 uses two-column ticks as base 72 system
+      return inputState.decimal.toLocaleString('en-US');
+    }
+
+    return inputState.value || '0';
   }
 
   // ============================================================
@@ -253,6 +346,11 @@ function createCalculator() {
     handleDecrement,
     handleClear,
     handleInputSwitch,
+    // Interchange operations
+    handleDisplayMode,
+    handleDecimalInput,
+    handleInterchangeOff,
+    getDisplayValue,
   };
 }
 

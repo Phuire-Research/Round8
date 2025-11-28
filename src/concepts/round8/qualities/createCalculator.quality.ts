@@ -30,22 +30,28 @@ export const round8CreateCalculator = createQualityCardWithPayload<Round8State, 
       input1: {
         value: zeroDisplay,
         buffer: zeroBuffer,
-        binary: zeroBinary
+        binary: zeroBinary,
+        decimal: null
       },
       input2: {
         value: zeroDisplay,
         buffer: zeroBuffer,
-        binary: zeroBinary
+        binary: zeroBinary,
+        decimal: null
       },
       output: {
         value: zeroDisplay,
         buffer: zeroBuffer,
-        binary: zeroBinary
+        binary: zeroBinary,
+        decimal: null
       },
       operation: null,
       activeInput: 'input1',
       darkMode: state.globalDarkMode,
-      history: []
+      history: [],
+      // Interchange defaults (v0.0.168)
+      displayMode: 'R8',
+      interchange: false
     };
 
     // Return only changed properties (performance optimization)

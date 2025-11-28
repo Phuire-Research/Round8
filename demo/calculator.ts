@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable complexity */
 /**
- * Round8 Calculator v0.0.16 - UI Event Bindings
+ * Round8 Calculator v0.0.168 - UI Event Bindings
  *
  * Quantum-Resistant Architecture:
  * - Pure spool-based lookups (no binary operands)
@@ -14,7 +14,12 @@
  * - Calculator-integrated arithmetic (Input1 + 1 = Output → hop → repeat)
  * - State retention on stop (user can continue manually)
  *
- * @version 0.0.16
+ * Interchange Enhancement (v0.0.168):
+ * - R8/DEC display toggle via handleDisplayMode
+ * - Decimal caching when interchange active
+ * - All inputs/output support mode-aware display
+ *
+ * @version 0.0.168
  * @purpose DOM event bindings for calculator instance
  */
 
@@ -211,14 +216,24 @@ async function startRunningClockCalculation(
  * Stop Running Clock, retain calculator state
  * Clears interval and reverts visuals but PRESERVES Input1, Input2, Operation, Output
  * User can continue calculating manually from preserved values
+ *
+ * FIX 10.3: When calculator provided, sync visual toggle with actual displayMode
+ * instead of always reverting to R8
+ *
+ * @param calculator - Optional calculator instance to sync visual with actual displayMode
  */
-function stopRunningClockRetainState(): void {
+function stopRunningClockRetainState(calculator?: Round8Calculator): void {
   if (runningClockIntervalId !== null) {
     clearInterval(runningClockIntervalId);
     runningClockIntervalId = null;
     console.log('[RunningClock] Stopped - calculator state retained');
   }
-  
+
+  // Mark clock as not running
+  if (calculator) {
+    calculator.clockRunning = false;
+  }
+
   // Remove processing visual
   document.querySelector('.display-section')?.classList.remove('processing-active');
 
@@ -233,12 +248,24 @@ function stopRunningClockRetainState(): void {
     header.classList.remove('header-clock-mode');
   }
 
-  // Revert output toggle visual to R8
-  if (outputModeToggle) {
-    outputModeToggle.setAttribute('aria-pressed', 'false');
-  }
-  if (outputRow) {
-    outputRow.classList.remove('viridian');
+  // FIX 10.3: Sync visual toggle with actual displayMode (not always R8)
+  // Display mode persists on input - visual should reflect actual state
+  if (calculator) {
+    const isDecMode = calculator.calc.state.displayMode === 'DEC';
+    if (outputModeToggle) {
+      outputModeToggle.setAttribute('aria-pressed', String(isDecMode));
+    }
+    if (outputRow) {
+      outputRow.classList.toggle('viridian', isDecMode);
+    }
+  } else {
+    // Fallback: Revert output toggle visual to R8 (legacy behavior)
+    if (outputModeToggle) {
+      outputModeToggle.setAttribute('aria-pressed', 'false');
+    }
+    if (outputRow) {
+      outputRow.classList.remove('viridian');
+    }
   }
 
   // NOTE: Calculator state (Input1, Input2, Operation, Output) is INTENTIONALLY PRESERVED
@@ -286,6 +313,8 @@ async function handleHeaderModeToggle(
     await startRunningClockCalculation(calculator);
 
     // Sync output toggle to DEC (show decimal alongside Round8)
+    // FIX 10.1: Actually set displayMode via handleDisplayMode (not just visual)
+    calculator.calc.handleDisplayMode('DEC');
     if (outputModeToggle) {
       outputModeToggle.setAttribute('aria-pressed', 'true');
     }
@@ -295,7 +324,7 @@ async function handleHeaderModeToggle(
   } else {
     calculator.clockRunning = false;
     // ENTERING CALC MODE - stop but retain state
-    stopRunningClockRetainState();
+    stopRunningClockRetainState(calculator);
   }
 
   console.log(`[HeaderMode] Toggled to: ${newMode.toUpperCase()}`);
@@ -308,6 +337,7 @@ async function handleHeaderModeToggle(
 /**
  * Update display for specified input (Round8 value and binary)
  * Reads from calculator state and updates DOM elements
+ * Uses getDisplayValue for mode-aware display (R8/DEC)
  *
  * @param calc - Calculator instance
  * @param inputNumber - Which input to update (1 or 2)
@@ -316,15 +346,16 @@ function updateInputDisplay(
   calculator: Round8Calculator,
   inputNumber: 1 | 2
 ): void {
+  const inputKey = inputNumber === 1 ? 'input1' : 'input2';
   const inputState = inputNumber === 1 ? calculator.calc.state.input1 : calculator.calc.state.input2;
 
-  // Update Round8 value display
+  // Update value display using getDisplayValue (mode-aware)
   const valueElement = document.getElementById(`input${inputNumber}Value`);
   if (valueElement) {
-    valueElement.textContent = inputState.value || '';
+    valueElement.textContent = calculator.calc.getDisplayValue(inputKey);
   }
 
-  // Update binary display
+  // Update binary display (always binary regardless of mode)
   const binaryElement = document.getElementById(`input${inputNumber}Binary`);
   if (binaryElement) {
     binaryElement.textContent = inputState.binary || '';
@@ -334,7 +365,7 @@ function updateInputDisplay(
 /**
  * Update output display (Round8 value and binary)
  * Reads from calculator output state and updates DOM elements
- * Checks output mode toggle for R8/DEC display
+ * Uses getDisplayValue for mode-aware display (R8/DEC)
  *
  * @param calc - Calculator instance
  */
@@ -342,19 +373,13 @@ function updateOutputDisplay(
   calculator: Round8Calculator
 ): void {
   const outputState = calculator.calc.state.output;
-  const outputModeToggle = document.getElementById('outputModeToggle');
-  const isDecimalMode = outputModeToggle?.getAttribute('aria-pressed') === 'true';
 
-  // Update value display based on mode
+  // Update value display using getDisplayValue (mode-aware)
+  // FIX: Removed clock short circuit - now uses interchange for R8/DEC display
+  // Clock count is retained internally but no longer drives display output
   const valueElement = document.getElementById('outputValue');
   if (valueElement) {
-    if (isDecimalMode) {
-      // DEC mode: show decimalOutput ("In Progress" or formatted decimal)
-      valueElement.textContent = (calculator.count !== -1 && calculator.clockRunning) ? String(calculator.count) : 'In Progress';
-    } else {
-      // R8 mode: show Round8 formatted value
-      valueElement.textContent = outputState.value || '0';
-    }
+    valueElement.textContent = calculator.calc.getDisplayValue('output');
   }
 
   // Update binary display (always shows binary regardless of mode)
@@ -548,7 +573,7 @@ function initializeCalculator(): void {
         calculator.calc.handleDigitEntry(i);
         const inputNum = calculator.calc.state.activeInput === 'input1' ? 1 : 2;
         updateInputDisplay(calculator, inputNum);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       });
     }
   }
@@ -560,7 +585,7 @@ function initializeCalculator(): void {
       calculator.calc.handleBackspace();
       const inputNum = calculator.calc.state.activeInput === 'input1' ? 1 : 2;
       updateInputDisplay(calculator, inputNum);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -571,7 +596,7 @@ function initializeCalculator(): void {
       calculator.calc.handleZero();
       const inputNum = calculator.calc.state.activeInput === 'input1' ? 1 : 2;
       updateInputDisplay(calculator, inputNum);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -582,7 +607,7 @@ function initializeCalculator(): void {
       calculator.calc.handleSigned();
       const inputNum = calculator.calc.state.activeInput === 'input1' ? 1 : 2;
       updateInputDisplay(calculator, inputNum);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -592,7 +617,7 @@ function initializeCalculator(): void {
     () => {
       calculator.calc.state.activeInput = 'input1';
       calculator.calc.handleIncrement();
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     },
     () => updateInputDisplay(calculator, 1)
   );
@@ -602,7 +627,7 @@ function initializeCalculator(): void {
     () => {
       calculator.calc.state.activeInput = 'input1';
       calculator.calc.handleDecrement();
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     },
     () => updateInputDisplay(calculator, 1)
   );
@@ -612,7 +637,7 @@ function initializeCalculator(): void {
     () => {
       calculator.calc.state.activeInput = 'input2';
       calculator.calc.handleIncrement();
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     },
     () => updateInputDisplay(calculator, 2)
   );
@@ -622,7 +647,7 @@ function initializeCalculator(): void {
     () => {
       calculator.calc.state.activeInput = 'input2';
       calculator.calc.handleDecrement();
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     },
     () => updateInputDisplay(calculator, 2)
   );
@@ -633,7 +658,7 @@ function initializeCalculator(): void {
     addBtn.addEventListener('click', () => {
       calculator.calc.handleOperation('+');
       updateOperationDisplay(calculator);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -642,7 +667,7 @@ function initializeCalculator(): void {
     subtractBtn.addEventListener('click', () => {
       calculator.calc.handleOperation('-');
       updateOperationDisplay(calculator);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -652,7 +677,7 @@ function initializeCalculator(): void {
     greaterBtn.addEventListener('click', () => {
       calculator.calc.handleOperation('>');
       updateOperationDisplay(calculator);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -661,7 +686,7 @@ function initializeCalculator(): void {
     greaterEqualBtn.addEventListener('click', () => {
       calculator.calc.handleOperation('>=');
       updateOperationDisplay(calculator);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -670,7 +695,7 @@ function initializeCalculator(): void {
     lessBtn.addEventListener('click', () => {
       calculator.calc.handleOperation('<');
       updateOperationDisplay(calculator);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -679,7 +704,7 @@ function initializeCalculator(): void {
     lessEqualBtn.addEventListener('click', () => {
       calculator.calc.handleOperation('<=');
       updateOperationDisplay(calculator);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -688,7 +713,7 @@ function initializeCalculator(): void {
     equalsBtn.addEventListener('click', () => {
       calculator.calc.handleOperation('==');
       updateOperationDisplay(calculator);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -703,7 +728,7 @@ function initializeCalculator(): void {
       if (outputRow) {
         outputRow.classList.add('output-row-active');
       }
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -722,7 +747,7 @@ function initializeCalculator(): void {
       if (outputRow) {
         outputRow.classList.remove('output-row-active');
       }
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -732,7 +757,7 @@ function initializeCalculator(): void {
     flipBtn.addEventListener('click', () => {
       calculator.calc.handleInputSwitch();
       updateActiveInputHighlight(calculator);
-      stopRunningClockRetainState();
+      stopRunningClockRetainState(calculator);
     });
   }
 
@@ -749,7 +774,7 @@ function initializeCalculator(): void {
       if (calculator.calc.state.activeInput !== 'input1') {
         calculator.calc.handleInputSwitch();
         updateActiveInputHighlight(calculator);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       }
     });
   }
@@ -760,7 +785,7 @@ function initializeCalculator(): void {
       if (calculator.calc.state.activeInput !== 'input2') {
         calculator.calc.handleInputSwitch();
         updateActiveInputHighlight(calculator);
-        stopRunningClockRetainState();
+        stopRunningClockRetainState(calculator);
       }
     });
   }
@@ -787,7 +812,7 @@ function initializeCalculator(): void {
   calculator.calc.state.activeInput = 'input1';
   updateActiveInputHighlight(calculator);
 
-  // Output Mode Toggle (R8/DEC) - Independent display toggle
+  // Output Mode Toggle (R8/DEC) - Display mode toggle with interchange activation
   const outputModeToggle = document.getElementById('outputModeToggle');
   const outputRow = document.getElementById('outputRow');
   if (outputModeToggle) {
@@ -803,7 +828,12 @@ function initializeCalculator(): void {
         outputRow.classList.toggle('viridian', newState);
       }
 
-      // Update display to reflect new mode
+      // Set display mode via calculator (handles interchange activation)
+      calculator.calc.handleDisplayMode(newState ? 'DEC' : 'R8');
+
+      // Update ALL displays to reflect new mode
+      updateInputDisplay(calculator, 1);
+      updateInputDisplay(calculator, 2);
       updateOutputDisplay(calculator);
     });
   }
@@ -826,7 +856,7 @@ function initializeCalculator(): void {
   }
 
   console.log('Calculator UI bindings initialized');
-  console.log('Round8 Calculator v0.0.16 - Running Clock MVP (Calculator Integrated)');
+  console.log('Round8 Calculator v0.0.168 - Interchange Enhancement (R8/DEC Display)');
 }
 
 /**
