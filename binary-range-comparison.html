@@ -1,0 +1,2433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Range Comparison: Traditional vs Round8 UnHexed</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Orbitron + Space Mono for HiFi Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           HiFi Complete Color System (Inline)
+           Following index.html pattern - self-contained
+           ============================================ */
+        :root {
+            /* Suite 0: Obsidian - Foundational Void */
+            --color-obsidian: rgb(26, 26, 26);
+            --color-obsidian-border-dark: rgb(24, 24, 24);
+            --color-obsidian-border-light: rgb(28, 28, 28);
+            --color-obsidian-shadow: rgba(8, 8, 8, 0.7);
+
+            /* Suite 1: Maroon - Read/Document (Deep Red-Brown) */
+            --color-maroon: #800020;
+            --color-maroon-light: #a0002a;
+            --color-maroon-dark: #600018;
+            --color-maroon-border-dark: #751d1d;
+            --color-maroon-border-light: #8a2423;
+            --color-maroon-shadow: rgba(117, 29, 29, 0.6);
+
+            /* Suite 2: Rust - Transform/Convert (Iron Oxide Orange) */
+            --color-rust: #b7410e;
+            --color-rust-light: #d4551a;
+            --color-rust-dark: #9a3709;
+            --color-rust-border-dark: #a83c0d;
+            --color-rust-border-light: #c5460f;
+            --color-rust-shadow: rgba(168, 60, 13, 0.6);
+
+            /* Suite 3: Ochre - Attention/Focus (Yellow Earth) */
+            --color-ochre: #cc7722;
+            --color-ochre-light: #e6952d;
+            --color-ochre-dark: #b3651b;
+            --color-ochre-border-dark: #bc6e20;
+            --color-ochre-border-light: #db8024;
+            --color-ochre-shadow: rgba(188, 110, 32, 0.6);
+
+            /* Suite 4: Viridian - Instillation/Setup (Chromium Green) */
+            --color-viridian: #4aa685;
+            --color-viridian-light: #5ebf9d;
+            --color-viridian-dark: #3a8970;
+            --color-viridian-border-dark: #449a7a;
+            --color-viridian-border-light: #50b290;
+            --color-viridian-shadow: rgba(68, 154, 122, 0.6);
+
+            /* Suite 5: Cobalt - Implementation/Execute (Deep Blue) */
+            --color-cobalt: #0047ab;
+            --color-cobalt-light: #0059d6;
+            --color-cobalt-dark: #003580;
+            --color-cobalt-border-dark: #00429e;
+            --color-cobalt-border-light: #004cb8;
+            --color-cobalt-shadow: rgba(0, 66, 158, 0.6);
+
+            /* Suite 6: Amethyst - Connection/Orchestrate (Deep Purple) */
+            --color-amethyst: #7c17e0;
+            --color-amethyst-light: #a67dd9;
+            --color-amethyst-dark: #5a0a96;
+            --color-amethyst-border-dark: #7215cf;
+            --color-amethyst-border-light: #861af1;
+            --color-amethyst-shadow: rgba(114, 21, 207, 0.6);
+
+            /* Suite 7: Rose - System/Refine (Non-Spectral Fuchsia) */
+            --color-rose: #ff1a8f;
+            --color-rose-light: #ff4da6;
+            --color-rose-dark: #d91a75;
+            --color-rose-border-dark: #eb1883;
+            --color-rose-border-light: #ff2c9b;
+            --color-rose-shadow: rgba(235, 24, 131, 0.6);
+
+            /* HiFi SVG Pattern Textures */
+            /* Suite 0: Obsidian Pattern - Outer Space (white stars on void) */
+            --pattern-obsidian: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3E%3Ccircle cx='20' cy='15' r='2' fill='%23ffffff' opacity='0.3'/%3E%3Ccircle cx='70' cy='25' r='1.5' fill='%23ffffff' opacity='0.25'/%3E%3Ccircle cx='45' cy='50' r='2' fill='%23ffffff' opacity='0.3'/%3E%3Ccircle cx='85' cy='70' r='1.5' fill='%23ffffff' opacity='0.2'/%3E%3Ccircle cx='15' cy='80' r='2' fill='%23ffffff' opacity='0.25'/%3E%3Ccircle cx='60' cy='85' r='1.5' fill='%23ffffff' opacity='0.3'/%3E%3Ccircle cx='35' cy='30' r='1' fill='%23ffffff' opacity='0.2'/%3E%3Ccircle cx='80' cy='45' r='1' fill='%23ffffff' opacity='0.15'/%3E%3C/svg%3E");
+            --pattern-amethyst: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3E%3Ccircle cx='30' cy='30' r='5' fill='%237c17e0' opacity='0.2'/%3E%3Ccircle cx='70' cy='30' r='5' fill='%237c17e0' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%237c17e0' opacity='0.2'/%3E%3Ccircle cx='30' cy='70' r='5' fill='%237c17e0' opacity='0.2'/%3E%3Ccircle cx='70' cy='70' r='5' fill='%237c17e0' opacity='0.2'/%3E%3Cline x1='30' y1='30' x2='50' y2='50' stroke='%237c17e0' stroke-width='2' opacity='0.2'/%3E%3Cline x1='70' y1='30' x2='50' y2='50' stroke='%237c17e0' stroke-width='2' opacity='0.2'/%3E%3Cline x1='30' y1='70' x2='50' y2='50' stroke='%237c17e0' stroke-width='2' opacity='0.2'/%3E%3Cline x1='70' y1='70' x2='50' y2='50' stroke='%237c17e0' stroke-width='2' opacity='0.2'/%3E%3C/svg%3E");
+            --pattern-viridian: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 100 100'%3E%3Cpath d='M50,10 L50,50' stroke='%234aa685' stroke-width='4' opacity='0.38'/%3E%3Cpath d='M50,50 Q35,60 25,75' stroke='%234aa685' stroke-width='2.67' fill='none' opacity='0.38'/%3E%3Cpath d='M50,50 Q65,60 75,75' stroke='%234aa685' stroke-width='2.67' fill='none' opacity='0.38'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%234aa685' opacity='0.38'/%3E%3C/svg%3E");
+            --pattern-cobalt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' stroke='%230047ab' stroke-width='4' fill='none' opacity='0.38'/%3E%3Crect x='48' y='25' width='4' height='10' fill='%230047ab' opacity='0.38'/%3E%3Crect x='48' y='65' width='4' height='10' fill='%230047ab' opacity='0.38'/%3E%3Crect x='25' y='48' width='10' height='4' fill='%230047ab' opacity='0.38'/%3E%3Crect x='65' y='48' width='10' height='4' fill='%230047ab' opacity='0.38'/%3E%3C/svg%3E");
+            --pattern-rust: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3E%3Cline x1='50' y1='50' x2='100' y2='20' stroke='%23b7410e' stroke-width='2.67' opacity='0.2'/%3E%3Cline x1='50' y1='50' x2='100' y2='80' stroke='%23b7410e' stroke-width='2.67' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b7410e' opacity='0.2'/%3E%3C/svg%3E");
+            --pattern-ochre: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='8' fill='%23cc7722' opacity='0.2'/%3E%3Ccircle cx='50' cy='50' r='4' fill='%23cc7722' opacity='0.3'/%3E%3C/svg%3E");
+
+            /* Gold-Beige: Lighter, Desaturated Ochre for Prospection/Discovery */
+            --color-gold-beige: rgb(205, 175, 125);
+            --color-gold-beige-light: rgb(230, 205, 160);
+            --color-gold-beige-dark: rgb(175, 145, 100);
+            --color-gold-beige-border-dark: rgb(185, 155, 110);
+            --color-gold-beige-border-light: rgb(215, 185, 140);
+            --color-gold-beige-shadow: rgba(175, 145, 100, 0.5);
+            --pattern-gold-beige: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='8' fill='%23cdaf7d' opacity='0.15'/%3E%3Ccircle cx='50' cy='50' r='4' fill='%23cdaf7d' opacity='0.2'/%3E%3C/svg%3E");
+
+            /* Fade Targets (Base × 0.15 for gradient endpoints) */
+            --fade-obsidian: rgb(4, 4, 4);
+            --fade-maroon: rgb(19, 0, 5);
+            --fade-rust: rgb(27, 10, 2);
+            --fade-ochre: rgb(31, 18, 5);
+            --fade-viridian: rgb(11, 25, 20);
+            --fade-cobalt: rgb(0, 11, 26);
+            --fade-amethyst: rgb(19, 3, 34);
+            --fade-rose: rgb(38, 4, 21);
+
+            /* Spotlight Position */
+            --spotlight-x: 87.5%;
+            --spotlight-y: 12.5%;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Georgia', serif;
+            /* Diacratic Distribution: Explore (Rust) → Implement (Cobalt) */
+            background: linear-gradient(100deg, rgb(139, 98, 78) 0%, rgb(100, 85, 110) 50%, rgb(60, 80, 130) 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        
+        /* Letter Margins: Industry standard readable column width */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Grounded Ribbon: Unified visual flow with 3px section gaps */
+        .content-ribbon {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        /* All major sections: Squared joins, suite-colored shadows for grounded pop */
+        .content-ribbon > header,
+        .content-ribbon > .chart-container,
+        .content-ribbon > .successor-section,
+        .content-ribbon > .efficiency-section,
+        .content-ribbon > .comparison-section,
+        .content-ribbon > .insight-box,
+        .content-ribbon > .hifi-footer {
+            margin: 0;
+            /* Square off ALL joining edges */
+            border-radius: 0;
+        }
+
+        /* Only round the outer corners of the ribbon */
+        .content-ribbon > header:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+        .content-ribbon > .hifi-footer:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        /* Header: White grounded shadow */
+        .content-ribbon > header {
+            box-shadow: -8px 8px 24px rgba(255, 255, 255, 0.25);
+        }
+
+        /* Chart Container (main): Obsidian shadow */
+        .content-ribbon > .chart-container {
+            box-shadow: -8px 8px 24px var(--color-obsidian-shadow);
+        }
+
+        /* Successor Section: Gold-Beige shadow */
+        .content-ribbon > .successor-section {
+            box-shadow: -8px 8px 24px var(--color-gold-beige-shadow);
+        }
+
+        /* Efficiency Section: Cobalt shadow */
+        .content-ribbon > .efficiency-section {
+            box-shadow: -8px 8px 24px var(--color-cobalt-shadow);
+        }
+
+        /* Comparison Sections: Amethyst shadow (base) */
+        .content-ribbon > .comparison-section {
+            box-shadow: -8px 8px 24px var(--color-amethyst-shadow);
+        }
+
+        /* Rose Variant (Proportional Visualization): Maroon shadow */
+        .content-ribbon > .comparison-section.rose-variant {
+            box-shadow: -8px 8px 24px var(--color-maroon-shadow);
+        }
+
+        /* Insight Boxes: Viridian shadow */
+        .content-ribbon > .insight-box {
+            box-shadow: -8px 8px 24px var(--color-viridian-shadow);
+        }
+
+        /* Amethyst Variant Insight Box: Amethyst shadow */
+        .content-ribbon > .insight-box.amethyst-variant {
+            box-shadow: -8px 8px 24px var(--color-amethyst-shadow);
+        }
+
+        /* Rust Variant Insight Box: Rust shadow */
+        .content-ribbon > .insight-box.rust-variant {
+            box-shadow: -8px 8px 24px var(--color-rust-shadow);
+        }
+
+        /* Footer: Obsidian shadow */
+        .content-ribbon > .hifi-footer {
+            box-shadow: -8px 8px 24px var(--color-obsidian-shadow);
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 20px 15px;
+            /* Table Header Style - Obsidian background */
+            background:
+                var(--pattern-obsidian),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(42, 42, 42) 0%,
+                    var(--color-obsidian) 60%,
+                    var(--fade-obsidian) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            /* Border-radius controlled by content-ribbon rules */
+            /* Dimensional Borders - no bottom border at join */
+            border-top: 2px solid var(--color-obsidian-border-dark);
+            border-right: 2px solid var(--color-obsidian-border-dark);
+            border-bottom: none;
+            border-left: 2px solid var(--color-obsidian-border-light);
+        }
+
+        /* Round8 Header Branding */
+        .round8-header-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        /* ============================================
+           Formatic Ghost - Animated Sprite
+           8-Frame Chomping Animation (Viridian)
+           ============================================ */
+        .cheshire-ghost {
+            --ghost-size: 100px;
+            --ghost-speed: 0.6s;
+            width: var(--ghost-size);
+            height: var(--ghost-size);
+            background-repeat: no-repeat;
+            background-size: calc(var(--ghost-size) * 8) var(--ghost-size);
+            animation: ghost-chomp var(--ghost-speed) steps(8) infinite;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 100'%3E%3Cpath fill-rule='evenodd' fill='%234aa685' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 80 Q 86 72 78 72 Q 72 72 72 84 Q 72 72 64 72 Q 58 72 58 88 Q 58 72 50 72 Q 44 72 44 84 Q 44 72 36 72 Q 30 72 30 80 Q 30 72 22 72 Q 16 72 16 76 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92.035 47.998 L 92 51.301 L 52 50 L 44.88 48.592 L 41.24 44.568 L 40.563 38.853 L 43.925 34.72 C 43.925 34.72 47.916 33.039 50.247 33.546 C 51.062 36.044 49.511 38.739 49.511 38.739 L 47.048 40.88 L 47.779 35.915 L 43.279 39.745 L 44.016 43.866 L 46.686 46.652 L 50.245 47.432 L 54.932 47.754 L 88.356 48.172 L 88.768 49.858 L 90.666 48.091 L 92.035 47.998 Z'/%3E%3Cpath fill-rule='evenodd' fill='%234aa685' transform='translate(100,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 76 Q 86 72 78 72 Q 72 72 72 80 Q 72 72 64 72 Q 58 72 58 84 Q 58 72 50 72 Q 44 72 44 88 Q 44 72 36 72 Q 30 72 30 84 Q 30 72 22 72 Q 16 72 16 80 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 46 L 92 54 L 50 50.5 L 45 50 L 40.5 47.5 L 38.53 39.83 L 41.045 36.22 C 41.045 36.22 42.855 33.688 45.249 33.612 C 47.336 33.546 47.307 37.627 47.307 37.627 L 46.013 41.504 L 44.562 36.634 L 41.192 40.42 L 42.643 45.388 L 46.8 47.5 L 50.102 47.757 L 56 47.5 L 87.282 46.333 L 87.785 48.905 L 90.077 46.195 L 92 46 Z'/%3E%3Cpath fill-rule='evenodd' fill='%234aa685' transform='translate(200,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 78 Q 86 72 78 72 Q 72 72 72 76 Q 72 72 64 72 Q 58 72 58 80 Q 58 72 50 72 Q 44 72 44 84 Q 44 72 36 72 Q 30 72 30 88 Q 30 72 22 72 Q 16 72 16 84 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 42 L 92 58 L 47.934 51.264 L 43 50.5 L 37.867 47.835 L 35.972 42.145 L 37.411 36.484 C 37.411 36.484 39.554 34.249 42.054 33.249 C 44.348 33.445 46.414 36.129 46.414 36.129 L 46.705 39.551 L 42.493 36.184 L 39.66 39.535 L 39.946 44.048 L 43.13 46.917 L 48.933 48.439 L 55.968 48.355 L 86.061 43.055 L 87.055 46.707 L 89.713 42.462 L 92 42 Z'/%3E%3Cpath fill-rule='evenodd' fill='%234aa685' transform='translate(300,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 82 Q 86 72 78 72 Q 72 72 72 78 Q 72 72 64 72 Q 58 72 58 76 Q 58 72 50 72 Q 44 72 44 80 Q 44 72 36 72 Q 30 72 30 84 Q 30 72 22 72 Q 16 72 16 88 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 35 L 92 65 L 44.813 52.001 L 40 51 L 35.492 48.736 L 33 45 L 33.039 38.715 C 33.039 38.715 35.245 33.643 38 33 C 40.755 32.357 43.724 34.537 43.724 34.537 L 44.85 37.572 L 39.116 35.617 L 36.331 39.312 L 36.727 44.592 L 40.625 47.541 L 46.528 48.669 L 53.267 48.406 L 86 37.07 L 87.256 41.824 L 89.975 35.952 L 92 35 Z'/%3E%3Cpath fill-rule='evenodd' fill='%234aa685' transform='translate(400,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 86 Q 86 72 78 72 Q 72 72 72 82 Q 72 72 64 72 Q 58 72 58 78 Q 58 72 50 72 Q 44 72 44 76 Q 44 72 36 72 Q 30 72 30 80 Q 30 72 22 72 Q 16 72 16 84 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 42 L 92 58 L 47.934 51.264 L 43 50.5 L 37.867 47.835 L 35.972 42.145 L 37.411 36.484 C 37.411 36.484 39.554 34.249 42.054 33.249 C 44.348 33.445 46.414 36.129 46.414 36.129 L 46.705 39.551 L 42.493 36.184 L 39.66 39.535 L 39.946 44.048 L 43.13 46.917 L 48.933 48.439 L 55.968 48.355 L 86.061 43.055 L 87.055 46.707 L 89.713 42.462 L 92 42 Z'/%3E%3Cpath fill-rule='evenodd' fill='%234aa685' transform='translate(500,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 88 Q 86 72 78 72 Q 72 72 72 86 Q 72 72 64 72 Q 58 72 58 82 Q 58 72 50 72 Q 44 72 44 78 Q 44 72 36 72 Q 30 72 30 76 Q 30 72 22 72 Q 16 72 16 80 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 46 L 92 54 L 50 50.5 L 45 50 L 40.5 47.5 L 38.53 39.83 L 41.045 36.22 C 41.045 36.22 42.855 33.688 45.249 33.612 C 47.336 33.546 47.307 37.627 47.307 37.627 L 46.013 41.504 L 44.562 36.634 L 41.192 40.42 L 42.643 45.388 L 46.8 47.5 L 50.102 47.757 L 56 47.5 L 87.282 46.333 L 87.785 48.905 L 90.077 46.195 L 92 46 Z'/%3E%3Cpath fill-rule='evenodd' fill='%234aa685' transform='translate(600,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 84 Q 86 72 78 72 Q 72 72 72 88 Q 72 72 64 72 Q 58 72 58 86 Q 58 72 50 72 Q 44 72 44 82 Q 44 72 36 72 Q 30 72 30 78 Q 30 72 22 72 Q 16 72 16 76 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92.035 47.998 L 92 51.301 L 52 50 L 44.88 48.592 L 41.24 44.568 L 40.563 38.853 L 43.925 34.72 C 43.925 34.72 47.916 33.039 50.247 33.546 C 51.062 36.044 49.511 38.739 49.511 38.739 L 47.048 40.88 L 47.779 35.915 L 43.279 39.745 L 44.016 43.866 L 46.686 46.652 L 50.245 47.432 L 54.932 47.754 L 88.356 48.172 L 88.768 49.858 L 90.666 48.091 L 92.035 47.998 Z'/%3E%3Cpath fill-rule='evenodd' fill='%234aa685' transform='translate(700,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 82 Q 86 72 78 72 Q 72 72 72 86 Q 72 72 64 72 Q 58 72 58 88 Q 58 72 50 72 Q 44 72 44 86 Q 44 72 36 72 Q 30 72 30 82 Q 30 72 22 72 Q 16 72 16 78 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 46 L 92 54 L 50 50.5 L 45 50 L 40.5 47.5 L 38.53 39.83 L 41.045 36.22 C 41.045 36.22 42.855 33.688 45.249 33.612 C 47.336 33.546 47.307 37.627 47.307 37.627 L 46.013 41.504 L 44.562 36.634 L 41.192 40.42 L 42.643 45.388 L 46.8 47.5 L 50.102 47.757 L 56 47.5 L 87.282 46.333 L 87.785 48.905 L 90.077 46.195 L 92 46 Z'/%3E%3C/svg%3E");
+        }
+
+        @keyframes ghost-chomp {
+            from { background-position: 0 0; }
+            to { background-position: calc(var(--ghost-size) * -8) 0; }
+        }
+
+        .cheshire-ghost.clock-icon {
+            --ghost-size: 48px;
+            --ghost-speed: 0.4s;
+            transform: scaleX(0.88);
+            filter: drop-shadow(0 0 10px rgba(74, 166, 133, 0.5))
+                    drop-shadow(1px 2px 0 var(--color-ochre));
+        }
+
+        .cheshire-ghost.clock-icon.inactive {
+            animation-play-state: paused;
+            filter: brightness(0) invert(1)
+                    drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))
+                    drop-shadow(1px 2px 0 var(--color-rose));
+        }
+
+        .cheshire-ghost.clock-icon.inactive:hover {
+            animation-play-state: unset;
+            filter: unset;
+        }
+
+        /* Concept Table Ghost - Smaller variant for inline table usage */
+        /* Cyan ghost (#00c8a0 = rgb(0,200,160)) matching UnHex text, Rose shadow */
+        .cheshire-ghost.concept-ghost {
+            --ghost-size: 24px;
+            --ghost-speed: 0.5s;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 6px;
+            filter: drop-shadow(0 0 4px rgba(0, 200, 160, 0.4))
+                    drop-shadow(1px 1px 0 var(--color-rose));
+            /* Override SVG fill from viridian (#4aa685) to cyan (#00c8a0) */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 100'%3E%3Cpath fill-rule='evenodd' fill='%2300c8a0' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 80 Q 86 72 78 72 Q 72 72 72 84 Q 72 72 64 72 Q 58 72 58 88 Q 58 72 50 72 Q 44 72 44 84 Q 44 72 36 72 Q 30 72 30 80 Q 30 72 22 72 Q 16 72 16 76 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92.035 47.998 L 92 51.301 L 52 50 L 44.88 48.592 L 41.24 44.568 L 40.563 38.853 L 43.925 34.72 C 43.925 34.72 47.916 33.039 50.247 33.546 C 51.062 36.044 49.511 38.739 49.511 38.739 L 47.048 40.88 L 47.779 35.915 L 43.279 39.745 L 44.016 43.866 L 46.686 46.652 L 50.245 47.432 L 54.932 47.754 L 88.356 48.172 L 88.768 49.858 L 90.666 48.091 L 92.035 47.998 Z'/%3E%3Cpath fill-rule='evenodd' fill='%2300c8a0' transform='translate(100,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 76 Q 86 72 78 72 Q 72 72 72 80 Q 72 72 64 72 Q 58 72 58 84 Q 58 72 50 72 Q 44 72 44 88 Q 44 72 36 72 Q 30 72 30 84 Q 30 72 22 72 Q 16 72 16 80 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 46 L 92 54 L 50 50.5 L 45 50 L 40.5 47.5 L 38.53 39.83 L 41.045 36.22 C 41.045 36.22 42.855 33.688 45.249 33.612 C 47.336 33.546 47.307 37.627 47.307 37.627 L 46.013 41.504 L 44.562 36.634 L 41.192 40.42 L 42.643 45.388 L 46.8 47.5 L 50.102 47.757 L 56 47.5 L 87.282 46.333 L 87.785 48.905 L 90.077 46.195 L 92 46 Z'/%3E%3Cpath fill-rule='evenodd' fill='%2300c8a0' transform='translate(200,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 78 Q 86 72 78 72 Q 72 72 72 76 Q 72 72 64 72 Q 58 72 58 80 Q 58 72 50 72 Q 44 72 44 84 Q 44 72 36 72 Q 30 72 30 88 Q 30 72 22 72 Q 16 72 16 84 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 42 L 92 58 L 47.934 51.264 L 43 50.5 L 37.867 47.835 L 35.972 42.145 L 37.411 36.484 C 37.411 36.484 39.554 34.249 42.054 33.249 C 44.348 33.445 46.414 36.129 46.414 36.129 L 46.705 39.551 L 42.493 36.184 L 39.66 39.535 L 39.946 44.048 L 43.13 46.917 L 48.933 48.439 L 55.968 48.355 L 86.061 43.055 L 87.055 46.707 L 89.713 42.462 L 92 42 Z'/%3E%3Cpath fill-rule='evenodd' fill='%2300c8a0' transform='translate(300,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 82 Q 86 72 78 72 Q 72 72 72 78 Q 72 72 64 72 Q 58 72 58 76 Q 58 72 50 72 Q 44 72 44 80 Q 44 72 36 72 Q 30 72 30 84 Q 30 72 22 72 Q 16 72 16 88 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 35 L 92 65 L 44.813 52.001 L 40 51 L 35.492 48.736 L 33 45 L 33.039 38.715 C 33.039 38.715 35.245 33.643 38 33 C 40.755 32.357 43.724 34.537 43.724 34.537 L 44.85 37.572 L 39.116 35.617 L 36.331 39.312 L 36.727 44.592 L 40.625 47.541 L 46.528 48.669 L 53.267 48.406 L 86 37.07 L 87.256 41.824 L 89.975 35.952 L 92 35 Z'/%3E%3Cpath fill-rule='evenodd' fill='%2300c8a0' transform='translate(400,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 86 Q 86 72 78 72 Q 72 72 72 82 Q 72 72 64 72 Q 58 72 58 78 Q 58 72 50 72 Q 44 72 44 76 Q 44 72 36 72 Q 30 72 30 80 Q 30 72 22 72 Q 16 72 16 84 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 42 L 92 58 L 47.934 51.264 L 43 50.5 L 37.867 47.835 L 35.972 42.145 L 37.411 36.484 C 37.411 36.484 39.554 34.249 42.054 33.249 C 44.348 33.445 46.414 36.129 46.414 36.129 L 46.705 39.551 L 42.493 36.184 L 39.66 39.535 L 39.946 44.048 L 43.13 46.917 L 48.933 48.439 L 55.968 48.355 L 86.061 43.055 L 87.055 46.707 L 89.713 42.462 L 92 42 Z'/%3E%3Cpath fill-rule='evenodd' fill='%2300c8a0' transform='translate(500,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 88 Q 86 72 78 72 Q 72 72 72 86 Q 72 72 64 72 Q 58 72 58 82 Q 58 72 50 72 Q 44 72 44 78 Q 44 72 36 72 Q 30 72 30 76 Q 30 72 22 72 Q 16 72 16 80 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 46 L 92 54 L 50 50.5 L 45 50 L 40.5 47.5 L 38.53 39.83 L 41.045 36.22 C 41.045 36.22 42.855 33.688 45.249 33.612 C 47.336 33.546 47.307 37.627 47.307 37.627 L 46.013 41.504 L 44.562 36.634 L 41.192 40.42 L 42.643 45.388 L 46.8 47.5 L 50.102 47.757 L 56 47.5 L 87.282 46.333 L 87.785 48.905 L 90.077 46.195 L 92 46 Z'/%3E%3Cpath fill-rule='evenodd' fill='%2300c8a0' transform='translate(600,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 84 Q 86 72 78 72 Q 72 72 72 88 Q 72 72 64 72 Q 58 72 58 86 Q 58 72 50 72 Q 44 72 44 82 Q 44 72 36 72 Q 30 72 30 78 Q 30 72 22 72 Q 16 72 16 76 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92.035 47.998 L 92 51.301 L 52 50 L 44.88 48.592 L 41.24 44.568 L 40.563 38.853 L 43.925 34.72 C 43.925 34.72 47.916 33.039 50.247 33.546 C 51.062 36.044 49.511 38.739 49.511 38.739 L 47.048 40.88 L 47.779 35.915 L 43.279 39.745 L 44.016 43.866 L 46.686 46.652 L 50.245 47.432 L 54.932 47.754 L 88.356 48.172 L 88.768 49.858 L 90.666 48.091 L 92.035 47.998 Z'/%3E%3Cpath fill-rule='evenodd' fill='%2300c8a0' transform='translate(700,0)' d='M 50 8 C 78 8 92 30 92 50 L 92 72 Q 86 72 86 82 Q 86 72 78 72 Q 72 72 72 86 Q 72 72 64 72 Q 58 72 58 88 Q 58 72 50 72 Q 44 72 44 86 Q 44 72 36 72 Q 30 72 30 82 Q 30 72 22 72 Q 16 72 16 78 Q 16 72 8 72 L 8 50 C 8 30 22 8 50 8 Z M 92 46 L 92 54 L 50 50.5 L 45 50 L 40.5 47.5 L 38.53 39.83 L 41.045 36.22 C 41.045 36.22 42.855 33.688 45.249 33.612 C 47.336 33.546 47.307 37.627 47.307 37.627 L 46.013 41.504 L 44.562 36.634 L 41.192 40.42 L 42.643 45.388 L 46.8 47.5 L 50.102 47.757 L 56 47.5 L 87.282 46.333 L 87.785 48.905 L 90.077 46.195 L 92 46 Z'/%3E%3C/svg%3E");
+        }
+
+        /* Concept Table Round8 Inline Prismatic - Smaller for table cells */
+        .round8-inline {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            display: inline-flex;
+            gap: 0;
+        }
+        .round8-inline .round8-letter-r { text-shadow: 1px 1px 0 var(--color-maroon); }
+        .round8-inline .round8-letter-o { text-shadow: 1px 1px 0 var(--color-rust); }
+        .round8-inline .round8-letter-u { text-shadow: 1px 1px 0 var(--color-ochre); }
+        .round8-inline .round8-letter-n { text-shadow: 1px 1px 0 var(--color-viridian); }
+        .round8-inline .round8-letter-d { text-shadow: 1px 1px 0 var(--color-cobalt); }
+        .round8-inline .round8-eight { text-shadow: 1px 1px 0 var(--color-amethyst); }
+
+        /* Round8 Prismatic Title - Per-Letter Drop Shadows */
+        .round8-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0;
+            display: inline-flex;
+            gap: 0;
+        }
+
+        /* Round8CALC: Prismatic spectrum from Ghost → R → o → u → n → d → 8 */
+        /* Sharp cutout shadows: bottom offset, slight right, no blur */
+        .round8-letter {
+            color: #ffffff;
+        }
+        .round8-letter-r {
+            color: #ffffff;
+            text-shadow: 1px 2px 0 var(--color-maroon);
+        }
+        .round8-letter-o {
+            color: #ffffff;
+            text-shadow: 1px 2px 0 var(--color-rust);
+        }
+        .round8-letter-u {
+            color: #ffffff;
+            text-shadow: 1px 2px 0 var(--color-ochre);
+        }
+        .round8-letter-n {
+            color: #ffffff;
+            text-shadow: 1px 2px 0 var(--color-viridian);
+        }
+        .round8-letter-d {
+            color: #ffffff;
+            text-shadow: 1px 2px 0 var(--color-cobalt);
+        }
+        .round8-eight {
+            color: #ffffff;
+            text-shadow: 1px 2px 0 var(--color-amethyst);
+        }
+
+        h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; }
+
+        /* Page Title: Binary (Ochre) | Range (Rust) | Comparison (Amethyst) */
+        .page-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: center;
+            gap: 0.4em;
+        }
+        /* Semantic shadows: Binary (Instilling/Viridian), Range (Prospecting/Rust), Comparison (Healing/Rose) */
+        .page-title-binary {
+            color: var(--color-ochre);
+            font-style: italic;
+            text-shadow: 1px 2px 0 var(--color-viridian);
+        }
+        .page-title-range {
+            color: var(--color-rust);
+            font-style: italic;
+            text-shadow: 1px 2px 0 var(--color-rust-light);
+        }
+        .page-title-comparison {
+            color: var(--color-amethyst);
+            font-style: italic;
+            text-shadow: 1px 2px 0 var(--color-rose-dark);
+        }
+
+        .subtitle {
+            font-family: 'Space Mono', monospace;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        /* UnHex Brand: Cyan text with Rose shadow (Suite 7 Clinical) */
+        .unhexed-brand {
+            color: rgb(0, 200, 160);
+            text-shadow: var(--color-rose) 1px 1px;
+        }
+        .author { margin-top: 8px; font-size: 0.85rem; color: var(--color-rust); }
+        
+        .chart-container {
+            /* Table Body Style - Off-white with Spotlight Gradient (8% darker at edges) */
+            background: radial-gradient(
+                ellipse at var(--spotlight-x) var(--spotlight-y),
+                rgba(255, 255, 255, 0.85) 0%,
+                rgba(235, 235, 235, 0.85) 100%
+            );
+            /* Border-radius controlled by content-ribbon rules */
+            padding: 20px;
+            /* Dimensional Borders - all sides for standalone, ribbon overrides joins */
+            border: 2px solid;
+            border-color: var(--color-obsidian-border-dark) var(--color-obsidian-border-dark) var(--color-obsidian-border-light) var(--color-obsidian-border-light);
+        }
+        
+        .chart-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--color-maroon);
+            text-align: center;
+            display: block;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .chart-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--color-maroon) 20%, var(--color-rust) 35%, var(--color-ochre) 50%, var(--color-viridian) 65%, var(--color-cobalt) 80%, transparent 100%);
+            opacity: 0.6;
+        }
+
+        .chart-legend {
+            font-family: 'Space Mono', monospace;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            color: white;
+            /* HiFi Suite Card - Cobalt */
+            background: var(--pattern-cobalt), radial-gradient(ellipse at var(--spotlight-x) var(--spotlight-y), var(--color-cobalt) 0%, var(--fade-cobalt) 88%);
+            background-size: 20px 20px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            border-width: 1px;
+            border-style: solid;
+            border-color: var(--color-cobalt-dark) var(--color-cobalt-dark) var(--color-cobalt-light) var(--color-cobalt-light);
+            box-shadow: -3px 3px 0 rgba(0, 65, 157, 0.6);
+            border-radius: 0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .chart-legend .legend-item {
+            display: inline-block;
+            margin: 0 0.75rem;
+        }
+
+        .chart-legend .legend-signed-binary { color: #ff6b9d; }
+        .chart-legend .legend-round8-signed { color: var(--color-viridian); }
+        .chart-legend .legend-unsigned-binary { color: var(--color-cobalt); }
+        .chart-legend .legend-round8-unsigned { color: #00ff88; }
+        .chart-legend .legend-improvement {
+            color: #ff006f;
+            text-shadow: 1px 1px 0 var(--color-viridian);
+            font-weight: 600;
+            padding: 0 8px;
+        }
+        .chart-legend .legend-mode {
+            color: var(--color-ochre);
+            font-style: italic;
+        }
+
+        .chart-legend .legend-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .chart-legend .legend-row-top {
+            margin-bottom: 0.75rem;
+        }
+
+        .chart-legend .legend-row-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 0.75rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 450px;
+            padding: 16px;
+            /* Transparent Button Frame - Recessed into background */
+            /* Prismatic Space Noise - Suite colors as scattered stars */
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='42' viewBox='0 0 100 100'%3E%3Ccircle cx='15' cy='12' r='1.5' fill='%238b0000' opacity='0.18'/%3E%3Ccircle cx='45' cy='8' r='1' fill='%23b7410e' opacity='0.14'/%3E%3Ccircle cx='78' cy='18' r='1.5' fill='%23cc7722' opacity='0.18'/%3E%3Ccircle cx='25' cy='35' r='1' fill='%234aa685' opacity='0.21'/%3E%3Ccircle cx='62' cy='42' r='1.5' fill='%230047ab' opacity='0.18'/%3E%3Ccircle cx='88' cy='55' r='1' fill='%237c17e0' opacity='0.14'/%3E%3Ccircle cx='10' cy='68' r='1.5' fill='%23ff006f' opacity='0.14'/%3E%3Ccircle cx='52' cy='75' r='1' fill='%238b0000' opacity='0.18'/%3E%3Ccircle cx='35' cy='88' r='1.5' fill='%230047ab' opacity='0.21'/%3E%3Ccircle cx='72' cy='82' r='1' fill='%234aa685' opacity='0.18'/%3E%3Ccircle cx='92' cy='28' r='1' fill='%23cc7722' opacity='0.14'/%3E%3Ccircle cx='5' cy='45' r='1' fill='%237c17e0' opacity='0.18'/%3E%3C/svg%3E"),
+                transparent;
+            background-size: 42px 42px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            /* Inverted dimensional borders (recessed: dark top/left, light bottom/right) */
+            border: 2px solid rgba(0, 0, 0, 0.3);
+            border-top-color: rgba(0, 0, 0, 0.4);
+            border-left-color: rgba(0, 0, 0, 0.4);
+            border-bottom-color: rgba(0, 0, 0, 0.15);
+            border-right-color: rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+            /* Inner shadow - cut into the surface */
+            box-shadow: inset 4px 4px 12px rgba(0, 0, 0, 0.15),
+                        inset -2px -2px 8px rgba(255, 255, 255, 0.05);
+            margin: 0.5rem 0;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .control-group label { font-size: 0.9rem; color: #aaa; }
+        
+        select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* HiFi Successor Section - Gold-Beige: Lighter Ochre for Positioning/Discovery */
+        .successor-section {
+            background:
+                var(--pattern-gold-beige),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(225, 200, 155) 0%,
+                    var(--color-gold-beige) 60%,
+                    rgb(155, 130, 90) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            /* Border-radius controlled by content-ribbon rules */
+            padding: 25px;
+            /* Dimensional Borders (8% differential) */
+            border-top: 2px solid var(--color-gold-beige-border-dark);
+            border-right: 2px solid var(--color-gold-beige-border-dark);
+            border-bottom: 2px solid var(--color-gold-beige-border-light);
+            border-left: 2px solid var(--color-gold-beige-border-light);
+            /* Shadow controlled by content-ribbon rules */
+        }
+
+        .successor-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--color-gold-beige-dark);
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .successor-section h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            margin: 20px 0 12px;
+        }
+
+        /* Successor Section Styled Text Elements */
+        .successor-title-first {
+            color: #cf0000;
+            text-shadow: 1px 1px 0 #1dc2ff;
+        }
+        .successor-title-B {
+            color: #ffffff;
+            text-shadow: 1px 1px 0 var(--color-amethyst);
+        }
+        .successor-title-comparative {
+            color: var(--color-maroon-light);
+            text-shadow: 1px 1px 0 var(--color-gold-beige);
+            text-decoration: underline;
+        }
+        /* NO OTHER: Per-letter cycling from Maroon */
+        .noother-N { color: var(--color-maroon); text-shadow: 1px 1px 0 var(--color-gold-beige); text-decoration: underline; }
+        .noother-O1 { color: var(--color-rust); text-shadow: 1px 1px 0 var(--color-ochre); text-decoration: underline; }
+        .noother-O2 { color: var(--color-ochre); text-shadow: 1px 1px 0 var(--color-viridian); text-decoration: underline; }
+        .noother-T { color: var(--color-viridian); text-shadow: 1px 1px 0 var(--color-cobalt); text-decoration: underline; }
+        .noother-H { color: var(--color-cobalt); text-shadow: 1px 1px 0 var(--color-amethyst); text-decoration: underline; }
+        .noother-E { color: var(--color-amethyst); text-shadow: 1px 1px 0 var(--color-rose); text-decoration: underline; }
+        .noother-R { color: var(--color-rose); text-shadow: 1px 1px 0 var(--color-maroon); text-decoration: underline; }
+        .breakthrough-title-the {
+            color: #ffffff;
+            text-shadow: 1px 1px 0 var(--color-amethyst);
+        }
+        /* OuterSpace Button: Obsidian dark container */
+        .outerspace-button {
+            display: inline-block;
+            background: rgba(20, 20, 28, 0.85);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            padding: 4px 12px 6px 12px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-top-color: rgba(255, 255, 255, 0.08);
+            border-left-color: rgba(255, 255, 255, 0.08);
+            border-bottom-color: rgba(255, 255, 255, 0.2);
+            border-right-color: rgba(255, 255, 255, 0.2);
+            box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.4),
+                        inset -1px -1px 4px rgba(255, 255, 255, 0.05),
+                        -4px 4px 12px rgba(0, 0, 0, 0.3);
+            margin-right: -2px;
+        }
+        .breakthrough-title-two {
+            color: var(--color-ochre);
+            text-shadow: 1px 1px 0 var(--color-maroon);
+        }
+        .breakthrough-title-dash {
+            color: #ffffff;
+            text-shadow: 1px 1px 0 var(--color-amethyst);
+        }
+        .breakthrough-title-concept {
+            color: var(--color-cobalt);
+            text-shadow: 1px 1px 0 var(--color-viridian);
+        }
+        /* Breakthrough: Transparent display button with sharp corners */
+        .breakthrough-button {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            padding: 4px 12px 6px 12px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            border-top-color: rgba(0, 0, 0, 0.3);
+            border-left-color: rgba(0, 0, 0, 0.3);
+            border-bottom-color: rgba(0, 0, 0, 0.1);
+            border-right-color: rgba(0, 0, 0, 0.1);
+            box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.1),
+                        inset -1px -1px 4px rgba(255, 255, 255, 0.1);
+        }
+        /* Successor Header: Transparent display button (joined to right) */
+        .successor-transparent-button {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            padding: 4px 12px 6px 12px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            border-top-color: rgba(0, 0, 0, 0.3);
+            border-left-color: rgba(0, 0, 0, 0.3);
+            border-bottom-color: rgba(0, 0, 0, 0.1);
+            border-right-color: rgba(0, 0, 0, 0.1);
+            box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.1),
+                        inset -1px -1px 4px rgba(255, 255, 255, 0.1);
+            margin-right: -2px;
+        }
+        /* Breakthrough: Per-letter prismatic with shadow = next color in sequence */
+        .breakthrough-B { color: var(--color-maroon); text-shadow: 1px 1px 0 var(--color-gold-beige); }
+        .breakthrough-r1 { color: var(--color-rust); text-shadow: 1px 1px 0 var(--color-ochre); }
+        .breakthrough-e { color: var(--color-ochre); text-shadow: 1px 1px 0 var(--color-viridian); }
+        .breakthrough-a { color: var(--color-viridian); text-shadow: 1px 1px 0 var(--color-cobalt); }
+        .breakthrough-k { color: var(--color-cobalt); text-shadow: 1px 1px 0 var(--color-amethyst); }
+        .breakthrough-t { color: var(--color-amethyst); text-shadow: 1px 1px 0 var(--color-rose); }
+        .breakthrough-h1 { color: var(--color-rose); text-shadow: 1px 1px 0 var(--color-maroon); }
+        .breakthrough-r2 { color: var(--color-maroon); text-shadow: 1px 1px 0 var(--color-gold-beige); }
+        .breakthrough-o { color: var(--color-rust); text-shadow: 1px 1px 0 var(--color-ochre); }
+        .breakthrough-u { color: var(--color-ochre); text-shadow: 1px 1px 0 var(--color-viridian); }
+        .breakthrough-g { color: var(--color-viridian); text-shadow: 1px 1px 0 var(--color-cobalt); }
+        .breakthrough-h2 { color: var(--color-cobalt); text-shadow: 1px 1px 0 var(--color-amethyst); }
+        .breakthrough-th-function {
+            color: var(--color-ochre) !important;
+            text-shadow: 1px 1px 0 var(--color-rose);
+        }
+        .breakthrough-th-scope {
+            color: var(--color-gold-beige) !important;
+            text-shadow: 1px 1px 0 var(--color-maroon);
+        }
+
+        .comparison-section {
+            /* HiFi Amethyst Card - Suite 6: Operations/Orchestration */
+            background:
+                var(--pattern-amethyst),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(144, 43, 244) 0%,
+                    var(--color-amethyst) 60%,
+                    var(--fade-amethyst) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            /* Border-radius controlled by content-ribbon rules */
+            padding: 25px;
+            /* Dimensional Borders (8% differential) */
+            border-top: 2px solid var(--color-amethyst-border-dark);
+            border-right: 2px solid var(--color-amethyst-border-dark);
+            border-bottom: 2px solid var(--color-amethyst-border-light);
+            border-left: 2px solid var(--color-amethyst-border-light);
+            /* Shadow controlled by content-ribbon rules */
+        }
+
+        .comparison-section h2 {
+            color: #d4a5ff;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .amplified-disclaimer {
+            background: rgba(255, 193, 7, 0.15);
+            border: 1px solid rgba(255, 193, 7, 0.4);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #ffc107;
+            text-align: center;
+        }
+        
+        .breakpoint-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .breakpoint-card {
+            /* Base HiFi Card styling */
+            border-radius: 8px;
+            padding: 15px;
+            transition: transform 0.2s ease;
+        }
+
+        .breakpoint-card:hover {
+            transform: scale(0.98);
+        }
+
+        /* HiFi Viridian Breakpoint Card - Suite 4: Growth/Efficiency */
+        .breakpoint-card.endcap {
+            background:
+                var(--pattern-viridian),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(94, 186, 153) 0%,
+                    var(--color-viridian) 60%,
+                    var(--fade-viridian) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            border-top: 2px solid var(--color-viridian-border-dark);
+            border-right: 2px solid var(--color-viridian-border-dark);
+            border-bottom: 2px solid var(--color-viridian-border-light);
+            border-left: 2px solid var(--color-viridian-border-light);
+            box-shadow: -6px 6px 18px var(--color-viridian-shadow);
+        }
+
+        /* HiFi Rust Breakpoint Card - Suite 2: Exploration/Discovery */
+        .breakpoint-card.max {
+            background:
+                var(--pattern-rust),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(203, 85, 34) 0%,
+                    var(--color-rust) 60%,
+                    var(--fade-rust) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            border-top: 2px solid var(--color-rust-border-dark);
+            border-right: 2px solid var(--color-rust-border-dark);
+            border-bottom: 2px solid var(--color-rust-border-light);
+            border-left: 2px solid var(--color-rust-border-light);
+            box-shadow: -6px 6px 18px var(--color-rust-shadow);
+        }
+
+        .breakpoint-card h4 {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .breakpoint-card.endcap h4 { color: #a8ffdf; }
+        .breakpoint-card.max h4 { color: #ffb866; }
+        
+        .breakpoint-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.85rem;
+        }
+        
+        .breakpoint-label { color: #888; }
+        .breakpoint-value { color: #fff; font-family: monospace; font-size: 0.8rem; }
+        .breakpoint-value.highlight { color: #00ff88; font-weight: 600; }
+        .breakpoint-value.highlight-max { color: #ff9500; font-weight: 600; }
+        .breakpoint-value.highlight-signed { color: #ff6b9d; }
+        
+        .percentage-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-top: 8px;
+        }
+        
+        .percentage-badge.endcap {
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            color: #000;
+        }
+        
+        .percentage-badge.max {
+            background: linear-gradient(90deg, #ff9500, #ff6b00);
+            color: #000;
+        }
+        
+        .unhexed-badge {
+            display: inline-block;
+            background: linear-gradient(90deg, #ff6b00, #ff9500);
+            color: #000;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .insight-box {
+            /* HiFi Viridian Card - Suite 4: Embedding/Growth */
+            background:
+                var(--pattern-viridian),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(94, 186, 153) 0%,
+                    var(--color-viridian) 60%,
+                    var(--fade-viridian) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            /* Border-radius controlled by content-ribbon rules */
+            padding: 20px;
+            /* Dimensional Borders (8% differential) */
+            border-top: 2px solid var(--color-viridian-border-dark);
+            border-right: 2px solid var(--color-viridian-border-dark);
+            border-bottom: 2px solid var(--color-viridian-border-light);
+            border-left: 2px solid var(--color-viridian-border-light);
+            /* Shadow controlled by content-ribbon rules */
+        }
+
+        .insight-box h3 { color: #a8ffdf; margin-bottom: 10px; font-size: 1.1rem; }
+        .insight-box p { color: #e0e0e0; line-height: 1.6; margin-bottom: 10px; }
+        .insight-box ul { color: #e0e0e0; margin-left: 20px; line-height: 1.8; }
+        
+        .efficiency-section {
+            /* HiFi Cobalt Card - Suite 5: Implementation/Professional */
+            background:
+                var(--pattern-cobalt),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(20, 91, 191) 0%,
+                    var(--color-cobalt) 60%,
+                    var(--fade-cobalt) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            /* Border-radius controlled by content-ribbon rules */
+            padding: 25px;
+            /* Dimensional Borders (8% differential) */
+            border-top: 2px solid var(--color-cobalt-border-dark);
+            border-right: 2px solid var(--color-cobalt-border-dark);
+            border-bottom: 2px solid var(--color-cobalt-border-light);
+            border-left: 2px solid var(--color-cobalt-border-light);
+            /* Shadow controlled by content-ribbon rules */
+        }
+
+        .efficiency-section h2 {
+            color: #6db3ff;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .efficiency-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.85rem;
+        }
+        
+        .efficiency-table th, .efficiency-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .efficiency-table th {
+            background: rgba(0, 0, 0, 0.3);
+            color: #aaa;
+            font-weight: 500;
+        }
+        
+        .efficiency-table td.r8 { color: #00ff88; }
+        .efficiency-table td.signed { color: #ff6b9d; }
+        .efficiency-table td.advantage { color: #ffc107; font-weight: 600; }
+        
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        /* HiFi Amethyst Button - Suite 6: Operations */
+        /* Excludes suite-specific buttons (Viridian, Cobalt) and toggle elements */
+        .view-toggle button:not(.toggle-btn-viridian):not(.toggle-btn-cobalt):not(.amplification-mode-toggle) {
+            font-family: 'Orbitron', sans-serif;
+            background:
+                var(--pattern-amethyst),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(144, 43, 244) 0%,
+                    var(--color-amethyst) 60%,
+                    var(--fade-amethyst) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            color: #e0e0e0;
+            padding: 10px 20px;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            font-weight: 500;
+            /* Dimensional Borders (8% differential) */
+            border-top: 2px solid var(--color-amethyst-border-dark);
+            border-right: 2px solid var(--color-amethyst-border-dark);
+            border-bottom: 2px solid var(--color-amethyst-border-light);
+            border-left: 2px solid var(--color-amethyst-border-light);
+            box-shadow: -4px 4px 12px var(--color-amethyst-shadow);
+        }
+
+        .view-toggle button:not(.toggle-btn-viridian):not(.toggle-btn-cobalt):not(.amplification-mode-toggle):hover {
+            transform: scale(0.96);
+            color: #fff;
+        }
+
+        .view-toggle button:not(.toggle-btn-viridian):not(.toggle-btn-cobalt):not(.amplification-mode-toggle):active {
+            /* Border Inversion on Active */
+            border-top: 2px solid var(--color-amethyst-border-light);
+            border-right: 2px solid var(--color-amethyst-border-light);
+            border-bottom: 2px solid var(--color-amethyst-border-dark);
+            border-left: 2px solid var(--color-amethyst-border-dark);
+        }
+
+        .view-toggle button:not(.toggle-btn-viridian):not(.toggle-btn-cobalt):not(.amplification-mode-toggle).active {
+            background:
+                var(--pattern-amethyst),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(164, 63, 255) 0%,
+                    var(--color-amethyst-border-light) 60%,
+                    var(--color-amethyst) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            color: #fff;
+            box-shadow: -4px 4px 16px var(--color-amethyst-shadow);
+        }
+
+        /* HiFi Cobalt Button - Suite 5: Implementation */
+        .toggle-btn {
+            font-family: 'Orbitron', sans-serif;
+            background:
+                var(--pattern-cobalt),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(20, 91, 191) 0%,
+                    var(--color-cobalt) 60%,
+                    var(--fade-cobalt) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            color: #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+            font-weight: 500;
+            /* Dimensional Borders (8% differential) */
+            border-top: 2px solid var(--color-cobalt-border-dark);
+            border-right: 2px solid var(--color-cobalt-border-dark);
+            border-bottom: 2px solid var(--color-cobalt-border-light);
+            border-left: 2px solid var(--color-cobalt-border-light);
+            box-shadow: -4px 4px 12px var(--color-cobalt-shadow);
+        }
+
+        .toggle-btn:hover {
+            transform: scale(0.96);
+            color: #fff;
+        }
+
+        .toggle-btn:active {
+            /* Border Inversion on Active */
+            border-top: 2px solid var(--color-cobalt-border-light);
+            border-right: 2px solid var(--color-cobalt-border-light);
+            border-bottom: 2px solid var(--color-cobalt-border-dark);
+            border-left: 2px solid var(--color-cobalt-border-dark);
+        }
+
+        .toggle-btn.active {
+            background:
+                var(--pattern-cobalt),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(40, 111, 211) 0%,
+                    var(--color-cobalt-border-light) 60%,
+                    var(--color-cobalt) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            color: #fff;
+        }
+
+        /* HiFi Viridian Button - Suite 4: Instillation/Signed */
+        .toggle-btn-viridian {
+            font-family: 'Orbitron', sans-serif;
+            background:
+                var(--pattern-viridian),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(94, 186, 153) 0%,
+                    var(--color-viridian) 60%,
+                    var(--fade-viridian) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            color: #e0e0e0;
+            padding: 10px 20px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            font-weight: 500;
+            /* Dimensional Borders (8% differential) */
+            border-top: 2px solid var(--color-viridian-border-dark);
+            border-right: 2px solid var(--color-viridian-border-dark);
+            border-bottom: 2px solid var(--color-viridian-border-light);
+            border-left: 2px solid var(--color-viridian-border-light);
+            box-shadow: -4px 4px 12px var(--color-viridian-shadow);
+        }
+
+        .toggle-btn-viridian:hover {
+            transform: scale(0.96);
+            color: #fff;
+        }
+
+        .toggle-btn-viridian:active {
+            /* Border Inversion on Active */
+            border-top: 2px solid var(--color-viridian-border-light);
+            border-right: 2px solid var(--color-viridian-border-light);
+            border-bottom: 2px solid var(--color-viridian-border-dark);
+            border-left: 2px solid var(--color-viridian-border-dark);
+        }
+
+        .toggle-btn-viridian.active {
+            background:
+                var(--pattern-viridian),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(114, 206, 173) 0%,
+                    var(--color-viridian-border-light) 60%,
+                    var(--color-viridian) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            color: #fff;
+            box-shadow: -4px 4px 16px var(--color-viridian-shadow);
+        }
+
+        /* HiFi Cobalt Button - Suite 5: Implementation/Unsigned */
+        .toggle-btn-cobalt {
+            font-family: 'Orbitron', sans-serif;
+            background:
+                var(--pattern-cobalt),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(20, 91, 191) 0%,
+                    var(--color-cobalt) 60%,
+                    var(--fade-cobalt) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            color: #e0e0e0;
+            padding: 10px 20px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            font-weight: 500;
+            /* Dimensional Borders (8% differential) */
+            border-top: 2px solid var(--color-cobalt-border-dark);
+            border-right: 2px solid var(--color-cobalt-border-dark);
+            border-bottom: 2px solid var(--color-cobalt-border-light);
+            border-left: 2px solid var(--color-cobalt-border-light);
+            box-shadow: -4px 4px 12px var(--color-cobalt-shadow);
+        }
+
+        .toggle-btn-cobalt:hover {
+            transform: scale(0.96);
+            color: #fff;
+        }
+
+        .toggle-btn-cobalt:active {
+            /* Border Inversion on Active */
+            border-top: 2px solid var(--color-cobalt-border-light);
+            border-right: 2px solid var(--color-cobalt-border-light);
+            border-bottom: 2px solid var(--color-cobalt-border-dark);
+            border-left: 2px solid var(--color-cobalt-border-dark);
+        }
+
+        .toggle-btn-cobalt.active {
+            background:
+                var(--pattern-cobalt),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(40, 111, 211) 0%,
+                    var(--color-cobalt-border-light) 60%,
+                    var(--color-cobalt) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            color: #fff;
+            box-shadow: -4px 4px 16px var(--color-cobalt-shadow);
+        }
+
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        /* ============================================================ */
+        /* Amplification Mode Toggle - HiFi Functional Design           */
+        /* Minimal HTML: button + span.toggle-track                      */
+        /* Labels via ::before/::after pseudo-elements                   */
+        /* BASE (Ochre) ↔ SCALED (Viridian)                             */
+        /* ============================================================ */
+
+        .amplification-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            flex-shrink: 0;
+            outline: none;
+            border-radius: 7px;
+
+            /* HiFi Transparent Button - The Medium: Reveals what lies beneath */
+            background: transparent;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+
+            /* Dimensional borders define space without filling it */
+            border: 2px solid rgba(0, 0, 0, 0.3);
+            border-top-color: rgba(0, 0, 0, 0.4);
+            border-right-color: rgba(0, 0, 0, 0.4);
+            border-bottom-color: rgba(0, 0, 0, 0.2);
+            border-left-color: rgba(0, 0, 0, 0.2);
+
+            box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.15);
+
+            /* No movement on container */
+            transition: box-shadow 0.2s ease;
+        }
+
+        .amplification-mode-toggle:hover {
+            box-shadow: -3px 3px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Keyboard focus only (accessibility) */
+        .amplification-mode-toggle:focus-visible {
+            outline: 2px solid var(--color-rose);
+            outline-offset: 2px;
+        }
+
+        /* BASE Label (before track) - Ochre */
+        .amplification-mode-toggle::before {
+            content: 'BASE';
+            font-size: 0.625rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--color-ochre);
+            opacity: 0.4;
+            transition: all 0.3s ease;
+        }
+
+        /* SCALED Label (after track) - Viridian */
+        .amplification-mode-toggle::after {
+            content: 'SCALED';
+            font-size: 0.625rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--color-viridian);
+            text-shadow: 0 0 6px rgba(74, 166, 133, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        /* Active State (BASE mode): Label swap */
+        .amplification-mode-toggle[aria-pressed="true"]::before {
+            opacity: 1;
+            text-shadow: 0 0 6px rgba(204, 119, 34, 0.5);
+        }
+
+        .amplification-mode-toggle[aria-pressed="true"]::after {
+            opacity: 0.4;
+            text-shadow: none;
+        }
+
+        /* Toggle Track - HiFi Viridian default (Proportional active) */
+        .amplification-mode-toggle .toggle-track {
+            width: 32px;
+            height: 18px;
+            border-radius: 9px;
+            position: relative;
+            transition: all 0.3s ease;
+
+            /* HiFi Three-Layer Background - Viridian */
+            background-image:
+                var(--pattern-viridian),
+                radial-gradient(circle at 75% 50%, var(--color-viridian) 0%, #1d1e15 88%);
+            background-repeat: repeat, no-repeat;
+            background-size: 30px 30px, 100% 100%;
+
+            /* HiFi Dimensional Borders - Viridian */
+            border-top: 2px solid var(--color-viridian-border-dark);
+            border-right: 2px solid var(--color-viridian-border-dark);
+            border-bottom: 2px solid var(--color-viridian-border-light);
+            border-left: 2px solid var(--color-viridian-border-light);
+            box-shadow: -3px 3px 12px var(--color-viridian-shadow);
+        }
+
+        /* Active State (BASE mode): Ochre */
+        .amplification-mode-toggle[aria-pressed="true"] .toggle-track {
+            background-image:
+                var(--pattern-ochre),
+                radial-gradient(circle at 25% 50%, var(--color-ochre) 0%, #1e1915 88%);
+
+            /* HiFi Dimensional Borders - Ochre */
+            border-top: 2px solid var(--color-ochre-border-dark);
+            border-right: 2px solid var(--color-ochre-border-dark);
+            border-bottom: 2px solid var(--color-ochre-border-light);
+            border-left: 2px solid var(--color-ochre-border-light);
+            box-shadow: -3px 3px 12px var(--color-ochre-shadow);
+        }
+
+        /* Toggle Thumb - Positioned via ::after */
+        .amplification-mode-toggle .toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        /* Active State (BASE mode): Thumb slides left */
+        .amplification-mode-toggle[aria-pressed="true"] .toggle-track::after {
+            transform: translateX(-14px);
+        }
+
+        .alignment-rule {
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            font-size: 0.85rem;
+            color: #bf7fff;
+            font-family: monospace;
+        }
+
+        /* HiFi Footer - Manifesto Section */
+        .hifi-footer {
+            /* HiFi Obsidian Card - Suite 0 */
+            background:
+                var(--pattern-obsidian),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(42, 42, 42) 0%,
+                    var(--color-obsidian) 60%,
+                    var(--fade-obsidian) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            /* Border-radius controlled by content-ribbon rules */
+            padding: 30px;
+            text-align: center;
+            /* Dimensional Borders (8% differential) */
+            border-top: 2px solid var(--color-obsidian-border-dark);
+            border-right: 2px solid var(--color-obsidian-border-dark);
+            border-bottom: 2px solid var(--color-obsidian-border-light);
+            border-left: 2px solid var(--color-obsidian-border-light);
+            /* Shadow controlled by content-ribbon rules */
+        }
+
+        .hifi-footer .manifesto {
+            margin-bottom: 20px;
+        }
+
+        .hifi-footer .manifesto p {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: #ffffff;
+            margin: 8px 0;
+            letter-spacing: 0.05em;
+        }
+
+        .hifi-footer .practice-proof {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--color-rust);
+            margin: 15px 0;
+            font-style: italic;
+        }
+
+        .hifi-footer .credits {
+            font-family: 'Georgia', serif;
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           HiFi Semantic Variations
+           Suite-colored alternatives for specific content
+           ============================================ */
+
+        /* Insight Box: Amethyst Variation - Suite 6: Orchestration/Symbol System */
+        .insight-box.amethyst-variant {
+            background:
+                var(--pattern-amethyst),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(144, 43, 244) 0%,
+                    var(--color-amethyst) 60%,
+                    var(--fade-amethyst) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            border-top: 2px solid var(--color-amethyst-border-dark);
+            border-right: 2px solid var(--color-amethyst-border-dark);
+            border-bottom: 2px solid var(--color-amethyst-border-light);
+            border-left: 2px solid var(--color-amethyst-border-light);
+            /* Shadow: Amethyst (controlled by content-ribbon rules) */
+        }
+
+        .insight-box.amethyst-variant h3 { color: #d4a5ff; }
+
+        /* Insight Box: Rust Variation - Suite 2: Exploration/Discovery/Positioning */
+        .insight-box.rust-variant {
+            background:
+                var(--pattern-rust),
+                radial-gradient(
+                    ellipse at var(--spotlight-x) var(--spotlight-y),
+                    rgb(203, 85, 34) 0%,
+                    var(--color-rust) 60%,
+                    var(--fade-rust) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            border-top: 2px solid var(--color-rust-border-dark);
+            border-right: 2px solid var(--color-rust-border-dark);
+            border-bottom: 2px solid var(--color-rust-border-light);
+            border-left: 2px solid var(--color-rust-border-light);
+            /* Shadow: Rust (controlled by content-ribbon rules) */
+        }
+
+        .insight-box.rust-variant h3 { color: var(--color-rust-light); }
+
+        /* Positioning Table - Comparative analysis with suite-colored columns */
+        /* Designed for gold-beige background - darker colors for contrast */
+        .positioning-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        .positioning-table th {
+            font-family: 'Orbitron', sans-serif;
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 2px solid;
+            color: var(--color-gold-beige-dark);
+        }
+
+        .positioning-table td {
+            padding: 10px 8px;
+            vertical-align: top;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            color: rgba(60, 50, 40, 0.9);
+        }
+
+        .positioning-table .col-abr {
+            background: rgba(74, 166, 133, 0.25);
+            border-bottom-color: var(--color-viridian);
+            color: var(--color-viridian-dark);
+        }
+
+        .positioning-table .col-bcd {
+            background: rgba(124, 23, 224, 0.2);
+            border-bottom-color: var(--color-amethyst);
+            color: var(--color-amethyst-dark);
+        }
+
+        .positioning-table .col-binary {
+            background: rgba(0, 71, 171, 0.2);
+            border-bottom-color: var(--color-cobalt);
+            color: var(--color-cobalt-dark);
+        }
+
+        .positioning-table td strong {
+            color: var(--color-maroon);
+        }
+
+        .positioning-table .round8-advantage {
+            color: var(--color-maroon);
+            font-weight: 600;
+        }
+
+        /* Breakthrough Table - Two-concept pairing */
+        /* Designed for gold-beige background - darker colors for contrast */
+        .breakthrough-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        .breakthrough-table th {
+            font-family: 'Orbitron', sans-serif;
+            padding: 12px 8px;
+            text-align: center;
+            color: var(--color-gold-beige-dark);
+        }
+
+        .breakthrough-table td {
+            padding: 10px 12px;
+            vertical-align: top;
+            color: rgba(60, 50, 40, 0.9);
+        }
+
+        .breakthrough-table .concept-unhex {
+            background: rgba(74, 166, 133, 0.3);
+            border: 2px solid var(--color-viridian);
+            color: var(--color-viridian-dark);
+        }
+
+        .breakthrough-table .concept-round8 {
+            background: rgba(204, 119, 34, 0.25);
+            border: 2px solid var(--color-ochre);
+            color: var(--color-ochre-dark);
+        }
+
+        .breakthrough-table .concept-name {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* Core Claim Statement - Foundation block */
+        /* Designed for gold-beige background - maroon accents */
+        .core-claim-statement {
+            background: rgba(139, 0, 0, 0.12);
+            border-left: 4px solid var(--color-maroon);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .core-claim-statement .claim-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: var(--color-maroon);
+            margin-bottom: 12px;
+        }
+
+        .core-claim-statement ol {
+            margin: 15px 0;
+            padding-left: 24px;
+        }
+
+        .core-claim-statement li {
+            margin: 8px 0;
+            color: rgba(60, 50, 40, 0.9);
+        }
+
+        .core-claim-statement .quantum-tagline {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.95rem;
+            color: var(--color-viridian-dark);
+            text-align: center;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        /* Chart Container: Viridian Tint - Suite 4: Unsigned Growth */
+        .chart-container.viridian-tint {
+            background: radial-gradient(
+                ellipse at var(--spotlight-x) var(--spotlight-y),
+                rgba(222, 255, 245, 0.85) 0%,
+                rgba(202, 235, 225, 0.85) 100%
+            );
+            border-top: none;
+            border-right: 2px solid var(--color-viridian-border-dark);
+            border-bottom: 2px solid var(--color-viridian-border-light);
+            border-left: 2px solid var(--color-viridian-border-light);
+        }
+
+        .chart-container.viridian-tint .chart-title {
+            color: var(--color-viridian-dark);
+        }
+
+        .chart-container.viridian-tint .chart-title::after {
+            background: linear-gradient(90deg, transparent 0%, var(--color-viridian-dark) 20%, var(--color-viridian) 50%, var(--color-viridian-light) 80%, transparent 100%);
+        }
+
+        /* Chart Container: Rust Tint - Suite 2: Signed Exploration */
+        .chart-container.rust-tint {
+            background: radial-gradient(
+                ellipse at var(--spotlight-x) var(--spotlight-y),
+                rgba(255, 240, 230, 0.85) 0%,
+                rgba(235, 220, 210, 0.85) 100%
+            );
+            border-top: none;
+            border-right: 2px solid var(--color-rust-border-dark);
+            border-bottom: 2px solid var(--color-rust-border-light);
+            border-left: 2px solid var(--color-rust-border-light);
+        }
+
+        .chart-container.rust-tint .chart-title {
+            color: var(--color-rust-dark);
+        }
+
+        .chart-container.rust-tint .chart-title::after {
+            background: linear-gradient(90deg, transparent 0%, var(--color-rust-dark) 20%, var(--color-rust) 50%, var(--color-rust-light) 80%, transparent 100%);
+        }
+
+        /* Comparison Section: Rose Variation - Suite 7: Proportional Analysis */
+        .comparison-section.rose-variant {
+            background:
+                var(--pattern-amethyst),
+                linear-gradient(
+                    135deg,
+                    rgba(0, 212, 255, 0.12) 0%,
+                    rgba(138, 43, 226, 0.12) 50%,
+                    rgba(255, 26, 143, 0.08) 100%
+                );
+            background-size: 30px 30px, 100% 100%;
+            background-repeat: repeat, no-repeat;
+            border-top: 2px solid var(--color-rose-border-dark);
+            border-right: 2px solid var(--color-rose-border-dark);
+            border-bottom: 2px solid var(--color-rose-border-light);
+            border-left: 2px solid var(--color-rose-border-light);
+            /* Shadow: Maroon (controlled by content-ribbon rules) */
+        }
+
+        .comparison-section.rose-variant h2 {
+            color: var(--color-rose-light);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.5rem; }
+            .chart-wrapper { height: 350px; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .breakpoint-cards { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container content-ribbon">
+        <header>
+            <!-- Round8 Branding Header with Formatic Ghost -->
+            <div class="round8-header-brand">
+                <div class="cheshire-ghost clock-icon inactive"></div>
+                <h1 class="round8-title">
+                    <span class="round8-letter-r">R</span><span class="round8-letter-o">o</span><span class="round8-letter-u">u</span><span class="round8-letter-n">n</span><span class="round8-letter-d">d</span><span class="round8-eight">8</span>
+                </h1>
+            </div>
+            <h2 class="page-title">
+                <span class="page-title-binary">Binary</span>
+                <span class="page-title-range">Range</span>
+                <span class="page-title-comparison">Comparison</span>
+            </h2>
+            <p class="subtitle">Traditional vs Round8 — <span class="unhexed-brand">UnHexed</span> Lossless Relative Bit Representation</p>
+            <p class="author">Decimal Output Range Analysis</p>
+        </header>
+        
+        <div class="chart-container">
+            <div class="chart-title">Decimal Range by Bit Depth — All Systems</div>
+            <!-- Signed/Unsigned Pairing: Viridian (Signed) ↔ Cobalt (Unsigned) -->
+            <div class="view-toggle" style="margin-bottom: 10px;">
+                <button id="mainToggleSigned" class="toggle-btn-viridian active" onclick="toggleMainChartPairing('signed')">Signed Pairing</button>
+                <button id="mainToggleUnsigned" class="toggle-btn-cobalt" onclick="toggleMainChartPairing('unsigned')">Unsigned Pairing</button>
+            </div>
+            <!-- Base/Proportional Amplification: R8/DEC Style Toggle -->
+            <div class="view-toggle">
+                <button class="amplification-mode-toggle" id="amplificationModeToggle"
+                        aria-label="Toggle between Base Values and Proportional Differencing"
+                        aria-pressed="false"
+                        onclick="toggleAmplificationMode()">
+                    <span class="toggle-track"></span>
+                </button>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="mainChart"></canvas>
+            </div>
+            <div class="chart-legend" id="mainChartLegend">
+                <!-- Legend will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- ROUND 8: THE FIRST BINARY SUCCESSOR -->
+        <div class="successor-section">
+            <h2><span class="successor-transparent-button"><span class="round8-inline"><span class="round8-letter-r">R</span><span class="round8-letter-o">o</span><span class="round8-letter-u">u</span><span class="round8-letter-n">n</span><span class="round8-letter-d">d</span><span class="round8-eight">8</span></span></span><span class="outerspace-button"><span class="successor-title-first">The First <span class="successor-title-B">B</span>inary Successor</span></span></h2>
+
+            <h4><span class="successor-title-comparative">No Competition, a Moat like_</span><span class="noother-N">N</span><span class="noother-O1">O</span>_<span class="noother-O2">O</span><span class="noother-T">T</span><span class="noother-H">H</span><span class="noother-E">E</span><span class="noother-R">R</span></h4>
+
+            <table class="positioning-table">
+                <thead>
+                    <tr>
+                        <th class="col-abr">vs ABR</th>
+                        <th class="col-bcd">vs BCD</th>
+                        <th class="col-binary">vs Standard Binary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="col-abr">ABR: Same scale as binary, limited to encoding/steganography domain</td>
+                        <td class="col-bcd">BCD: Less efficient (4 bits → 10 values, wastes 6 states)</td>
+                        <td class="col-binary">Binary: Current foundation, quantum vulnerable</td>
+                    </tr>
+                    <tr>
+                        <td class="col-abr"><span class="round8-advantage">Round 8: Total replacement with identical shifting features</span></td>
+                        <td class="col-bcd"><span class="round8-advantage">Round 8: Maximum information density without information loss</span></td>
+                        <td class="col-binary"><span class="round8-advantage">Round 8: Same machine compatibility + demands dedicated hardware</span></td>
+                    </tr>
+                    <tr>
+                        <td class="col-abr">ABR: No quantum proofing</td>
+                        <td class="col-bcd">BCD: Display convenience layer</td>
+                        <td class="col-binary"><span class="round8-advantage"><span class="unhexed-brand">UnHex</span>: Factorizing Bitwise applies quantum proofing to existing binary systems</span></td>
+                    </tr>
+                    <tr>
+                        <td class="col-abr"><strong class="round8-advantage">Round 8 + <span class="unhexed-brand">UnHex</span>: Quantum proof by design</strong></td>
+                        <td class="col-bcd"><strong class="round8-advantage">Round 8: Computational paradigm shift</strong></td>
+                        <td class="col-binary"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4><span class="outerspace-button"><span class="breakthrough-title-the">The</span> <span class="breakthrough-title-two">Two</span><span class="breakthrough-title-dash">-</span><span class="breakthrough-title-concept">Concept</span></span><span class="breakthrough-button"><span class="breakthrough-B">B</span><span class="breakthrough-r1">r</span><span class="breakthrough-e">e</span><span class="breakthrough-a">a</span><span class="breakthrough-k">k</span><span class="breakthrough-t">t</span><span class="breakthrough-h1">h</span><span class="breakthrough-r2">r</span><span class="breakthrough-o">o</span><span class="breakthrough-u">u</span><span class="breakthrough-g">g</span><span class="breakthrough-h2">h</span></span></h4>
+
+            <table class="breakthrough-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;"><span class="breakthrough-title-concept">Concept</span></th>
+                        <th style="width: 42.5%;" class="breakthrough-th-function">Function</th>
+                        <th style="width: 42.5%;" class="breakthrough-th-scope">Scope</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="concept-unhex">
+                        <td class="concept-name"><div class="cheshire-ghost concept-ghost"></div><span class="unhexed-brand">UnHex</span></td>
+                        <td>Underlying Relative Bit Positions</td>
+                        <td>Enables Round 8; applies Factorizing Bitwise to Binary; Quantum Proofing</td>
+                    </tr>
+                    <tr class="concept-round8">
+                        <td class="concept-name"><span class="round8-inline"><span class="round8-letter-r">R</span><span class="round8-letter-o">o</span><span class="round8-letter-u">u</span><span class="round8-letter-n">n</span><span class="round8-letter-d">d</span><span class="round8-eight">8</span></span></td>
+                        <td>Total Binary Replacement</td>
+                        <td>Base-72 Double Columnar structure; reinforced with additional rotations; own hardware pathway</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="core-claim-statement">
+                <div class="claim-title">Proven Reality</div>
+                <p><strong style="color: var(--color-maroon);">Round 8 is the first calculated successor to binary that:</strong></p>
+                <ol>
+                    <li>Operates on existing hardware (software layer)</li>
+                    <li>Demands its own optimized hardware (scaling pathway)</li>
+                    <li>Provides quantum proofing through <span class="unhexed-brand">UnHex</span> foundation</li>
+                    <li>Achieves maximum information density without loss</li>
+                </ol>
+                <div class="quantum-tagline">Quantum Proof IS Future Proof — always improvable.</div>
+            </div>
+        </div>
+
+        <!-- BIT EFFICIENCY COMPARISON -->
+        <div class="efficiency-section">
+            <h2>Bit Efficiency Analysis <span class="unhexed-badge">UnHexed</span></h2>
+            
+            <p style="text-align: center; color: #aaa; margin-bottom: 15px;">
+                Round8 achieves larger representational capacity using <strong>fewer bits</strong> than Signed Binary through <strong>CheckSum conferral</strong>. <span class="unhexed-brand">UnHexed</span> Binary carries CheckSum metadata that Round8 uses as <strong>Marquee Positions</strong> — validation anchors that enable efficient representation without full content verification.
+            </p>
+            
+            <table class="efficiency-table">
+                <thead>
+                    <tr>
+                        <th>Round8 EndCap</th>
+                        <th>Value</th>
+                        <th>Signed Binary Needs</th>
+                        <th>Bit Savings</th>
+                    </tr>
+                </thead>
+                <tbody id="efficiencyTable"></tbody>
+            </table>
+
+            <div class="insight-box" style="margin-top: 20px;">
+                <h3>CheckSum-Marquee Architecture</h3>
+                <p><strong>Marquee Position System:</strong> Round8 uses checkpoint positions as validation anchors. A <strong>Marquee at position 0</strong> enables the 4-bit breakthrough — it can set any Binary assigned to that CheckSum to absolute zero without verifying contents.</p>
+                <p><strong>Alpha Release - Self-Referential Conferred Binary:</strong> What appears as "Binary" in this comparison is actually <strong>Round8 Marquee Positions</strong> referencing themselves. This Alpha Release is a <strong>Self-Referential Conferred Binary</strong> — a proof of concept demonstrating the system in isolation. In a ground-up solution, this would serve as the base to supply CheckSum for additional <span class="unhexed-brand">UnHexed</span> Round8 Binaries.</p>
+                <p><strong>Bit Savings:</strong> Through CheckSum conferral, Round8 EndCap requires <strong>2 fewer bits</strong> than Signed Binary to represent comparable ranges, translating to significant efficiency at scale.</p>
+                <p><strong><span class="unhexed-brand">UnHexed</span> Method:</strong> <span class="unhexed-brand">UnHexed</span> is the foundational method that enables Round8 to exist via <strong>Relative Bit Representations</strong>. This approach allows us to transfer the <strong><span class="unhexed-brand">UnHexed</span> Quantum Proof advantage</strong> to Traditional Binary systems, establishing a bridge between proportional counting and conventional binary architectures.</p>
+            </div>
+
+            <div class="insight-box amethyst-variant" style="margin-top: 20px;">
+                <h3><span class="unhexed-brand">UnHexed</span> 4-Bit Symbol System</h3>
+                <p style="text-align: center; margin-bottom: 15px;">
+                    <span class="unhexed-brand">UnHexed</span> replaces hexadecimal (0-9, A-F) with visually coherent symbols.
+                    Geometric shapes from 11-14 follow the pattern: <strong>Sides = Value − 8</strong>
+                </p>
+                <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin: 15px 0; font-family: monospace;">
+                    <span style="color: #00d4ff;">1 2 3 4 5 6 7 8 9</span>
+                    <span style="color: #00ff88; font-weight: bold; font-size: 1.1rem;">X</span>
+                    <span style="color: #ff9500; font-size: 1.2rem;">△ ◇ ⬠ ⬡</span>
+                    <span style="color: #bf7fff; font-size: 1.2rem;">◠ ◯</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; font-size: 0.85rem; text-align: center;">
+                    <div><span style="color: #00d4ff;">1-9</span> Standard</div>
+                    <div><span style="color: #00ff88;">X</span> Ten</div>
+                    <div><span style="color: #ff9500;">△</span> Eleven (3)</div>
+                    <div><span style="color: #ff9500;">◇</span> Twelve (4)</div>
+                    <div><span style="color: #ff9500;">⬠</span> Thirteen (5)</div>
+                    <div><span style="color: #ff9500;">⬡</span> Fourteen (6)</div>
+                    <div><span style="color: #bf7fff;">◠</span> Fifteen</div>
+                    <div><span style="color: #bf7fff;">◯</span> Sixteen/Zero</div>
+                </div>
+                <p style="text-align: center; margin-top: 12px; font-size: 0.9rem; color: #888;">
+                    Full specification: <a href="unhexed-reference.html" class="unhexed-brand">UnHexed Reference</a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- SQUARED BIT RANGE ALIGNED COMPARISON -->
+        <div class="comparison-section">
+            <h2>Squared Bit Range Alignment <span class="unhexed-badge">UnHexed</span></h2>
+            
+            <div class="alignment-rule">
+                <strong>Alignment Rule:</strong> When Round8 bits + 1 = 2<sup>n</sup> (squared bit range), 
+                compare against Signed Binary at 2<sup>n</sup> bits.<br>
+                <em>This accounts for Signed Binary using the last bit as the sign bit.</em>
+            </div>
+            
+            <h3 style="color: #00ff88; margin: 25px 0 15px; font-size: 1.1rem;">
+                Round8 EndCap vs Signed — Aligned Comparisons (+7.14%)
+            </h3>
+            <div class="breakpoint-cards" id="endcapCards"></div>
+            
+            <h3 style="color: #ff9500; margin: 25px 0 15px; font-size: 1.1rem;">
+                Round8 Max vs Signed — Aligned Comparisons (+14.28%)
+            </h3>
+            <div class="breakpoint-cards" id="maxCards"></div>
+        </div>
+        
+        <!-- PROPORTIONAL VISUALIZATION -->
+        <div class="comparison-section rose-variant">
+            <h2>Proportional Difference Visualization</h2>
+            
+            <div class="amplified-disclaimer">
+                ⚠️ <strong>Log-Space Amplification:</strong> Differences are amplified in logarithmic space to make 
+                the 7-14% advantages visible on a chart spanning many orders of magnitude. 
+                Hover over any point to see <strong>exact base values</strong>.
+            </div>
+            
+            <div class="view-toggle">
+                <button id="viewAmplified" class="active">Amplified View</button>
+                <button id="viewBase">Base Values</button>
+            </div>
+            
+            <div class="control-group" style="justify-content: center; margin: 15px 0;">
+                <label>Log Amplification Factor:</label>
+                <select id="ampFactor">
+                    <option value="50">50x</option>
+                    <option value="100" selected>100x</option>
+                    <option value="200">200x</option>
+                    <option value="500">500x</option>
+                </select>
+            </div>
+            
+            <div class="chart-container viridian-tint">
+                <div class="chart-title">Round8 Unsigned vs Unsigned Binary — Aligned at 2<sup>n</sup></div>
+                <div class="chart-wrapper" style="height: 380px;">
+                    <canvas id="unsignedChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container rust-tint">
+                <div class="chart-title">Round8 Signed vs Signed Binary — Aligned at 2<sup>n</sup></div>
+                <div class="chart-wrapper" style="height: 380px;">
+                    <canvas id="signedChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="insight-box">
+            <h3>Understanding the Visualization</h3>
+            <ul>
+                <li><strong>Log-Space Amplification:</strong> On a logarithmic scale spanning 30+ orders of magnitude, a 7% or 14% difference occupies less than 0.1% of the visual height. We amplify the log-difference (not the raw values) to make these meaningful advantages visible.</li>
+                <li><strong>Consistent Advantages:</strong> Round8 EndCap shows +7.14% at aligned positions; Round8 Max shows +14.28% at aligned positions.</li>
+                <li><strong>Bit Efficiency:</strong> Round8 achieves comparable ranges using 2 fewer bits than Signed Binary — a measurable efficiency gain.</li>
+                <li><strong><span class="unhexed-brand">UnHexed</span> Agnostic:</strong> The <span class="unhexed-brand">UnHexed</span> lossless representation applies equally to Round8 and Traditional Binary systems.</li>
+            </ul>
+        </div>
+
+        <!-- HiFi Manifesto Footer -->
+        <footer class="hifi-footer">
+            <div class="manifesto">
+                <p>We are StratiPUNKS.</p>
+                <p>We compose meaning.</p>
+                <p>We create texture that serves function.</p>
+                <p>We build the HiFi Future.</p>
+            </div>
+            <p class="practice-proof">Practice IS Proof — The CSS IS the Specification</p>
+            <p class="credits">
+                Round8 Binary Range Comparison — HiFi Functional Design v1.4<br>
+                Micah Theodore Keller @ PhuirE Research
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // ============ BASE DATA ============
+        // Round8 Unsigned - pairs with Unsigned Binary (2^n - 1 comparison)
+        const round8Unsigned = [
+            {"bigint":"16","bits":4},{"bigint":"136","bits":7},{"bigint":"1096","bits":10},{"bigint":"8776","bits":13},{"bigint":"70216","bits":16},{"bigint":"561736","bits":19},{"bigint":"4493896","bits":22},{"bigint":"35951176","bits":25},{"bigint":"287609416","bits":28},{"bigint":"2300875336","bits":31},{"bigint":"18407002696","bits":34},{"bigint":"147256021576","bits":37},{"bigint":"1178048172616","bits":40},{"bigint":"9424385380936","bits":43},{"bigint":"75395083047496","bits":46},{"bigint":"603160664379976","bits":49},{"bigint":"4825285315039816","bits":52},{"bigint":"38602282520318536","bits":55},{"bigint":"308818260162548296","bits":58},{"bigint":"2470546081300386376","bits":61},{"bigint":"19764368650403091016","bits":64},{"bigint":"158114949203224728136","bits":67},{"bigint":"1264919593625797825096","bits":70},{"bigint":"10119356749006382600776","bits":73},{"bigint":"80954853992051060806216","bits":76},{"bigint":"647638831936408486449736","bits":79},{"bigint":"5181110655491267891597896","bits":82},{"bigint":"41448885243930143132783176","bits":85},{"bigint":"331591081951441145062265416","bits":88},{"bigint":"2652728655611529160498123336","bits":91},{"bigint":"21221829244892233283984986696","bits":94},{"bigint":"169774633959137866271879893576","bits":97},{"bigint":"1358197071673102930175039148616","bits":100},{"bigint":"10865576573384823441400313188936","bits":103},{"bigint":"86924612587078587531202505511496","bits":106},{"bigint":"695396900696628700249620044091976","bits":109},{"bigint":"5563175205573029601996960352735816","bits":112},{"bigint":"44505401644584236815975682821886536","bits":115},{"bigint":"356043213156673894527805462575092296","bits":118},{"bigint":"2848345705253391156222443700600738376","bits":121},{"bigint":"22786765642027129249779549604805907016","bits":124},{"bigint":"182294125136217033998236396838447256136","bits":127},{"bigint":"1458353001089736271985891174707578049096","bits":130},{"bigint":"11666824008717890175887129397660624392776","bits":133},{"bigint":"93334592069743121407097035181284995142216","bits":136},{"bigint":"746676736557944971256776281450279961137736","bits":139},{"bigint":"5973413892463559770054210251602239689101896","bits":142},{"bigint":"47787311139708478160433682012817917512815176","bits":145},{"bigint":"382298489117667825283469456102543340102521416","bits":148},{"bigint":"3058387912941342602267755648820346720820171336","bits":151},{"bigint":"24467103303530740818142045190562773766561370696","bits":154},{"bigint":"195736826428245926545136361524502190132490965576","bits":157},{"bigint":"1565894611425967412361090892196017521059927724616","bits":160},{"bigint":"12527156891407739298888727137568140168479421796936","bits":163},{"bigint":"100217255131261914391109817100545121347835374375496","bits":166},{"bigint":"801738041050095315128878536804360970782682995003976","bits":169},{"bigint":"6413904328400762521031028294434887766261463960031816","bits":172},{"bigint":"51311234627206100168248226355479102130091711680254536","bits":175},{"bigint":"410489877017648801345985810843832817040733693442036296","bits":178},{"bigint":"3283919016141190410767886486750662536325869547536290376","bits":181},{"bigint":"26271352129129523286143091894005300290606956380290323016","bits":184},{"bigint":"210170817033036186289144735152042402324855651042322584136","bits":187},{"bigint":"1681366536264289490313157881216339218598845208338580673096","bits":190},{"bigint":"13450932290114315922505263049730713748790761666708645384776","bits":193},{"bigint":"107607458320914527380042104397845709990326093333669163078216","bits":196},{"bigint":"860859666567316219040336835182765679922608746669353304625736","bits":199},{"bigint":"6886877332538529752322694681462125439380869973354826437005896","bits":202},{"bigint":"55095018660308238018581557451697003515046959786838611496047176","bits":205},{"bigint":"440760149282465904148652459613576028120375678294708891968377416","bits":208},{"bigint":"3526081194259727233189219676908608224963005426357671135747019336","bits":211},{"bigint":"28208649554077817865513757415268865799704043410861369085976154696","bits":214},{"bigint":"225669196432622542924110059322150926397632347286890952687809237576","bits":217},{"bigint":"1805353571460980343392880474577207411181058778295127621502473900616","bits":220},{"bigint":"14442828571687842747143043796617659289448470226361020972019791204936","bits":223},{"bigint":"115542628573502741977144350372941274315587761810888167776158329639496","bits":226},{"bigint":"924341028588021935817154802983530194524702094487105342209266637115976","bits":229},{"bigint":"7394728228704175486537238423868241556197616755896842737674133096927816","bits":232},{"bigint":"59157825829633403892297907390945932449580934047174741901393064775422536","bits":235},{"bigint":"473262606637067231138383259127567459596647472377397935211144518203380296","bits":238},{"bigint":"3786100853096537849107066073020539676773179779019183481689156145627042376","bits":241},{"bigint":"30288806824772302792856528584164317414185438232153467853513249165016339016","bits":244},{"bigint":"242310454598178422342852228673314539313483505857227742828105993320130712136","bits":247},{"bigint":"1938483636785427378742817829386516314507868046857821942624847946561045697096","bits":250},{"bigint":"15507869094283419029942542635092130516062944374862575540998783572488365576776","bits":253},{"bigint":"124062952754267352239540341080737044128503554998900604327990268579906924614216","bits":256}
+        ];
+
+        // Round8 Signed - pairs with Signed Binary (2^(n-1) - 1 comparison)
+        const round8Signed = [
+            {"bigint":"8","bits":3},{"bigint":"72","bits":6},{"bigint":"584","bits":9},{"bigint":"4680","bits":12},{"bigint":"37448","bits":15},{"bigint":"299592","bits":18},{"bigint":"2396744","bits":21},{"bigint":"19173960","bits":24},{"bigint":"153391688","bits":27},{"bigint":"1227133512","bits":30},{"bigint":"9817068104","bits":33},{"bigint":"78536544840","bits":36},{"bigint":"628292358728","bits":39},{"bigint":"5026338869832","bits":42},{"bigint":"40210710958664","bits":45},{"bigint":"321685687669320","bits":48},{"bigint":"2573485501354568","bits":51},{"bigint":"20587884010836552","bits":54},{"bigint":"164703072086692424","bits":57},{"bigint":"1317624576693539400","bits":60},{"bigint":"10540996613548315208","bits":63},{"bigint":"84327972908386521672","bits":66},{"bigint":"674623783267092173384","bits":69},{"bigint":"5396990266136737387080","bits":72},{"bigint":"43175922129093899096648","bits":75},{"bigint":"345407377032751192773192","bits":78},{"bigint":"2763259016262009542185544","bits":81},{"bigint":"22106072130096076337484360","bits":84},{"bigint":"176848577040768610699874888","bits":87},{"bigint":"1414788616326148885598999112","bits":90},{"bigint":"11318308930609191084791992904","bits":93},{"bigint":"90546471444873528678335943240","bits":96},{"bigint":"724371771558988229426687545928","bits":99},{"bigint":"5794974172471905835413500367432","bits":102},{"bigint":"46359793379775246683308002939464","bits":105},{"bigint":"370878347038201973466464023515720","bits":108},{"bigint":"2967026776305615787731712188125768","bits":111},{"bigint":"23736214210444926301853697505006152","bits":114},{"bigint":"189889713683559410414829580040049224","bits":117},{"bigint":"1519117709468475283318636640320393800","bits":120},{"bigint":"12152941675747802266549093122563150408","bits":123},{"bigint":"97223533405982418132392744980505203272","bits":126},{"bigint":"777788267247859345059141959844041626184","bits":129},{"bigint":"6222306137982874760473135678752333009480","bits":132},{"bigint":"49778449103862998083785085430018664075848","bits":135},{"bigint":"398227592830903984670280683440149312606792","bits":138},{"bigint":"3185820742647231877362245467521194500854344","bits":141},{"bigint":"25486565941177855018897963740169556006834760","bits":144},{"bigint":"203892527529422840151183709921356448054678088","bits":147},{"bigint":"1631140220235382721209469679370851584437424712","bits":150},{"bigint":"13049121761883061769675757434966812675499397704","bits":153},{"bigint":"104392974095064494157406059479734501403995181640","bits":156},{"bigint":"835143792760515953259248475837876011231961453128","bits":159},{"bigint":"6681150342084127626073987806703008089855691625032","bits":162},{"bigint":"53449202736673021008591902453624064718845533000264","bits":165},{"bigint":"427593621893384168068735219628992517750764264002120","bits":168},{"bigint":"3420748975147073344549881757031940142006114112016968","bits":171},{"bigint":"27365991801176586756399054056255521136048912896135752","bits":174},{"bigint":"218927934409412694051192432450044169088391303169086024","bits":177},{"bigint":"1751423475275301552409539459600353352707130425352688200","bits":180},{"bigint":"14011387802202412419276315676802826821657043402821505608","bits":183},{"bigint":"112091102417619299354210525414422614573256347222572044872","bits":186},{"bigint":"896728819340954394833684203315380916586050777780576358984","bits":189},{"bigint":"7173830554727635158669473626523047332688406222244610871880","bits":192},{"bigint":"57390644437821081269355789012184378661507249777956886975048","bits":195},{"bigint":"459125155502568650154846312097475029292057998223655095800392","bits":198},{"bigint":"3673001244020549201238770496779800234336463985789240766403144","bits":201},{"bigint":"29384009952164393609910163974238401874691711886313926131225160","bits":204},{"bigint":"235072079617315148879281311793907214997533695090511409049801288","bits":207},{"bigint":"1880576636938521191034250494351257719980269560724091272398410312","bits":210},{"bigint":"15044613095508169528274003954810061759842156485792730179187282504","bits":213},{"bigint":"120356904764065356226192031638480494078737251886341841433498260040","bits":216},{"bigint":"962855238112522849809536253107843952629898015090734731467986080328","bits":219},{"bigint":"7702841904900182798476290024862751621039184120725877851743888642632","bits":222},{"bigint":"61622735239201462387810320198902012968313472965807022813951109141064","bits":225},{"bigint":"492981881913611699102482561591216103746507783726456182511608873128520","bits":228},{"bigint":"3943855055308893592819860492729728829972062269811649460092870985028168","bits":231},{"bigint":"31550840442471148742558883941837830639776498158493195680742967880225352","bits":234},{"bigint":"252406723539769189940471071534702645118211985267945565445943743041802824","bits":237},{"bigint":"2019253788318153519523768572277621160945695882143564523567549944334422600","bits":240},{"bigint":"16154030306545228156190148578220969287565567057148516188540399554675380808","bits":243},{"bigint":"129232242452361825249521188625767754300524536457188129508323196437403046472","bits":246},{"bigint":"1033857939618894601996169509006142034404196291657505036066585571499224371784","bits":249},{"bigint":"8270863516951156815969356072049136275233570333260040288532684571993794974280","bits":252},{"bigint":"66166908135609254527754848576393090201868562666080322308261476575950359794248","bits":255}
+        ];
+        
+        // Compute Unsigned Binary at 4-bit intervals: 2^n - 1
+        const unsignedBinary = [];
+        for (let bits = 4; bits <= 332; bits += 4) {
+            const value = (2n ** BigInt(bits)) - 1n;
+            unsignedBinary.push({ bigint: value.toString(), bits: bits });
+        }
+
+        // Compute Signed Binary at 4-bit intervals: 2^(n-1) - 1
+        const signedBinary = [];
+        for (let bits = 4; bits <= 332; bits += 4) {
+            const value = (2n ** BigInt(bits - 1)) - 1n;
+            signedBinary.push({ bigint: value.toString(), bits: bits });
+        }
+        
+        // ============ ALIGNMENT CALCULATIONS ============
+        
+        // Unsigned aligned pairs: bits + 1 = 2^n
+        function getEndCapAlignedPairs() {
+            const pairs = [];
+            [8, 32, 128].forEach(sq => {
+                const r8Bits = sq - 1;
+                const r8Entry = round8Unsigned.find(d => d.bits === r8Bits);
+                if (r8Entry) {
+                    const r8Val = BigInt(r8Entry.bigint);
+                    const signedVal = (2n ** BigInt(sq - 1)) - 1n;
+                    const diff = r8Val - signedVal;
+                    const pct = Number(diff * 10000n / signedVal) / 100;
+                    pairs.push({
+                        squaredRange: sq,
+                        r8Bits, r8Value: r8Entry.bigint,
+                        signedBits: sq, signedValue: signedVal.toString(),
+                        difference: diff.toString(), percentage: pct.toFixed(2)
+                    });
+                }
+            });
+            return pairs;
+        }
+        
+        // Signed aligned pairs: bits = 2^n - 1
+        function getMaxAlignedPairs() {
+            const pairs = [];
+            [4, 16, 64].forEach(sq => {
+                const r8Bits = sq - 1;
+                const r8Entry = round8Signed.find(d => d.bits === r8Bits);
+                if (r8Entry) {
+                    const r8Val = BigInt(r8Entry.bigint);
+                    const signedVal = (2n ** BigInt(sq - 1)) - 1n;
+                    const diff = r8Val - signedVal;
+                    const pct = Number(diff * 10000n / signedVal) / 100;
+                    pairs.push({
+                        squaredRange: sq,
+                        r8Bits, r8Value: r8Entry.bigint,
+                        signedBits: sq, signedValue: signedVal.toString(),
+                        difference: diff.toString(), percentage: pct.toFixed(2)
+                    });
+                }
+            });
+            return pairs;
+        }
+        
+        const endCapPairs = getEndCapAlignedPairs();
+        const maxPairs = getMaxAlignedPairs();
+        
+        // ============ LOG-SPACE AMPLIFICATION ============
+        let LOG_AMP_FACTOR = 100;
+        let showAmplified = true;
+        
+        function amplifyInLogSpace(r8Val, signedVal, factor) {
+            const logR8 = Math.log10(Number(r8Val));
+            const logSigned = Math.log10(Number(signedVal));
+            const logMid = (logR8 + logSigned) / 2;
+            const logDiff = logR8 - logSigned;
+            const ampLogDiff = logDiff * factor;
+            
+            return {
+                r8Amp: Math.pow(10, logMid + ampLogDiff / 2),
+                signedAmp: Math.pow(10, logMid - ampLogDiff / 2)
+            };
+        }
+        
+        function getAmplifiedData(pairs, isEndCap) {
+            const r8Data = [], signedData = [];
+            const r8DataBase = [], signedDataBase = [];
+            
+            pairs.forEach(p => {
+                const r8Val = BigInt(p.r8Value);
+                const signedVal = BigInt(p.signedValue);
+                const amp = amplifyInLogSpace(r8Val, signedVal, LOG_AMP_FACTOR);
+                
+                r8Data.push({
+                    x: p.squaredRange,
+                    y: showAmplified ? amp.r8Amp : Number(r8Val),
+                    baseValue: p.r8Value,
+                    baseBits: p.r8Bits,
+                    label: isEndCap ? 'Round8 EndCap' : 'Round8 Max'
+                });
+                
+                signedData.push({
+                    x: p.squaredRange,
+                    y: showAmplified ? amp.signedAmp : Number(signedVal),
+                    baseValue: p.signedValue,
+                    baseBits: p.signedBits,
+                    label: 'Signed Binary'
+                });
+                
+                r8DataBase.push({ x: p.squaredRange, y: Number(r8Val), baseValue: p.r8Value, baseBits: p.r8Bits });
+                signedDataBase.push({ x: p.squaredRange, y: Number(signedVal), baseValue: p.signedValue, baseBits: p.signedBits });
+            });
+            
+            return { r8Data, signedData, r8DataBase, signedDataBase };
+        }
+
+        // ============ MAIN CHART AMPLIFICATION ============
+
+        let showMainChartAmplified = true;  // Toggle for proportional vs base view
+        let UNSIGNED_AMP_FACTOR = 1000;  // Amplification for Unsigned pairing (Round8 Unsigned ↔ Unsigned Binary)
+
+        /**
+         * Amplifies pairwise datasets at naturally aligned positions only.
+         * Preserves the Grounded Mismatch - showing where each system has data and where it doesn't.
+         *
+         * Round8 Max pairs with Signed Binary
+         * Round8 EndCap pairs with Unsigned Binary
+         *
+         * Only amplifies at positions where BOTH datasets have actual sampled data.
+         * Unaligned positions use original values, preserving natural sampling patterns.
+         *
+         * @param {Array<{bits, bigint}>} r8Data - Round8 data (Max or EndCap)
+         * @param {Array<{bits, bigint}>} binaryData - Binary data (Signed or Unsigned)
+         * @param {number} factor - Amplification factor
+         * @returns {Object} - {r8Amplified, binaryAmplified} arrays
+         */
+        function amplifyPairwiseAlignedData(r8Data, binaryData, factor) {
+            // Build lookup maps for aligned positions
+            const binaryBitMap = new Map(binaryData.map(d => [d.bits, d.bigint]));
+            const r8BitMap = new Map(r8Data.map(d => [d.bits, d.bigint]));
+
+            // Amplify Round8 data
+            const r8Amplified = r8Data.map(r8Point => {
+                const binaryValue = binaryBitMap.get(r8Point.bits);
+
+                if (binaryValue && showMainChartAmplified) {
+                    // Aligned position - apply amplification
+                    const amp = amplifyInLogSpace(BigInt(r8Point.bigint), BigInt(binaryValue), factor);
+                    return {
+                        x: r8Point.bits,
+                        y: amp.r8Amp,
+                        baseValue: r8Point.bigint
+                    };
+                } else {
+                    // Unaligned position - use original value (preserves Grounded Mismatch)
+                    return {
+                        x: r8Point.bits,
+                        y: Number(r8Point.bigint),
+                        baseValue: r8Point.bigint
+                    };
+                }
+            });
+
+            // Amplify Binary data
+            const binaryAmplified = binaryData.map(binPoint => {
+                const r8Value = r8BitMap.get(binPoint.bits);
+
+                if (r8Value && showMainChartAmplified) {
+                    // Aligned position - apply amplification
+                    const amp = amplifyInLogSpace(BigInt(r8Value), BigInt(binPoint.bigint), factor);
+                    return {
+                        x: binPoint.bits,
+                        y: amp.signedAmp,
+                        baseValue: binPoint.bigint
+                    };
+                } else {
+                    // Unaligned position - use original value (preserves Grounded Mismatch)
+                    return {
+                        x: binPoint.bits,
+                        y: Number(binPoint.bigint),
+                        baseValue: binPoint.bigint
+                    };
+                }
+            });
+
+            return { r8Amplified, binaryAmplified };
+        }
+
+        // ============ UTILITY FUNCTIONS ============
+        function formatBigInt(str) {
+            if (!str) return '—';
+            if (str.length <= 15) return str;
+            return str.slice(0, 8) + '...' + str.slice(-4) + ` (${str.length} digits)`;
+        }
+        
+        function formatForChart(str) {
+            try { return Number(BigInt(str)); }
+            catch { return parseFloat(str) || 1; }
+        }
+        
+        // ============ POPULATE CARDS ============
+        function populateCards() {
+            const endcapContainer = document.getElementById('endcapCards');
+            const maxContainer = document.getElementById('maxCards');
+            
+            endcapContainer.innerHTML = endCapPairs.map(p => `
+                <div class="breakpoint-card endcap">
+                    <h4>@ ${p.squaredRange}-bit Squared Range</h4>
+                    <div class="breakpoint-row">
+                        <span class="breakpoint-label">Round8 EndCap (${p.r8Bits} bits):</span>
+                        <span class="breakpoint-value highlight">${formatBigInt(p.r8Value)}</span>
+                    </div>
+                    <div class="breakpoint-row">
+                        <span class="breakpoint-label">Signed Binary (${p.signedBits} bits):</span>
+                        <span class="breakpoint-value highlight-signed">${formatBigInt(p.signedValue)}</span>
+                    </div>
+                    <div class="breakpoint-row">
+                        <span class="breakpoint-label">Advantage:</span>
+                        <span class="breakpoint-value" style="color: #ffc107;">+${formatBigInt(p.difference)}</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <span class="percentage-badge endcap">+${p.percentage}%</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            maxContainer.innerHTML = maxPairs.map(p => `
+                <div class="breakpoint-card max">
+                    <h4>@ ${p.squaredRange}-bit Squared Range</h4>
+                    <div class="breakpoint-row">
+                        <span class="breakpoint-label">Round8 Max (${p.r8Bits} bits):</span>
+                        <span class="breakpoint-value highlight-max">${formatBigInt(p.r8Value)}</span>
+                    </div>
+                    <div class="breakpoint-row">
+                        <span class="breakpoint-label">Signed Binary (${p.signedBits} bits):</span>
+                        <span class="breakpoint-value highlight-signed">${formatBigInt(p.signedValue)}</span>
+                    </div>
+                    <div class="breakpoint-row">
+                        <span class="breakpoint-label">Advantage:</span>
+                        <span class="breakpoint-value" style="color: #ffc107;">+${formatBigInt(p.difference)}</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <span class="percentage-badge max">+${p.percentage}%</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // ============ EFFICIENCY TABLE ============
+        function populateEfficiencyTable() {
+            const tbody = document.getElementById('efficiencyTable');
+            const rows = [];
+            
+            round8Unsigned.slice(0, 10).forEach(r8 => {
+                const r8Val = BigInt(r8.bigint);
+                let signedBits = 1;
+                while ((2n ** BigInt(signedBits - 1)) - 1n < r8Val) signedBits++;
+                const signedVal = (2n ** BigInt(signedBits - 1)) - 1n;
+                const bitSaving = signedBits - r8.bits;
+                
+                rows.push(`
+                    <tr>
+                        <td class="r8">${r8.bits} bits</td>
+                        <td>${formatBigInt(r8.bigint)}</td>
+                        <td class="signed">${signedBits} bits (${signedVal.toString().length > 12 ? formatBigInt(signedVal.toString()) : signedVal})</td>
+                        <td class="advantage">${bitSaving} bits saved</td>
+                    </tr>
+                `);
+            });
+            
+            tbody.innerHTML = rows.join('');
+        }
+        
+        // ============ CHARTS ============
+        let mainChart, unsignedChart, signedChart;
+        let currentPairing = 'signed';  // Track which pairing is displayed
+
+        const colors = {
+            unsignedBinary: { border: '#00d4ff', background: 'rgba(0, 212, 255, 0.1)' },
+            signedBinary: { border: '#ff6b9d', background: 'rgba(255, 107, 157, 0.1)' },
+            round8Unsigned: { border: '#00ff88', background: 'rgba(0, 255, 136, 0.1)' },
+            round8Signed: { border: '#ff9500', background: 'rgba(255, 149, 0, 0.1)' }
+        };
+        
+        function createMainChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+
+            // Pairwise amplification at naturally aligned positions - preserves Grounded Mismatch
+            // Round8 Signed ↔ Signed Binary (14.28% advantage, 100x amplification)
+            const signedPair = amplifyPairwiseAlignedData(round8Signed, signedBinary, LOG_AMP_FACTOR);
+            // Round8 Unsigned ↔ Unsigned Binary (7.14% advantage, 1000x amplification)
+            const unsignedPair = amplifyPairwiseAlignedData(round8Unsigned, unsignedBinary, UNSIGNED_AMP_FACTOR);
+
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Unsigned Binary',
+                            data: unsignedPair.binaryAmplified,
+                            borderColor: colors.unsignedBinary.border,
+                            backgroundColor: colors.unsignedBinary.background,
+                            borderWidth: 2, pointRadius: 6, tension: 0.1,
+                            hidden: true  // Start with signed pairing visible
+                        },
+                        {
+                            label: 'Signed Binary',
+                            data: signedPair.binaryAmplified,
+                            borderColor: colors.signedBinary.border,
+                            backgroundColor: colors.signedBinary.background,
+                            borderWidth: 2, pointRadius: 6, tension: 0.1,
+                            hidden: false  // Signed pairing visible by default
+                        },
+                        {
+                            label: 'Round8 Unsigned',
+                            data: unsignedPair.r8Amplified,
+                            borderColor: colors.round8Unsigned.border,
+                            backgroundColor: colors.round8Unsigned.background,
+                            borderWidth: 2, pointRadius: 4, tension: 0.1,
+                            hidden: true  // Start with signed pairing visible
+                        },
+                        {
+                            label: 'Round8 Signed',
+                            data: signedPair.r8Amplified,
+                            borderColor: colors.round8Signed.border,
+                            backgroundColor: colors.round8Signed.background,
+                            borderWidth: 2, pointRadius: 4, tension: 0.1,
+                            hidden: false  // Signed pairing visible by default
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'nearest' },
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { color: '#8a8a8a', usePointStyle: true } },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            callbacks: {
+                                title: ctx => `${ctx[0].raw.x} bits`,
+                                label: ctx => `${ctx.dataset.label}: ${ctx.raw.baseValue}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { type: 'linear', title: { display: true, text: 'Bit Depth', color: '#6d6d6d' }, grid: { color: 'rgba(74, 166, 133, 0.2)', borderDash: [4, 4] }, ticks: { color: '#6d6d6d', stepSize: 16 }, min: 0, max: 256 },
+                        y: { type: 'logarithmic', title: { display: true, text: 'Decimal Value (Log Scale)', color: '#6d6d6d' }, grid: { color: 'rgba(74, 166, 133, 0.2)', borderDash: [4, 4] }, ticks: { color: '#6d6d6d', callback: v => v.toExponential(0) } }
+                    }
+                }
+            });
+        }
+        
+        function createComparisonCharts() {
+            const endCapData = getAmplifiedData(endCapPairs, true);
+            const maxData = getAmplifiedData(maxPairs, false);
+            
+            // Unsigned Chart
+            const ctx1 = document.getElementById('unsignedChart').getContext('2d');
+            unsignedChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Round8 Unsigned',
+                            data: endCapData.r8Data,
+                            borderColor: colors.round8Unsigned.border,
+                            backgroundColor: colors.round8Unsigned.background,
+                            borderWidth: 3, pointRadius: 10, pointHoverRadius: 12, tension: 0.1
+                        },
+                        {
+                            label: 'Unsigned Binary',
+                            data: endCapData.signedData,
+                            borderColor: colors.unsignedBinary.border,
+                            backgroundColor: colors.unsignedBinary.background,
+                            borderWidth: 3, pointRadius: 10, pointHoverRadius: 12, tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { color: '#8a8a8a', usePointStyle: true } },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            callbacks: {
+                                title: ctx => `Squared Range: ${ctx[0].raw.x} bits`,
+                                label: ctx => `${ctx.raw.label || ctx.dataset.label} (${ctx.raw.baseBits} bits): ${ctx.raw.baseValue}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { type: 'linear', title: { display: true, text: 'Squared Bit Range (2^n)', color: '#6d6d6d' }, grid: { color: 'rgba(74, 166, 133, 0.2)', borderDash: [4, 4] }, ticks: { color: '#6d6d6d' } },
+                        y: { type: 'logarithmic', title: { display: true, text: 'Value (Log Scale)', color: '#6d6d6d' }, grid: { color: 'rgba(74, 166, 133, 0.2)', borderDash: [4, 4] }, ticks: { color: '#6d6d6d', callback: v => v.toExponential(0) } }
+                    }
+                }
+            });
+            
+            // Signed Chart
+            const ctx2 = document.getElementById('signedChart').getContext('2d');
+            signedChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Round8 Signed',
+                            data: maxData.r8Data,
+                            borderColor: colors.round8Signed.border,
+                            backgroundColor: colors.round8Signed.background,
+                            borderWidth: 3, pointRadius: 10, pointHoverRadius: 12, tension: 0.1
+                        },
+                        {
+                            label: 'Signed Binary',
+                            data: maxData.signedData,
+                            borderColor: colors.signedBinary.border,
+                            backgroundColor: colors.signedBinary.background,
+                            borderWidth: 3, pointRadius: 10, pointHoverRadius: 12, tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { color: '#8a8a8a', usePointStyle: true } },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            callbacks: {
+                                title: ctx => `Squared Range: ${ctx[0].raw.x} bits`,
+                                label: ctx => `${ctx.raw.label || ctx.dataset.label} (${ctx.raw.baseBits} bits): ${ctx.raw.baseValue}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { type: 'linear', title: { display: true, text: 'Squared Bit Range (2^n)', color: '#6d6d6d' }, grid: { color: 'rgba(74, 166, 133, 0.2)', borderDash: [4, 4] }, ticks: { color: '#6d6d6d' } },
+                        y: { type: 'logarithmic', title: { display: true, text: 'Value (Log Scale)', color: '#6d6d6d' }, grid: { color: 'rgba(74, 166, 133, 0.2)', borderDash: [4, 4] }, ticks: { color: '#6d6d6d', callback: v => v.toExponential(0) } }
+                    }
+                }
+            });
+        }
+        
+        function updateComparisonCharts() {
+            const endCapData = getAmplifiedData(endCapPairs, true);
+            const maxData = getAmplifiedData(maxPairs, false);
+
+            unsignedChart.data.datasets[0].data = endCapData.r8Data;
+            unsignedChart.data.datasets[1].data = endCapData.signedData;
+            unsignedChart.update();
+
+            signedChart.data.datasets[0].data = maxData.r8Data;
+            signedChart.data.datasets[1].data = maxData.signedData;
+            signedChart.update();
+        }
+
+        function toggleMainChartPairing(pairing) {
+            // Update current pairing state
+            currentPairing = pairing;
+
+            // Update button styles
+            document.getElementById('mainToggleSigned').classList.toggle('active', pairing === 'signed');
+            document.getElementById('mainToggleUnsigned').classList.toggle('active', pairing === 'unsigned');
+
+            // Show/hide datasets based on pairing
+            if (pairing === 'signed') {
+                // Show Signed pairing (Round8 Signed ↔ Signed Binary)
+                mainChart.data.datasets[0].hidden = true;   // Hide Unsigned Binary
+                mainChart.data.datasets[1].hidden = false;  // Show Signed Binary
+                mainChart.data.datasets[2].hidden = true;   // Hide Round8 Unsigned
+                mainChart.data.datasets[3].hidden = false;  // Show Round8 Signed
+            } else {
+                // Show Unsigned pairing (Round8 Unsigned ↔ Unsigned Binary)
+                mainChart.data.datasets[0].hidden = false;  // Show Unsigned Binary
+                mainChart.data.datasets[1].hidden = true;   // Hide Signed Binary
+                mainChart.data.datasets[2].hidden = false;  // Show Round8 Unsigned
+                mainChart.data.datasets[3].hidden = true;   // Hide Round8 Signed
+            }
+
+            mainChart.update();
+            updateMainChartLegend();
+        }
+
+        function toggleMainChartAmplification(view) {
+            // Update amplification state
+            showMainChartAmplified = (view === 'proportional');
+
+            // Regenerate chart data with new amplification state
+            const signedPair = amplifyPairwiseAlignedData(round8Signed, signedBinary, LOG_AMP_FACTOR);
+            const unsignedPair = amplifyPairwiseAlignedData(round8Unsigned, unsignedBinary, UNSIGNED_AMP_FACTOR);
+
+            // Update all datasets
+            mainChart.data.datasets[0].data = unsignedPair.binaryAmplified;  // Unsigned Binary
+            mainChart.data.datasets[1].data = signedPair.binaryAmplified;    // Signed Binary
+            mainChart.data.datasets[2].data = unsignedPair.r8Amplified;      // Round8 Unsigned
+            mainChart.data.datasets[3].data = signedPair.r8Amplified;        // Round8 Signed
+
+            mainChart.update();
+            updateMainChartLegend();
+        }
+
+        // Amplification Mode Toggle (R8/DEC style)
+        function toggleAmplificationMode() {
+            const toggle = document.getElementById('amplificationModeToggle');
+            const isBaseMode = toggle.getAttribute('aria-pressed') === 'true';
+
+            // Toggle state
+            const newState = !isBaseMode;
+            toggle.setAttribute('aria-pressed', newState.toString());
+
+            // Call existing amplification logic
+            // aria-pressed="true" = BASE mode, aria-pressed="false" = PROP mode
+            toggleMainChartAmplification(newState ? 'base' : 'proportional');
+        }
+
+        function updateMainChartLegend() {
+            const legendDiv = document.getElementById('mainChartLegend');
+
+            // Always show % improvement, note amplification mode separately
+            const improvementPct = currentPairing === 'signed' ? '14.28%' : '7.14%';
+            const ampFactor = currentPairing === 'signed' ? '100×' : '1000×';
+            const modeText = showMainChartAmplified
+                ? `${ampFactor} amplified`
+                : 'base values';
+
+            if (currentPairing === 'signed') {
+                legendDiv.innerHTML = `
+                    <div class="legend-row legend-row-top">
+                        <span class="legend-item"><span class="legend-signed-binary">■</span> Signed Binary</span>
+                        <span class="legend-item"><span class="legend-round8-signed">■</span> Round8 Signed</span>
+                        <span class="legend-item legend-improvement">${improvementPct} Round8 advantage</span>
+                    </div>
+                    <div class="legend-row legend-row-bottom">
+                        <span class="legend-item legend-mode">${modeText}</span>
+                    </div>
+                `;
+            } else {
+                legendDiv.innerHTML = `
+                    <div class="legend-row legend-row-top">
+                        <span class="legend-item"><span class="legend-unsigned-binary">■</span> Unsigned Binary</span>
+                        <span class="legend-item"><span class="legend-round8-unsigned">■</span> Round8 Unsigned</span>
+                        <span class="legend-item legend-improvement">${improvementPct} Round8 advantage</span>
+                    </div>
+                    <div class="legend-row legend-row-bottom">
+                        <span class="legend-item legend-mode">${modeText}</span>
+                    </div>
+                `;
+            }
+        }
+        
+        // ============ EVENT HANDLERS ============
+        document.getElementById('viewAmplified').addEventListener('click', function() {
+            showAmplified = true;
+            this.classList.add('active');
+            document.getElementById('viewBase').classList.remove('active');
+            updateComparisonCharts();
+        });
+        
+        document.getElementById('viewBase').addEventListener('click', function() {
+            showAmplified = false;
+            this.classList.add('active');
+            document.getElementById('viewAmplified').classList.remove('active');
+            updateComparisonCharts();
+        });
+        
+        document.getElementById('ampFactor').addEventListener('change', function() {
+            LOG_AMP_FACTOR = parseInt(this.value);
+            if (showAmplified) updateComparisonCharts();
+        });
+        
+        // ============ INIT ============
+        document.addEventListener('DOMContentLoaded', function() {
+            createMainChart();
+            updateMainChartLegend();  // Initialize legend with signed pairing
+            createComparisonCharts();
+            populateCards();
+            populateEfficiencyTable();
+        });
+    </script>
+</body>
+</html>

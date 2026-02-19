@@ -308,7 +308,7 @@
     <!-- Layer 2: Markdown Background/Reader Layer (Default: background mode, z-index 1) -->
     <div id="markdown-layer" class="markdown-background-layer" data-mode="background">
         <div class="markdown-scroll-wrapper">
-            <div id="markdown-content" class="markdown-content-renderer">
+            <div id="markdown-content" class="markdown-content-renderer" data-content="theta">
                 <!-- UnHex Binary: Pre-rendered HTML with HiFi suite-colored sections -->
                 <!-- Generated from: scripts/render-markdown.js demo/content/unhex-binary.md -->
                 <div class="markdown-section" data-suite="maroon">
@@ -343,7 +343,8 @@
 0 000 000 001 111 111 = 88
 0 000 001 111 111 111 = 8,88
 0 001 111 111 111 111 = 88,88
-1 111 111 001 111 111 = 1,88,88 | Count of 70,216
+0 111 111 111 111 111 = 8,88,88
+1 111 111 111 111 111 = 18,88,88 | Count of 70,216
 </code></pre>
 <h3>Why Is 16-Bit So Important?</h3>
 <p>Every internet packet would carry 7% more data. Every 16-bit operation would be 7% more efficient.</p>
@@ -405,7 +406,6 @@
 <li>Base 10 &lt; Base 72</li>
 <li>Base 16 (Hex) &lt; Base 72</li>
 </ul>
-<p>The eventual RoundX as Base 100 will provide the means of converting from Round8 to Base 10 Decimal.</p>
 <hr>
 </div>
 <div class="markdown-section" data-suite="rose">
@@ -1008,8 +1008,7 @@ MTK @ PhuirE Research</p>
         <!-- Version Info -->
         <div class="version-info">
             <p>Round8 Calculator v0.0.168</p>
-            <p>+7% Bit Packing Efficiency at 16-bits vs Hexed Binary</p>
-            <p>Theoretical 4x Bit Packing Efficiency due to not using Binary Operands</p>
+            <p>+7.14% Bit Packing Efficiency at 16, 64, and 256-bits vs Hexed Binary</p>
             <p>Binary Operands are the Attack Vector of Shor's Factorization Attack</p>
         </div>
             </div> <!-- Close calculator-container -->
